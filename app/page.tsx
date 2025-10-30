@@ -53,7 +53,6 @@ export default function Page() {
 
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState('all'); // 'all' or 'monitoring'
-    const [activeTab, setActiveTab] = useState('all'); // 'all' or 'monitoring'
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 4; // Show 4 funds per page
 
