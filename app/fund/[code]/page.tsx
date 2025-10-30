@@ -73,168 +73,7 @@ interface FundData {
     isMonitoring: boolean;
 }
 
-// 模拟基金数据
-const mockFundData: Record<string, FundData> = {
-    '320007': {
-        code: '320007',
-        name: '诺安成长混合',
-        currentValue: '1.8560',
-        accumulatedValue: '2.5110',
-        dailyChange: '-0.0340',
-        changePercent: '-1.80%',
-        updateTime: '2025-10-30',
-        status: '打开',
-        manager: '蔡嵩松',
-        establishDate: '2009-03-10',
-        scale: '31.56亿',
-        type: '混合型',
-        riskLevel: '中高风险',
-        performance: {
-            '1d': '-1.80%',
-            '1w': '+0.25%',
-            '1m': '-2.30%',
-            '3m': '+1.50%',
-            '6m': '+3.20%',
-            '1y': '+15.60%',
-            '3y': '+25.30%',
-            sinceEstablishment: '+151.10%',
-        },
-        assetAllocation: [
-            { name: '股票', value: 85 },
-            { name: '债券', value: 10 },
-            { name: '现金', value: 5 },
-        ],
-
-        stockTop10: [
-            { name: '中芯国际', code: '688981', proportion: '10.25%', change: '+2.10%' },
-            { name: '北方华创', code: '002371', proportion: '9.85%', change: '+1.80%' },
-            { name: '韦尔股份', code: '603501', proportion: '9.20%', change: '-0.50%' },
-            { name: '闻泰科技', code: '600745', proportion: '8.75%', change: '+0.30%' },
-            { name: '三安光电', code: '600703', proportion: '8.10%', change: '-1.20%' },
-            { name: '汇顶科技', code: '603160', proportion: '7.90%', change: '+1.50%' },
-            { name: '兆易创新', code: '603986', proportion: '7.50%', change: '-0.80%' },
-            { name: '长电科技', code: '600584', proportion: '7.20%', change: '+0.60%' },
-            { name: '通富微电', code: '002156', proportion: '6.80%', change: '-1.00%' },
-            { name: '紫光国微', code: '002049', proportion: '6.50%', change: '+2.30%' },
-        ],
-
-        announcement: '本基金将于2025年11月15日发放分红，每10份派发0.5元。',
-        managerInfo: {
-            name: '蔡嵩松',
-            education: '中国科学技术大学博士',
-            experience: '8年证券从业经验',
-            bio: '专注于科技领域投资，尤其在半导体行业有深入研究。',
-        },
-        isFavorite: false,
-        isMonitoring: true,
-    },
-    '163406': {
-        code: '163406',
-        name: '兴全合润混合',
-        currentValue: '2.1560',
-        accumulatedValue: '5.0460',
-        dailyChange: '-0.0120',
-        changePercent: '-0.55%',
-        updateTime: '2025-10-30',
-        status: '暂停',
-        manager: '谢治宇',
-        establishDate: '2010-04-22',
-        scale: '276.32亿',
-        type: '混合型',
-        riskLevel: '中风险',
-        performance: {
-            '1d': '-0.55%',
-            '1w': '+1.20%',
-            '1m': '+3.50%',
-            '3m': '+5.20%',
-            '6m': '+8.30%',
-            '1y': '+22.50%',
-            '3y': '+45.20%',
-            sinceEstablishment: '+404.60%',
-        },
-        assetAllocation: [
-            { name: '股票', value: 75 },
-            { name: '债券', value: 20 },
-            { name: '现金', value: 5 },
-        ],
-
-        stockTop10: [
-            { name: '贵州茅台', code: '600519', proportion: '7.80%', change: '-0.20%' },
-            { name: '腾讯控股', code: '00700', proportion: '7.20%', change: '+1.50%' },
-            { name: '宁德时代', code: '300750', proportion: '6.80%', change: '+0.80%' },
-            { name: '美团-W', code: '03690', proportion: '6.50%', change: '-0.50%' },
-            { name: '药明康德', code: '603259', proportion: '6.20%', change: '+2.10%' },
-            { name: '隆基绿能', code: '601012', proportion: '5.80%', change: '-1.20%' },
-            { name: '五粮液', code: '000858', proportion: '5.50%', change: '+0.30%' },
-            { name: '阿里巴巴-SW', code: '09988', proportion: '5.20%', change: '+1.80%' },
-            { name: '中国平安', code: '601318', proportion: '4.90%', change: '-0.80%' },
-            { name: '海康威视', code: '002415', proportion: '4.60%', change: '+0.60%' },
-        ],
-
-        announcement: '基金经理将于2025年11月20日举办线上交流会。',
-        managerInfo: {
-            name: '谢治宇',
-            education: '复旦大学硕士',
-            experience: '12年证券从业经验',
-            bio: '价值投资风格，注重企业长期竞争力和成长性。',
-        },
-        isFavorite: true,
-        isMonitoring: true,
-    },
-    '110011': {
-        code: '110011',
-        name: '易方达中小盘混合',
-        currentValue: '5.6723',
-        accumulatedValue: '6.3923',
-        dailyChange: '-0.0231',
-        changePercent: '-0.41%',
-        updateTime: '2025-10-30',
-        status: '监控',
-        manager: '张坤',
-        establishDate: '2008-06-19',
-        scale: '231.56亿',
-        type: '混合型',
-        riskLevel: '中风险',
-        performance: {
-            '1d': '-0.41%',
-            '1w': '+0.85%',
-            '1m': '+2.10%',
-            '3m': '+4.80%',
-            '6m': '+7.50%',
-            '1y': '+18.20%',
-            '3y': '+38.60%',
-            sinceEstablishment: '+539.23%',
-        },
-        assetAllocation: [
-            { name: '股票', value: 80 },
-            { name: '债券', value: 15 },
-            { name: '现金', value: 5 },
-        ],
-
-        stockTop10: [
-            { name: '贵州茅台', code: '600519', proportion: '9.20%', change: '-0.20%' },
-            { name: '五粮液', code: '000858', proportion: '8.50%', change: '+0.30%' },
-            { name: '泸州老窖', code: '000568', proportion: '7.80%', change: '-0.50%' },
-            { name: '洋河股份', code: '002304', proportion: '7.20%', change: '+0.80%' },
-            { name: '古井贡酒', code: '000596', proportion: '6.80%', change: '+1.20%' },
-            { name: '山西汾酒', code: '600809', proportion: '6.50%', change: '-0.30%' },
-            { name: '片仔癀', code: '600436', proportion: '6.20%', change: '+2.50%' },
-            { name: '云南白药', code: '000538', proportion: '5.80%', change: '-1.20%' },
-            { name: '同仁堂', code: '600085', proportion: '5.50%', change: '+0.60%' },
-            { name: '药明康德', code: '603259', proportion: '5.20%', change: '+2.10%' },
-        ],
-
-        announcement: '本基金第三季度报告将于2025年10月31日公布。',
-        managerInfo: {
-            name: '张坤',
-            education: '清华大学硕士',
-            experience: '11年证券从业经验',
-            bio: '价值投资理念，长期持有优质企业，注重企业护城河和成长性。',
-        },
-        isFavorite: false,
-        isMonitoring: false,
-    },
-};
+// 注意：现在从API获取基金数据，不再使用本地模拟数据
 
 export default function FundDetailPage() {
     const params = useParams();
@@ -242,20 +81,31 @@ export default function FundDetailPage() {
     const fundCode = params.code as string;
     const [fund, setFund] = useState<FundData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'performance' | 'portfolio' | 'manager' | 'overview'>('performance');
 
     useEffect(() => {
-        // 模拟API请求延迟
-        const timer = setTimeout(() => {
-            // 使用类型断言确保安全访问
-            const fundData = mockFundData[fundCode as keyof typeof mockFundData];
-            if (fundData) {
-                setFund(fundData);
+        async function fetchFundDetail() {
+            try {
+                const response = await fetch(`/api/funds/${fundCode}`);
+                
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('基金不存在');
+                    }
+                    throw new Error('获取基金详情失败');
+                }
+                
+                const data = await response.json();
+                setFund(data);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : '获取基金详情失败');
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
-        }, 500);
+        }
 
-        return () => clearTimeout(timer);
+        fetchFundDetail();
     }, [fundCode]);
 
     const handleBack = () => {
@@ -290,7 +140,7 @@ export default function FundDetailPage() {
         );
     }
 
-    if (!fund) {
+    if (error || !fund) {
         return (
             <div
                 className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4"
@@ -298,7 +148,7 @@ export default function FundDetailPage() {
             >
                 <AlertCircle className="w-12 h-12 text-gray-400 mb-4" data-oid="-nrrtiz" />
                 <h2 className="text-xl font-medium text-gray-900 mb-2" data-oid="9bop0dy">
-                    基金不存在
+                    {error || '基金不存在'}
                 </h2>
                 <p className="text-gray-500 mb-6" data-oid="_96i9vx">
                     无法找到代码为 {fundCode} 的基金信息

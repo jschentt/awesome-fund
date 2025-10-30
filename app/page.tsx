@@ -1,56 +1,43 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, User, Eye, EyeOff, Settings } from 'lucide-react';
 
+interface FundItem {
+    code: string;
+    name: string;
+    currentValue: string;
+    accumulatedValue: string;
+    dailyChange: string;
+    changePercent: string;
+    isMonitoring: boolean;
+    updateTime: string;
+    status: string;
+}
+
 export default function Page() {
-    const [funds, setFunds] = useState([
-        {
-            code: '320007',
-            name: '诺安成长混合',
-            currentValue: '1.8560',
-            accumulatedValue: '2.5110',
-            dailyChange: '-0.0340',
-            changePercent: '-1.80%',
-            isMonitoring: true,
-            updateTime: '2025-10-30',
-            status: '打开',
-        },
-        {
-            code: '163406',
-            name: '兴全合润混合',
-            currentValue: '2.1560',
-            accumulatedValue: '5.0460',
-            dailyChange: '-0.0120',
-            changePercent: '-0.55%',
-            isMonitoring: true,
-            updateTime: '2025-10-30',
-            status: '暂停',
-        },
-        {
-            code: '110011',
-            name: '易方达中小盘混合',
-            currentValue: '5.6723',
-            accumulatedValue: '6.3923',
-            dailyChange: '-0.0231',
-            changePercent: '-0.41%',
-            isMonitoring: false,
-            updateTime: '2025-10-30',
-            status: '监控',
-        },
-        {
-            code: '110022',
-            name: '易方达消费行业股票',
-            currentValue: '3.8420',
-            accumulatedValue: '3.8420',
-            dailyChange: '+0.0280',
-            changePercent: '+0.73%',
-            isMonitoring: false,
-            updateTime: '2025-10-30',
-            status: '监控',
-        },
-    ]);
+    const [funds, setFunds] = useState<FundItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    
+    // 从API获取基金列表
+    useEffect(() => {
+        async function fetchFunds() {
+            try {
+                const response = await fetch('/api/funds');
+                if (response.ok) {
+                    const data = await response.json();
+                    setFunds(data);
+                }
+            } catch (error) {
+                console.error('获取基金列表失败:', error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        
+        fetchFunds();
+    }, []);
 
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState('all'); // 'all' or 'monitoring'
