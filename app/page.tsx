@@ -93,48 +93,79 @@ export default function Page() {
     return (
         <div className="min-h-screen bg-gray-50" data-oid="p27hbqg">
             {/* Header */}
-            <div className="bg-white border-b border-gray-200" data-oid="header">
-                <div className="max-w-7xl mx-auto px-4 py-4" data-oid="header-content">
-                    <div className="flex justify-between items-center" data-oid="header-flex">
-                        <h1 className="text-xl font-semibold text-gray-900" data-oid="title">
+            <div className="bg-white border-b border-gray-200 sticky top-0 z-10" data-oid="header">
+                <div
+                    className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4"
+                    data-oid="header-content"
+                >
+                    <div
+                        className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0"
+                        data-oid="header-flex"
+                    >
+                        <h1
+                            className="text-lg sm:text-xl font-semibold text-gray-900"
+                            data-oid="title"
+                        >
                             基金管理
                         </h1>
-                        <div className="flex items-center space-x-4" data-oid="user-info">
-                            <User className="w-5 h-5 text-gray-600" data-oid="user-icon" />
-                            <span className="text-sm text-gray-600" data-oid="username">
-                                登录
-                            </span>
-                            <span className="text-sm text-gray-500" data-oid="fund-count">
-                                总数量: 3
+                        <div
+                            className="flex items-center justify-between sm:justify-end space-x-3 sm:space-x-4"
+                            data-oid="user-info"
+                        >
+                            <div className="flex items-center space-x-2" data-oid="i5wjdj5">
+                                <User
+                                    className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600"
+                                    data-oid="user-icon"
+                                />
+
+                                <span
+                                    className="text-xs sm:text-sm text-gray-600"
+                                    data-oid="username"
+                                >
+                                    登录
+                                </span>
+                            </div>
+                            <span
+                                className="text-xs sm:text-sm text-gray-500"
+                                data-oid="fund-count"
+                            >
+                                总数量: {totalFunds}
                             </span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 py-6" data-oid="main-content">
+            <div
+                className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6"
+                data-oid="main-content"
+            >
                 {/* Subtitle */}
-                <p className="text-gray-600 mb-6" data-oid="subtitle">
+                <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6" data-oid="subtitle">
                     共 {totalFunds} 只基金 · 实时查看基金净值与涨跌情况
                 </p>
 
                 {/* Stats and Search */}
-                <div className="flex justify-between items-center mb-6" data-oid="stats-search">
-                    <div className="flex space-x-6" data-oid="stats">
+                <div
+                    className="flex flex-col lg:flex-row lg:justify-between lg:items-center space-y-4 lg:space-y-0 mb-6"
+                    data-oid="stats-search"
+                >
+                    {/* Stats Tabs */}
+                    <div className="flex space-x-3 sm:space-x-6" data-oid="stats">
                         <button
                             onClick={() => handleTabChange('all')}
-                            className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-colors ${
+                            className={`flex items-center space-x-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg border transition-colors min-h-[44px] ${
                                 activeTab === 'all'
                                     ? 'bg-blue-50 border-blue-200 text-blue-700'
                                     : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
                             }`}
                             data-oid="total-funds"
                         >
-                            <span className="text-sm" data-oid="total-label">
+                            <span className="text-xs sm:text-sm" data-oid="total-label">
                                 全部基金
                             </span>
                             <span
-                                className={`text-lg font-semibold ${
+                                className={`text-base sm:text-lg font-semibold ${
                                     activeTab === 'all' ? 'text-blue-700' : 'text-gray-900'
                                 }`}
                                 data-oid="total-number"
@@ -144,7 +175,7 @@ export default function Page() {
                         </button>
                         <button
                             onClick={() => handleTabChange('monitoring')}
-                            className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-colors ${
+                            className={`flex items-center space-x-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg border transition-colors min-h-[44px] ${
                                 activeTab === 'monitoring'
                                     ? 'bg-blue-50 border-blue-200 text-blue-700'
                                     : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
@@ -152,17 +183,17 @@ export default function Page() {
                             data-oid="monitoring-funds"
                         >
                             <Eye
-                                className={`w-4 h-4 ${
+                                className={`w-3 h-3 sm:w-4 sm:h-4 ${
                                     activeTab === 'monitoring' ? 'text-blue-600' : 'text-gray-600'
                                 }`}
                                 data-oid="eye-icon"
                             />
 
-                            <span className="text-sm" data-oid="monitoring-label">
+                            <span className="text-xs sm:text-sm" data-oid="monitoring-label">
                                 我的监控
                             </span>
                             <span
-                                className={`text-lg font-semibold ${
+                                className={`text-base sm:text-lg font-semibold ${
                                     activeTab === 'monitoring' ? 'text-blue-700' : 'text-gray-900'
                                 }`}
                                 data-oid="monitoring-number"
@@ -172,7 +203,11 @@ export default function Page() {
                         </button>
                     </div>
 
-                    <div className="flex items-center space-x-4" data-oid="search-controls">
+                    {/* Search Controls */}
+                    <div
+                        className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4"
+                        data-oid="search-controls"
+                    >
                         <div className="relative" data-oid="search-container">
                             <Search
                                 className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"
@@ -184,12 +219,12 @@ export default function Page() {
                                 placeholder="搜索基金代码或名称..."
                                 value={searchTerm}
                                 onChange={handleSearchChange}
-                                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
+                                className="w-full sm:w-64 pl-10 pr-4 py-2.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                                 data-oid="search-input"
                             />
                         </div>
                         <button
-                            className="flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-700"
+                            className="flex items-center justify-center space-x-2 text-xs sm:text-sm text-blue-600 hover:text-blue-700 py-2.5 sm:py-0 min-h-[44px] sm:min-h-0"
                             data-oid="add-monitoring"
                         >
                             <span data-oid="add-text">添加自选到列表</span>
@@ -198,31 +233,34 @@ export default function Page() {
                 </div>
 
                 {/* Fund Cards Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6" data-oid="funds-grid">
+                <div
+                    className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6"
+                    data-oid="funds-grid"
+                >
                     {currentFunds.map((fund) => (
                         <div
                             key={fund.code}
-                            className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow"
+                            className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow"
                             data-oid="fund-card"
                         >
                             {/* Fund Header */}
                             <div
-                                className="flex justify-between items-start mb-4"
+                                className="flex justify-between items-start mb-3 sm:mb-4"
                                 data-oid="fund-header"
                             >
-                                <div data-oid="fund-info">
+                                <div className="flex-1 min-w-0" data-oid="fund-info">
                                     <div
                                         className="flex items-center space-x-2 mb-1"
                                         data-oid="fund-code-status"
                                     >
                                         <span
-                                            className="text-lg font-semibold text-gray-900"
+                                            className="text-base sm:text-lg font-semibold text-gray-900 truncate"
                                             data-oid="fund-code"
                                         >
                                             {fund.code}
                                         </span>
                                         <span
-                                            className={`px-2 py-1 text-xs rounded ${
+                                            className={`px-2 py-1 text-xs rounded flex-shrink-0 ${
                                                 fund.status === '打开'
                                                     ? 'bg-blue-100 text-blue-700'
                                                     : fund.status === '暂停'
@@ -235,16 +273,19 @@ export default function Page() {
                                         </span>
                                     </div>
                                     <h3
-                                        className="text-base font-medium text-gray-900 mb-2"
+                                        className="text-sm sm:text-base font-medium text-gray-900 mb-2 line-clamp-2"
                                         data-oid="fund-name"
                                     >
                                         {fund.name}
                                     </h3>
                                 </div>
-                                <div className="flex space-x-2" data-oid="fund-actions">
+                                <div
+                                    className="flex space-x-1 ml-2 flex-shrink-0"
+                                    data-oid="fund-actions"
+                                >
                                     <button
                                         onClick={() => toggleMonitoring(fund.code)}
-                                        className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                                        className="p-2.5 sm:p-2 text-gray-400 hover:text-gray-600 transition-colors min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"
                                         data-oid="monitoring-toggle"
                                     >
                                         {fund.isMonitoring ? (
@@ -257,7 +298,7 @@ export default function Page() {
                                         )}
                                     </button>
                                     <button
-                                        className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                                        className="p-2.5 sm:p-2 text-gray-400 hover:text-gray-600 transition-colors min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"
                                         data-oid="settings-btn"
                                     >
                                         <Settings className="w-5 h-5" data-oid="settings-icon" />
@@ -266,16 +307,19 @@ export default function Page() {
                             </div>
 
                             {/* Fund Values */}
-                            <div className="grid grid-cols-2 gap-4 mb-4" data-oid="fund-values">
+                            <div
+                                className="grid grid-cols-2 gap-3 sm:gap-4 mb-3 sm:mb-4"
+                                data-oid="fund-values"
+                            >
                                 <div data-oid="current-value">
                                     <div
-                                        className="text-sm text-gray-500 mb-1"
+                                        className="text-xs sm:text-sm text-gray-500 mb-1"
                                         data-oid="current-label"
                                     >
                                         当日净值
                                     </div>
                                     <div
-                                        className="text-xl font-semibold text-gray-900"
+                                        className="text-lg sm:text-xl font-semibold text-gray-900"
                                         data-oid="current-amount"
                                     >
                                         {fund.currentValue}
@@ -283,13 +327,13 @@ export default function Page() {
                                 </div>
                                 <div data-oid="accumulated-value">
                                     <div
-                                        className="text-sm text-gray-500 mb-1"
+                                        className="text-xs sm:text-sm text-gray-500 mb-1"
                                         data-oid="accumulated-label"
                                     >
                                         累计净值
                                     </div>
                                     <div
-                                        className="text-xl font-semibold text-gray-900"
+                                        className="text-lg sm:text-xl font-semibold text-gray-900"
                                         data-oid="accumulated-amount"
                                     >
                                         {fund.accumulatedValue}
@@ -298,16 +342,19 @@ export default function Page() {
                             </div>
 
                             {/* Daily Change */}
-                            <div className="grid grid-cols-2 gap-4 mb-4" data-oid="daily-change">
+                            <div
+                                className="grid grid-cols-2 gap-3 sm:gap-4 mb-3 sm:mb-4"
+                                data-oid="daily-change"
+                            >
                                 <div data-oid="change-amount">
                                     <div
-                                        className="text-sm text-gray-500 mb-1"
+                                        className="text-xs sm:text-sm text-gray-500 mb-1"
                                         data-oid="change-label"
                                     >
                                         日涨跌
                                     </div>
                                     <div
-                                        className={`text-lg font-semibold ${
+                                        className={`text-base sm:text-lg font-semibold ${
                                             fund.dailyChange.startsWith('+')
                                                 ? 'text-red-600'
                                                 : 'text-green-600'
@@ -319,13 +366,13 @@ export default function Page() {
                                 </div>
                                 <div data-oid="change-percent">
                                     <div
-                                        className="text-sm text-gray-500 mb-1"
+                                        className="text-xs sm:text-sm text-gray-500 mb-1"
                                         data-oid="percent-label"
                                     >
                                         涨跌幅
                                     </div>
                                     <div
-                                        className={`text-lg font-semibold ${
+                                        className={`text-base sm:text-lg font-semibold ${
                                             fund.changePercent.startsWith('+')
                                                 ? 'text-red-600'
                                                 : 'text-green-600'
@@ -339,7 +386,7 @@ export default function Page() {
 
                             {/* Update Time */}
                             <div
-                                className="text-xs text-gray-400 border-t pt-3"
+                                className="text-xs text-gray-400 border-t pt-2 sm:pt-3"
                                 data-oid="update-time"
                             >
                                 更新时间: {fund.updateTime}
@@ -351,24 +398,27 @@ export default function Page() {
                 {/* Pagination */}
                 {totalPages > 1 && (
                     <div
-                        className="mt-8 flex justify-center items-center space-x-2"
+                        className="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-center items-center space-y-3 sm:space-y-0 sm:space-x-2"
                         data-oid="pagination"
                     >
                         <button
                             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                             disabled={currentPage === 1}
-                            className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-0"
                             data-oid="prev-button"
                         >
                             上一页
                         </button>
 
-                        <div className="flex space-x-1" data-oid="page-numbers">
+                        <div
+                            className="flex space-x-1 overflow-x-auto pb-2 sm:pb-0"
+                            data-oid="page-numbers"
+                        >
                             {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                                 <button
                                     key={page}
                                     onClick={() => setCurrentPage(page)}
-                                    className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                                    className={`px-3 sm:px-3 py-2.5 sm:py-2 text-sm font-medium rounded-md transition-colors min-w-[44px] min-h-[44px] sm:min-h-0 flex items-center justify-center ${
                                         currentPage === page
                                             ? 'bg-blue-600 text-white'
                                             : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
@@ -383,7 +433,7 @@ export default function Page() {
                         <button
                             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                             disabled={currentPage === totalPages}
-                            className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-0"
                             data-oid="next-button"
                         >
                             下一页
@@ -392,7 +442,10 @@ export default function Page() {
                 )}
 
                 {/* Results Info */}
-                <div className="mt-6 text-center text-sm text-gray-500" data-oid="results-info">
+                <div
+                    className="mt-4 sm:mt-6 text-center text-xs sm:text-sm text-gray-500 px-4"
+                    data-oid="results-info"
+                >
                     显示 {startIndex + 1}-{Math.min(endIndex, filteredFunds.length)} 条，共{' '}
                     {filteredFunds.length} 条结果
                     {activeTab === 'monitoring' && ` (监控中: ${monitoringFunds} 只)`}
