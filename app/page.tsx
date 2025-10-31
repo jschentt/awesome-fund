@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, User, Eye, EyeOff, Settings } from 'lucide-react';
+import { Search, Eye, EyeOff, Settings } from 'lucide-react';
 import Navbar from '@/components/navbar';
 
 interface FundItem {
@@ -20,7 +20,7 @@ interface FundItem {
 export default function Page() {
     const [funds, setFunds] = useState<FundItem[]>([]);
     const [loading, setLoading] = useState(true);
-    
+
     // 从API获取基金列表
     useEffect(() => {
         async function fetchFunds() {
@@ -36,7 +36,7 @@ export default function Page() {
                 setLoading(false);
             }
         }
-        
+
         fetchFunds();
     }, []);
 
@@ -86,34 +86,19 @@ export default function Page() {
             {/* 主要内容 */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0 mb-6">
-                    <h1
-                        className="text-xl sm:text-2xl font-bold text-gray-900"
-                        data-oid="up9q76g"
-                    >
+                    <h1 className="text-xl sm:text-2xl font-bold text-gray-900" data-oid="up9q76g">
                         基金管理
                     </h1>
                     <div
-                        className="flex items-center justify-between sm:justify-end space-x-3 sm:space-x-4"
-                            data-oid="k3fhp1l"
-                        >
-                            <div className="flex items-center space-x-2" data-oid="n2_6t-h">
-                                <User
-                                    className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600"
-                                    data-oid="5qt3__e"
-                                />
-                                <span
-                                    className="text-xs sm:text-sm text-gray-600"
-                                    data-oid="4_lhlz5"
-                                >
-                                    登录
-                                </span>
-                            </div>
-                            <span className="text-xs sm:text-sm text-gray-500" data-oid="1gr45uk">
-                                总数量: {totalFunds}
-                            </span>
-                        </div>
+                        className="flex items-center justify-end space-x-3 sm:space-x-4"
+                        data-oid="k3fhp1l"
+                    >
+                        <span className="text-xs sm:text-sm text-gray-500" data-oid="1gr45uk">
+                            总数量: {totalFunds}
+                        </span>
                     </div>
                 </div>
+            </div>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6" data-oid="denm-p5">
                 {/* Subtitle */}
                 <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6" data-oid="rem0.x2">
