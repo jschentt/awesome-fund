@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 // 导入全局样式文件
-import '@/app/globals.css';
+import './globals.css';
 import { AuthProvider } from './providers/auth-provider';
 
 export const metadata: Metadata = {
