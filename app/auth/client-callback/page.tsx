@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Loading from '@/components/loading';
 
 // 这个页面只在客户端执行，专门处理认证回调逻辑
 export default function ClientCallbackPage() {
@@ -80,12 +81,7 @@ export default function ClientCallbackPage() {
   // 显示不同的状态UI
   switch (status) {
     case 'loading':
-      return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
-          <div className="text-2xl font-bold text-gray-800 mb-4">正在处理认证...</div>
-          <div className="w-12 h-12 border-4 border-t-blue-500 border-gray-200 rounded-full animate-spin"></div>
-        </div>
-      );
+      return <Loading fullScreen text="正在处理认证" type="spinner" size="large" />;
     case 'success':
       return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">

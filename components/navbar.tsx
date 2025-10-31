@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/app/providers/auth-provider';
+import Loading from './loading';
 
 export default function Navbar() {
     const { user, loading, logout } = useAuth();
@@ -76,7 +77,7 @@ export default function Navbar() {
     };
 
     if (loading) {
-        return <div>加载中...</div>;
+        return <Loading text="加载中" type="spinner" />;
     }
 
     return (
@@ -90,9 +91,16 @@ export default function Navbar() {
                             <button
                                 onClick={handleLogout}
                                 disabled={logoutLoading}
-                                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded"
+                                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded flex items-center justify-center gap-2"
                             >
-                                {logoutLoading ? '退出中...' : '退出登录'}
+                                {logoutLoading ? (
+                                    <>
+                                        <Loading size="small" type="dots" />
+                                        <span>退出中</span>
+                                    </>
+                                ) : (
+                                    '退出登录'
+                                )}
                             </button>
                         </>
                     ) : (
@@ -152,9 +160,16 @@ export default function Navbar() {
                                             type="button"
                                             onClick={handleSendMagicLink}
                                             disabled={sendLoading}
-                                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-                                        >
-                                            {sendLoading ? '发送中...' : '发送登录链接'}
+                                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center justify-center gap-2"
+                                    >
+                                        {sendLoading ? (
+                                            <>
+                                                <Loading size="small" type="dots" color="white" />
+                                                <span>发送中</span>
+                                            </>
+                                        ) : (
+                                            '发送登录链接'
+                                        )}
                                         </button>
                                     </div>
                                 </div>

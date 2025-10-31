@@ -14,6 +14,7 @@ import {
     BookmarkCheck,
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
+import Loading from '@/components/loading';
 
 // 定义基金数据类型接口
 interface FundPerformance {
@@ -123,17 +124,7 @@ export default function FundDetailPage() {
     };
 
     if (loading) {
-        return (
-            <div
-                className="min-h-screen bg-gray-50 flex items-center justify-center"
-                data-oid="pvnx9mf"
-            >
-                <div
-                    className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"
-                    data-oid="ald_32:"
-                ></div>
-            </div>
-        );
+        return <Loading />;
     }
 
     if (error || !fund) {

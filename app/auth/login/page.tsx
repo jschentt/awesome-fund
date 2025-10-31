@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import Loading from '@/components/loading';
 // 使用原生HTML元素代替不存在的组件
 
 export default function LoginPage() {
@@ -96,8 +97,15 @@ export default function LoginPage() {
           </form>
         </div>
         <div className="mt-6">
-          <button type="submit" onClick={handleSubmit} disabled={loading} className="w-full bg-blue-500 hover:bg-blue-600 text-white p-2 rounded">
-            {loading ? '发送中...' : '发送Magic Link'}
+          <button type="submit" onClick={handleSubmit} disabled={loading} className="w-full bg-blue-500 hover:bg-blue-600 text-white p-3 rounded flex items-center justify-center gap-2">
+            {loading ? (
+              <>
+                <Loading size="small" type="dots" color="#FFFFFF" />
+                <span>发送中</span>
+              </>
+            ) : (
+              '发送Magic Link'
+            )}
           </button>
         </div>
       </div>
