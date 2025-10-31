@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, User, Eye, EyeOff, Settings } from 'lucide-react';
+import Navbar from '@/components/navbar';
 
 interface FundItem {
     code: string;
@@ -80,24 +81,19 @@ export default function Page() {
 
     return (
         <div className="min-h-screen bg-gray-50" data-oid="e38gb.n">
-            {/* Header */}
-            <div className="bg-white border-b border-gray-200 sticky top-0 z-10" data-oid="8_dplnf">
-                <div
-                    className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4"
-                    data-oid="u-t5s:9"
-                >
-                    <div
-                        className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0"
-                        data-oid="qu.udu7"
+            {/* 使用导航栏组件 */}
+            <Navbar />
+            {/* 主要内容 */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0 mb-6">
+                    <h1
+                        className="text-xl sm:text-2xl font-bold text-gray-900"
+                        data-oid="up9q76g"
                     >
-                        <h1
-                            className="text-lg sm:text-xl font-semibold text-gray-900"
-                            data-oid="up9q76g"
-                        >
-                            基金管理
-                        </h1>
-                        <div
-                            className="flex items-center justify-between sm:justify-end space-x-3 sm:space-x-4"
+                        基金管理
+                    </h1>
+                    <div
+                        className="flex items-center justify-between sm:justify-end space-x-3 sm:space-x-4"
                             data-oid="k3fhp1l"
                         >
                             <div className="flex items-center space-x-2" data-oid="n2_6t-h">
