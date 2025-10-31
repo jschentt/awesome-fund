@@ -54,11 +54,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // 退出登录函数
   const logout = async () => {
     try {
-      await fetch('/api/auth/logout', {
+      // 先清除本地状态，确保UI立即更新
+      setUser(null);
+      setSession(null);
+      
+      // 清除localStorage中所有缓存信息
+      console.log('正在清除localStorage缓存...');
+      localStorage.clear();
+      console.log('localStorage缓存已清除');
+      
+      // 然后调用API执行服务器端登出
+      const response = await fetch('/api/auth/logout', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '退出登录失败');
+      }
+      
+      // 强制刷新页面到登录页，确保所有状态都被清除
+      setTimeout(() => {
+        window.location.replace('/auth/login');
+      }, 100);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '退出登录失败');
+      const errorMessage = err instanceof Error ? err.message : '退出登录失败';
+      setError(errorMessage);
+      console.error('登出错误:', err);
+      
+      // 即使发生错误，仍然尝试清除本地状态、localStorage缓存并重定向
+      setUser(null);
+      setSession(null);
+      try {
+        localStorage.clear();
+      } catch (storageErr) {
+        console.error('清除localStorage失败:', storageErr);
+      }
+      
+      setTimeout(() => {
+        window.location.replace('/auth/login');
+      }, 100);
     }
   };
 

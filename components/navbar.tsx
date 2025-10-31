@@ -44,8 +44,19 @@ export default function Navbar() {
     }
   };
 
+  const [logoutLoading, setLogoutLoading] = useState(false);
+
   const handleLogout = async () => {
-    await logout();
+    setLogoutLoading(true);
+    try {
+      await logout();
+    } catch (error) {
+      console.error('登出失败:', error);
+      // 即使失败也让用户看到登录按钮
+      window.location.reload();
+    } finally {
+      setLogoutLoading(false);
+    }
   };
 
   // 简单的弹窗组件
@@ -84,9 +95,10 @@ export default function Navbar() {
                 <span className="text-sm font-medium">欢迎, {user.email}</span>
                 <button 
                   onClick={handleLogout}
+                  disabled={logoutLoading}
                   className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded"
                 >
-                  退出登录
+                  {logoutLoading ? '退出中...' : '退出登录'}
                 </button>
               </>
             ) : (
