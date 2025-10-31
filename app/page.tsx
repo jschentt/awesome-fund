@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, User, Eye, EyeOff, Settings } from 'lucide-react';
-import Navbar from '@/components/navbar';
+// 暂时注释掉，稍后修复组件导入问题
+// import Navbar from '@/components/navbar';
 
 interface FundItem {
     code: string;
@@ -81,8 +82,19 @@ export default function Page() {
 
     return (
         <div className="min-h-screen bg-gray-50" data-oid="e38gb.n">
-            {/* 使用导航栏组件 */}
-            <Navbar />
+            {/* 导航栏占位 - 暂时使用简单的导航结构 */}
+            <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <div className="container flex h-16 items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-xl font-bold">基金监测列表</h1>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <a href="/auth/login" className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                            登录
+                        </a>
+                    </div>
+                </div>
+            </header>
             {/* 主要内容 */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0 mb-6">
@@ -114,8 +126,6 @@ export default function Page() {
                         </div>
                     </div>
                 </div>
-            </div>
-
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6" data-oid="denm-p5">
                 {/* Subtitle */}
                 <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6" data-oid="rem0.x2">

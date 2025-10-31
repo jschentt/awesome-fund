@@ -1,33 +1,25 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
 
-// 处理Magic Link回调
+// 处理认证回调，将所有请求重定向到客户端callback页面
 export async function GET(request: Request) {
   try {
+    // 获取当前URL的查询参数
     const url = new URL(request.url);
-    const token_hash = url.searchParams.get('token_hash');
-    const type = url.searchParams.get('type');
-    const next = '/'; // 登录成功后重定向的默认路径
-
-    if (token_hash && type === 'email') {
-      // 使用Supabase验证Magic Link令牌
-      const { error } = await supabase.auth.verifyOtp({
-        type: 'email',
-        token_hash,
-      });
-
-      if (error) {
-        // 验证失败，重定向到错误页面
-        return NextResponse.redirect(new URL(`/auth/error?message=${encodeURIComponent(error.message)}`, request.url));
-      }
-
-      // 验证成功，重定向到首页
-      return NextResponse.redirect(new URL(next, request.url));
-    }
-
-    // 参数不完整，重定向到错误页面
-    return NextResponse.redirect(new URL('/auth/error', request.url));
+    const params = url.searchParams;
+    
+    // 构建重定向URL，保留所有查询参数
+    const redirectUrl = new URL('/auth/callback', request.url);
+    
+    // 复制所有查询参数
+    params.forEach((value, key) => {
+      redirectUrl.searchParams.set(key, value);
+    });
+    
+    // 重定向到客户端callback页面
+    return NextResponse.redirect(redirectUrl);
   } catch (error) {
-    return NextResponse.redirect(new URL('/auth/error', request.url));
+    console.error('回调重定向错误:', error);
+    // 出现错误时重定向到错误页面
+    return NextResponse.redirect(new URL('/auth/error?message=处理回调时发生错误', request.url));
   }
 }

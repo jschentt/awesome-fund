@@ -1,18 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { redirect } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { CardContent } from '@/components/ui/card';
-import { CardDescription } from '@/components/ui/card';
-import { CardFooter } from '@/components/ui/card';
-import { CardHeader } from '@/components/ui/card';
-import { CardTitle } from '@/components/ui/card';
+// 使用原生HTML元素代替不存在的组件
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -20,17 +14,25 @@ export default function LoginPage() {
 
   // 检查用户是否已登录
   const checkUserSession = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      redirect('/');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        router.replace('/');
+      }
+    } catch (err) {
+      console.error('检查登录状态失败:', err);
     }
   };
 
   // 组件挂载时检查用户登录状态
-  useState(() => checkUserSession());
+  useEffect(() => {
+    checkUserSession();
+  }, [router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
     setLoading(true);
     setError('');
     setSuccess('');
@@ -61,27 +63,27 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-center text-2xl">使用邮箱登录</CardTitle>
-          <CardDescription className="text-center">
+      <div className="bg-white rounded-lg shadow-md p-6 w-full max-w-md">
+        <div className="mb-6">
+          <h2 className="text-center text-2xl font-bold mb-2">使用邮箱登录</h2>
+          <p className="text-center text-gray-600">
             我们将发送一个Magic Link到您的邮箱
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          </p>
+        </div>
+        <div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
                 邮箱地址
               </label>
-              <Input
+              <input
                 id="email"
                 type="email"
                 placeholder="your@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full"
+                className="w-full p-2 border rounded"
                 disabled={loading}
               />
             </div>
@@ -92,13 +94,13 @@ export default function LoginPage() {
               <div className="text-green-500 text-sm font-medium">{success}</div>
             )}
           </form>
-        </CardContent>
-        <CardFooter>
-          <Button type="submit" onClick={handleSubmit} disabled={loading} className="w-full">
+        </div>
+        <div className="mt-6">
+          <button type="submit" onClick={handleSubmit} disabled={loading} className="w-full bg-blue-500 hover:bg-blue-600 text-white p-2 rounded">
             {loading ? '发送中...' : '发送Magic Link'}
-          </Button>
-        </CardFooter>
-      </Card>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
