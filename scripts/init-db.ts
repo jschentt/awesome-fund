@@ -66,14 +66,14 @@ async function insertInitialData() {
           successCount++;
         }
       } catch (err) {
-        console.error(`❌ 处理基金 ${fund.code} 时发生异常:`, err.message);
+        console.error(`❌ 处理基金 ${fund.code} 时发生异常:`, err instanceof Error ? err.message : String(err));
         errorCount++;
       }
     }
     
     return { success: successCount > 0 || errorCount === 0, successCount, totalCount: initialFundsData.length };
   } catch (error) {
-    console.error('插入数据过程中发生错误:', error.message);
+    console.error('插入数据过程中发生错误:', error instanceof Error ? error.message : String(error));
     return { success: false, successCount: 0, totalCount: initialFundsData.length };
   }
 }
@@ -99,7 +99,7 @@ async function checkDatabaseStatus() {
     console.error(`⚠️  数据库查询错误: ${error.message}`);
     return { connected: true, tableExists: false, dataCount: 0 };
   } catch (error) {
-    console.error('❌ 数据库连接失败:', error.message);
+    console.error('❌ 数据库连接失败:', error instanceof Error ? error.message : String(error));
     return { connected: false, tableExists: false, dataCount: 0 };
   }
 }

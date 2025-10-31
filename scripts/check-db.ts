@@ -81,7 +81,7 @@ async function checkDatabase() {
       console.log(`监控中的基金: ${monitoringCount || 0}`);
       console.log(`未监控的基金: ${(totalCount || 0) - (monitoringCount || 0)}`);
     } catch (statError) {
-      console.log(`监控状态统计出错: ${statError.message}`);
+      console.log(`监控状态统计出错: ${statError instanceof Error ? statError.message : '未知错误'}`);
       console.log(`总基金数量: ${totalCount || 0}`);
     }
     

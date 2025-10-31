@@ -75,16 +75,41 @@ export async function migrateDatabase() {
     
     // 插入初始数据
     for (const fund of initialFundsData) {
-      const { error } = await supabase
-        .from('funds')
-        .insert([fund])
-        .onConflict('code')
-        .ignore();
-      
-      if (error) {
-        console.error(`插入基金 ${fund.code} 时出错:`, error);
-      } else {
-        console.log(`基金 ${fund.code} 插入成功`);
+      try {
+        // 首先检查记录是否存在
+        const { data: existingFund, error: selectError } = await supabase
+          .from('funds')
+          .select('code')
+          .eq('code', fund.code)
+          .single();
+        
+        // 如果记录不存在，才插入
+        if (!existingFund && !selectError) {
+          const { error: insertError } = await supabase
+            .from('funds')
+            .insert([fund]);
+          
+          if (insertError) {
+            console.error(`插入基金 ${fund.code} 时出错:`, insertError);
+          } else {
+            console.log(`基金 ${fund.code} 插入成功`);
+          }
+        } else if (selectError && selectError.code === 'PGRST116') {
+          // 处理不存在的情况（PGRST116是single()找不到记录的错误码）
+          const { error: insertError } = await supabase
+            .from('funds')
+            .insert([fund]);
+          
+          if (insertError) {
+            console.error(`插入基金 ${fund.code} 时出错:`, insertError);
+          } else {
+            console.log(`基金 ${fund.code} 插入成功`);
+          }
+        } else {
+          console.log(`基金 ${fund.code} 已存在，跳过插入`);
+        }
+      } catch (err) {
+        console.error(`处理基金 ${fund.code} 时发生异常:`, err);
       }
     }
     

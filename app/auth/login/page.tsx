@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 // 使用原生HTML元素代替不存在的组件
@@ -13,7 +13,7 @@ export default function LoginPage() {
   const [success, setSuccess] = useState('');
 
   // 检查用户是否已登录
-  const checkUserSession = async () => {
+  const checkUserSession = useCallback(async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -22,12 +22,12 @@ export default function LoginPage() {
     } catch (err) {
       console.error('检查登录状态失败:', err);
     }
-  };
+  }, [router]);
 
   // 组件挂载时检查用户登录状态
   useEffect(() => {
     checkUserSession();
-  }, [router]);
+  }, [router, checkUserSession]);
 
   const handleSubmit = async (e?: React.FormEvent | React.MouseEvent) => {
     if (e) {
