@@ -23,5 +23,3 @@ bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in Onlook to see the result.
-# Vercel构建测试
-# 新的Vercel构建测试 - 2025年10月31日 星期五 10时35分58秒 CST
