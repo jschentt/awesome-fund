@@ -48,5 +48,39 @@ import { supabase } from '@/lib/supabase';
 // 示例：获取数据
 const { data, error } = await supabase
   .from('your_table')
-  .select('*');
 ```
+
+## 数据库初始化
+
+项目支持通过代码自动创建数据库表和初始化数据。
+
+### 前提条件
+
+1. 确保在`.env.local`文件中配置了正确的`SUPABASE_SERVICE_ROLE_KEY`
+2. 首先需要在Supabase Dashboard中执行以下SQL创建`exec_sql`函数：
+
+```sql
+-- 从 lib/db/sql_functions.sql 文件中获取
+CREATE OR REPLACE FUNCTION public.exec_sql(query text)
+RETURNS void AS $$
+BEGIN
+  EXECUTE query;
+EXCEPTION
+  WHEN OTHERS THEN
+    RAISE NOTICE 'SQL执行错误: %', SQLERRM;
+    RAISE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION public.exec_sql(text) TO anon, authenticated;
+```
+
+### 执行初始化
+
+运行以下命令执行数据库初始化：
+
+```bash
+pnpm db:init
+```
+
+这将自动创建`posts`表并插入初始数据。

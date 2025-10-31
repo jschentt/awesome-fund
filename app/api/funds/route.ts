@@ -1,53 +1,41 @@
 import { NextResponse } from 'next/server';
+import { supabase } from '@/lib/supabase';
 
 export async function GET() {
-  // 基金列表数据
-  const funds = [
-    {
-      code: '320007',
-      name: '诺安成长混合',
-      currentValue: '1.8560',
-      accumulatedValue: '2.5110',
-      dailyChange: '-0.0340',
-      changePercent: '-1.80%',
-      isMonitoring: true,
-      updateTime: '2025-10-30',
-      status: '打开',
-    },
-    {
-      code: '163406',
-      name: '兴全合润混合',
-      currentValue: '2.1560',
-      accumulatedValue: '5.0460',
-      dailyChange: '-0.0120',
-      changePercent: '-0.55%',
-      isMonitoring: true,
-      updateTime: '2025-10-30',
-      status: '暂停',
-    },
-    {
-      code: '110011',
-      name: '易方达中小盘混合',
-      currentValue: '5.6723',
-      accumulatedValue: '6.3923',
-      dailyChange: '-0.0231',
-      changePercent: '-0.41%',
-      isMonitoring: false,
-      updateTime: '2025-10-30',
-      status: '监控',
-    },
-    {
-      code: '110022',
-      name: '易方达消费行业股票',
-      currentValue: '3.8420',
-      accumulatedValue: '3.8420',
-      dailyChange: '+0.0280',
-      changePercent: '+0.73%',
-      isMonitoring: false,
-      updateTime: '2025-10-30',
-      status: '监控',
-    },
-  ];
+  try {
+    // 从Supabase数据库获取基金数据
+    const { data: funds, error } = await supabase
+      .from('funds')
+      .select('*')
+      .order('id', { ascending: true });
 
-  return NextResponse.json(funds);
+    if (error) {
+      console.error('获取基金数据失败:', error);
+      return NextResponse.json(
+        { error: '获取基金数据失败' },
+        { status: 500 }
+      );
+    }
+
+    // 转换数据格式以匹配前端期望的字段名
+    const formattedFunds = funds.map(fund => ({
+      code: fund.code,
+      name: fund.name,
+      currentValue: fund.current_value,
+      accumulatedValue: fund.accumulated_value,
+      dailyChange: fund.daily_change,
+      changePercent: fund.change_percent,
+      isMonitoring: fund.is_monitoring,
+      updateTime: fund.update_time,
+      status: fund.status,
+    }));
+
+    return NextResponse.json(formattedFunds);
+  } catch (error) {
+    console.error('服务器错误:', error);
+    return NextResponse.json(
+      { error: '服务器错误' },
+      { status: 500 }
+    );
+  }
 }

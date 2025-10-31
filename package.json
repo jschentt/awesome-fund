@@ -8,7 +8,9 @@
         "start": "next start",
         "lint": "next lint",
         "format": "prettier --write .",
-        "deploy": "vercel --prod"
+        "deploy": "vercel --prod",
+        "db:init": "tsx scripts/init-db.ts",
+        "db:check": "tsx scripts/check-db.ts"
     },
     "dependencies": {
         "@radix-ui/react-slot": "^1.1.0",
@@ -27,11 +29,13 @@
         "@types/node": "^20",
         "@types/react": "^18",
         "@types/react-dom": "^18",
+        "dotenv": "^17.2.3",
         "eslint": "^8",
         "eslint-config-next": "^15.1.6",
         "postcss": "^8",
         "prettier": "^3.3.3",
         "tailwindcss": "^3.4.1",
+        "tsx": "^4.20.6",
         "typescript": "^5"
     }
 }

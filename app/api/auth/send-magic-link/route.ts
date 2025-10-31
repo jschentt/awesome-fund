@@ -22,15 +22,9 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: '无法确定重定向地址' }, { status: 500 });
         }
 
-        console.log('Sending magic link to:', email);
-        console.log('Redirect URL:', `${origin}/auth/client-callback`);
-
         // 使用Supabase的Magic Link认证功能
-        // 确保重定向URL兼容本地和线上环境
         const callbackPath = '/auth/client-callback';
         const redirectUrl = `${origin}${callbackPath}`;
-        
-        console.log('Redirect URL:', redirectUrl);
         
         const { error } = await supabase.auth.signInWithOtp({
             email,
