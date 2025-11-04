@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 // 导入全局样式文件
 import './globals.css';
 import { AuthProvider } from './providers/auth-provider';
+import { HeroUIProvider } from '@heroui/react';
 
 export const metadata: Metadata = {
     title: '基金监测列表',
@@ -12,7 +13,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     return (
         <html lang="zh-CN" data-oid="nkt6ee.">
             <body className="" data-oid=":skcoqk">
-                <AuthProvider>{children}</AuthProvider>
+                <HeroUIProvider>
+                    <AuthProvider>{children}</AuthProvider>
+                </HeroUIProvider>
             </body>
         </html>
     );
