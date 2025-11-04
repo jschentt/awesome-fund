@@ -1,0 +1,11 @@
+- 使用 App Router（`/app` 目录），不碰 `/pages`
+- 数据获取：Server Component 默认 async/await，Client Component 用 SWR
+- 路由组 & 并行路由按业务域拆分，例如 `(shop)/products/[id]/page.tsx`
+- 环境变量前缀：客户端必须 `NEXT_PUBLIC_`
+- API 路由统一放在 `/app/api/**/route.ts`，返回 `Response.json()`
+- 元数据：每个 `page.tsx` 导出 `generateMetadata` 函数
+- 中间件：`middleware.ts` 仅放真正全局逻辑（鉴权、i18n）
+- 样式：Tailwind + CSS Module 混用，组件级样式用 `*.module.css`
+- 图片：优先 `<Image />`，静态 svg 放 `/public/icons`
+- 国际化：next-intl，字典文件 `/messages/{locale}.json`
+- 构建输出：standalone 模式，Docker 镜像 ≤ 200 MB
