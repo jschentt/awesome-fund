@@ -15,7 +15,7 @@ import {
     Plus,
     Star,
 } from 'lucide-react';
-import { Button } from '@heroui/react';
+import { Button } from 'antd';
 
 export interface FundItem {
     code: string;
@@ -302,7 +302,7 @@ export default function FundList({ initialFunds = mockFunds }: FundListProps) {
                     >
                         <div className="flex flex-col sm:flex-row">
                             <Button
-                                variant={activeTab === 'all' ? 'solid' : 'ghost'}
+                                variant={activeTab === 'all' ? 'solid' : 'text'}
                                 className={`flex items-center space-x-2 px-4 py-2 w-full sm:w-auto ${activeTab === 'all' ? 'bg-blue-50 border-blue-200 text-blue-700 rounded-md' : ''}`}
                                 onClick={() => handleTabChange('all')}
                             >
@@ -314,7 +314,7 @@ export default function FundList({ initialFunds = mockFunds }: FundListProps) {
                                 </span>
                             </Button>
                             <Button
-                                variant={activeTab === 'monitoring' ? 'solid' : 'ghost'}
+                                variant={activeTab === 'monitoring' ? 'solid' : 'text'}
                                 className={`flex items-center space-x-2 px-4 py-2 w-full sm:w-auto ${activeTab === 'monitoring' ? 'bg-blue-50 border-blue-200 text-blue-700 rounded-md' : ''}`}
                                 onClick={() => handleTabChange('monitoring')}
                             >
@@ -327,7 +327,7 @@ export default function FundList({ initialFunds = mockFunds }: FundListProps) {
                                 </span>
                             </Button>
                             <Button
-                                variant={activeTab === 'favorite' ? 'solid' : 'ghost'}
+                                variant={activeTab === 'favorite' ? 'solid' : 'text'}
                                 className={`flex items-center space-x-2 px-4 py-2 w-full sm:w-auto ${activeTab === 'favorite' ? 'bg-blue-50 border-blue-200 text-blue-700 rounded-md' : ''}`}
                                 onClick={() => handleTabChange('favorite')}
                             >
@@ -361,7 +361,7 @@ export default function FundList({ initialFunds = mockFunds }: FundListProps) {
                         </div>
                         <Button
                             onClick={() => handleSortChange()}
-                            variant={sortOrder === 'none' ? 'ghost' : 'solid'}
+                            variant={sortOrder === 'none' ? 'text' : 'solid'}
                             className={`flex items-center space-x-2 ${sortOrder === 'none' ? 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50' : 'bg-blue-50 text-blue-700 border-blue-200'}`}
                         >
                             <span className="font-medium">按涨跌幅排序</span>
@@ -436,8 +436,8 @@ export default function FundList({ initialFunds = mockFunds }: FundListProps) {
                                         {/* 操作按钮容器 */}
                                         <div className="relative">
                                             <Button
-                                                variant="ghost"
-                                                size="sm"
+                                                variant="text"
+                                                size="small"
                                                 className="w-8 h-8 rounded-full text-gray-500 hover:bg-gray-100"
                                                 onClick={(e) => {
                                                     e.preventDefault();

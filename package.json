@@ -13,11 +13,10 @@
         "db:check": "tsx scripts/check-db.ts"
     },
     "dependencies": {
-        "@heroui/react": "^2.6.11",
-        "@heroui/theme": "^2.4.23",
         "@radix-ui/react-slot": "^1.1.0",
         "@supabase/auth-helpers-nextjs": "^0.10.0",
         "@supabase/supabase-js": "^2.78.0",
+        "antd": "^5.29.1",
         "class-variance-authority": "^0.7.0",
         "clsx": "^2.1.1",
         "framer-motion": "^12.23.24",
