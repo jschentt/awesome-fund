@@ -1,4 +1,4 @@
-# Onlook Starter Template
+# awesome-fund
 
 <p align="center">
   <img src="app/favicon.ico" />
