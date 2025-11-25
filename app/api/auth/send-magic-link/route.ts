@@ -25,7 +25,7 @@ export async function POST(request: Request) {
         // 使用Supabase的Magic Link认证功能
         const callbackPath = '/auth/client-callback';
         const redirectUrl = `${origin}${callbackPath}`;
-        
+
         const { error } = await supabase.auth.signInWithOtp({
             email,
             options: {

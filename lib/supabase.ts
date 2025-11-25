@@ -9,23 +9,25 @@ const isBrowser = typeof window !== 'undefined';
 let supabaseClient: SupabaseClient | null = null;
 
 try {
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    supabaseClient = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    );
-  }
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+        supabaseClient = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        );
+    }
 } catch (error) {
-  console.error('Failed to initialize Supabase client:', error);
+    console.error('Failed to initialize Supabase client:', error);
 }
 
 // 导出客户端实例，在无法初始化时返回一个模拟对象以避免错误
-export const supabase = supabaseClient || {
-  auth: {
-    exchangeCodeForSession: async () => ({ error: null }),
-    verifyOtp: async () => ({ error: null }),
-    getSession: async () => ({ data: { session: null }, error: null }),
-    signOut: async () => ({ error: null }),
-    signInWithOtp: async () => ({ error: null })
-  }
-} as unknown as SupabaseClient;
+export const supabase =
+    supabaseClient ||
+    ({
+        auth: {
+            exchangeCodeForSession: async () => ({ error: null }),
+            verifyOtp: async () => ({ error: null }),
+            getSession: async () => ({ data: { session: null }, error: null }),
+            signOut: async () => ({ error: null }),
+            signInWithOtp: async () => ({ error: null }),
+        },
+    } as unknown as SupabaseClient);

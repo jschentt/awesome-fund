@@ -137,7 +137,7 @@ export async function GET(request: Request) {
 
         // 第一步：获取OAuth2访问令牌
         const tokenResponse = await fetchOAuth2Token();
-        console.log('获取到的token响应数据:', tokenResponse.data);
+        // console.log('获取到的token响应数据:', tokenResponse.data);
         const { access_token } = tokenResponse.data.data;
 
         if (!access_token) {
@@ -147,7 +147,6 @@ export async function GET(request: Request) {
 
         // 第二步：使用获取到的access_token调用基金列表接口
         const fundListResponse = await fetchFundList(access_token, page, limit);
-        console.log('获取到的基金列表数据:', JSON.stringify(fundListResponse.data, null, 2));
 
         // 第三步：筛选出expectGrowth大于1的数据
         const fundListData = fundListResponse.data.data.data || [];
@@ -155,9 +154,9 @@ export async function GET(request: Request) {
 
         const filteredFunds = fundListData.filter(
             (fund: any) =>
-                fund.expectGrowth && typeof fund.expectGrowth === 'number' && fund.expectGrowth > 1,
+                fund.expectGrowth && typeof fund.expectGrowth === 'number' && fund.expectGrowth > 3,
         );
-        console.log('筛选后expectGrowth>1的基金数量:', filteredFunds.length);
+        console.log('筛选后expectGrowth>3的基金数据:', JSON.stringify(filteredFunds, null, 2));
 
         // 第四步：如果有符合条件的基金，推送钉钉消息
         if (filteredFunds.length > 0) {
@@ -171,12 +170,19 @@ export async function GET(request: Request) {
 
             // 为每只基金添加详细信息
             filteredFunds.forEach((fund: any) => {
-                text += `- **基金代码:** ${fund.code || '未知'}<br>`;
-                text += `- **基金名称:** ${fund.name || '未知'}<br>`;
-                text += `- **预期增长率:** ${fund.expectGrowth}%<br>`;
-                text += `- **当前净值:** ${fund.netWorth || '未知'}<br>`;
-                text += `- **预估净值:** ${fund.expectWorth || '未知'}<br>`;
-                text += `- **更新日期:** ${fund.expectWorthDate || '未知'}<br><br>`; // 使用HTML标签实现换行
+                text += `- **基金代码:** ${fund.code || '未知'}
+`;
+                text += `- **基金名称:** ${fund.name || '未知'}
+`;
+                text += `- **预期增长率:** ${fund.expectGrowth}%
+`;
+                text += `- **当前净值:** ${fund.netWorth || '未知'}
+`;
+                text += `- **预估净值:** ${fund.expectWorth || '未知'}
+`;
+                text += `- **更新日期:** ${fund.expectWorthDate || '未知'}
+
+`; // 使用Markdown标准换行
             });
 
             // 推送钉钉消息

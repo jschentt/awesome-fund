@@ -1,22 +1,22 @@
 {
-  "version": 2,
-  "routes": [
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/fund/(.*)",
-      "dest": "/fund/$1"
-    },
-    {
-      "src": "/.*",
-      "dest": "/"
-    }
-  ],
-  "installCommand": "pnpm install",
-  "buildCommand": "pnpm build"
+    "version": 2,
+    "routes": [
+        {
+            "handle": "filesystem"
+        },
+        {
+            "src": "/api/(.*)",
+            "dest": "/api/$1"
+        },
+        {
+            "src": "/fund/(.*)",
+            "dest": "/fund/$1"
+        },
+        {
+            "src": "/.*",
+            "dest": "/"
+        }
+    ],
+    "installCommand": "pnpm install",
+    "buildCommand": "pnpm build"
 }

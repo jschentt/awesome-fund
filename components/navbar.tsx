@@ -160,16 +160,20 @@ export default function Navbar() {
                                             type="button"
                                             onClick={handleSendMagicLink}
                                             disabled={sendLoading}
-                                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center justify-center gap-2"
-                                    >
-                                        {sendLoading ? (
-                                            <>
-                                                <Loading size="small" type="dots" color="white" />
-                                                <span>发送中</span>
-                                            </>
-                                        ) : (
-                                            '发送登录链接'
-                                        )}
+                                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center justify-center gap-2"
+                                        >
+                                            {sendLoading ? (
+                                                <>
+                                                    <Loading
+                                                        size="small"
+                                                        type="dots"
+                                                        color="white"
+                                                    />
+                                                    <span>发送中</span>
+                                                </>
+                                            ) : (
+                                                '发送登录链接'
+                                            )}
                                         </button>
                                     </div>
                                 </div>

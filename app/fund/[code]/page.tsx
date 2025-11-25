@@ -79,20 +79,22 @@ export default function FundDetailPage() {
     const [fund, setFund] = useState<FundData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'performance' | 'portfolio' | 'manager' | 'overview'>('performance');
+    const [activeTab, setActiveTab] = useState<
+        'performance' | 'portfolio' | 'manager' | 'overview'
+    >('performance');
 
     useEffect(() => {
         async function fetchFundDetail() {
             try {
                 const response = await fetch(`/api/funds/${fundCode}`);
-                
+
                 if (!response.ok) {
                     if (response.status === 404) {
                         throw new Error('基金不存在');
                     }
                     throw new Error('获取基金详情失败');
                 }
-                
+
                 const data = await response.json();
                 setFund(data);
             } catch (err) {
@@ -112,14 +114,18 @@ export default function FundDetailPage() {
     const toggleFavorite = () => {
         if (fund) {
             // 确保fund不为null时的安全更新
-            setFund(prevFund => prevFund ? { ...prevFund, isFavorite: !prevFund.isFavorite } : null);
+            setFund((prevFund) =>
+                prevFund ? { ...prevFund, isFavorite: !prevFund.isFavorite } : null,
+            );
         }
     };
 
     const toggleMonitoring = () => {
         if (fund) {
             // 确保fund不为null时的安全更新
-            setFund(prevFund => prevFund ? { ...prevFund, isMonitoring: !prevFund.isMonitoring } : null);
+            setFund((prevFund) =>
+                prevFund ? { ...prevFund, isMonitoring: !prevFund.isMonitoring } : null,
+            );
         }
     };
 

@@ -23,6 +23,7 @@ bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in Onlook to see the result.
+
 # Git配置刷新验证 - 2025年10月31日 星期五 10时51分55秒 CST
 
 ## Supabase集成
@@ -46,8 +47,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzd
 import { supabase } from '@/lib/supabase';
 
 // 示例：获取数据
-const { data, error } = await supabase
-  .from('your_table')
+const { data, error } = await supabase.from('your_table');
 ```
 
 ## 数据库初始化
