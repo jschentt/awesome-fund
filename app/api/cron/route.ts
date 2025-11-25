@@ -2,6 +2,23 @@ import { NextResponse } from 'next/server';
 import axios from 'axios';
 import https from 'https';
 
+// 添加Vercel cron jobs验证函数
+async function validateVercelCronJob(request: Request): Promise<boolean> {
+    // 在生产环境中验证Vercel cron jobs的请求头
+    if (process.env.VERCEL_ENV === 'production') {
+        const vercelCronSecret = process.env.VERCEL_CRON_SECRET;
+        const requestSecret = request.headers.get('x-vercel-cron');
+
+        // 如果配置了密钥但请求中没有提供或不匹配，则拒绝请求
+        if (vercelCronSecret && (!requestSecret || requestSecret !== vercelCronSecret)) {
+            return false;
+        }
+    }
+
+    // 在开发环境或验证通过时允许请求
+    return true;
+}
+
 /**
  * 获取OAuth2访问令牌的公共方法
  * @param grantType 授权类型
@@ -130,6 +147,22 @@ async function pushDingTalkMessage(accessToken: string, title: string, text: str
 // 重构后的GET方法，先获取token再调用基金列表接口，筛选expectGrowth大于1的数据并推送钉钉消息
 export async function GET(request: Request) {
     try {
+        // 验证是否为合法的Vercel cron jobs请求
+        const isValidCronJob = await validateVercelCronJob(request);
+        if (!isValidCronJob) {
+            return NextResponse.json(
+                {
+                    status: 'error',
+                    message: 'Unauthorized cron job request',
+                },
+                {
+                    status: 401,
+                },
+            );
+        }
+
+        console.log('Vercel cron job request validated successfully');
+
         // 从URL获取查询参数
         const url = new URL(request.url);
         const page = parseInt(url.searchParams.get('page') || '1', 10);

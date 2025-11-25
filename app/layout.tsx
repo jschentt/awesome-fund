@@ -3,8 +3,6 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from './providers/auth-provider';
 import { ConfigProvider } from 'antd';
-import { CronTaskManager } from '../lib/cron-tasks';
-import CronTaskInitializer from './CronTaskInitializer';
 
 export const metadata: Metadata = {
     title: '基金监测列表',
@@ -17,8 +15,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     return (
         <html lang="zh-CN" data-oid="nkt6ee.">
             <body className="" data-oid=":skcoqk">
-                {/* 初始化定时任务 */}
-                <CronTaskInitializer />
                 <ConfigProvider>
                     <AuthProvider>{children}</AuthProvider>
                 </ConfigProvider>

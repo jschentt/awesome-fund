@@ -18,5 +18,11 @@
         }
     ],
     "installCommand": "pnpm install",
-    "buildCommand": "pnpm build"
+    "buildCommand": "pnpm build",
+    "crons": [
+        {
+            "path": "/api/cron",
+            "schedule": "0 9 * * *"
+        }
+    ]
 }
