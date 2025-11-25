@@ -79,7 +79,7 @@ export class CronTaskManager {
     private async callCronApi(): Promise<void> {
         try {
             console.log('开始调用cron接口...');
-            const response = await fetch('http://localhost:3001/api/cron');
+            const response = await fetch('http://localhost:3000/api/cron');
             if (response.ok) {
                 const data = await response.json();
                 console.log('cron接口调用成功:', data);
