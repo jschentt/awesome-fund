@@ -163,13 +163,13 @@ export async function GET(request: Request) {
             const title = `基金预期增长率大于1%的通知 (${new Date().toLocaleDateString()})`;
 
             // 构建Markdown格式的消息内容
-            let text = `## 基金预期增长率大于1%的列表\n\n`;
+            let text = `## 基金预期增长率大于3%的列表\n\n`;
             text += `**更新时间:** ${new Date().toLocaleString()}\n\n`;
             text += `**符合条件的基金数量:** ${filteredFunds.length}\n\n`;
             text += `### 详情列表\n`;
 
             // 为每只基金添加详细信息
-            filteredFunds.forEach((fund: any) => {
+            filteredFunds.forEach((fund: any, index: number) => {
                 text += `- **基金代码:** ${fund.code || '未知'}
 `;
                 text += `- **基金名称:** ${fund.name || '未知'}
@@ -181,8 +181,13 @@ export async function GET(request: Request) {
                 text += `- **预估净值:** ${fund.expectWorth || '未知'}
 `;
                 text += `- **更新日期:** ${fund.expectWorthDate || '未知'}
+`;
 
-`; // 使用Markdown标准换行
+                // 在每条基金数据之间添加Markdown虚线分割线（最后一条数据除外）
+                if (index < filteredFunds.length - 1) {
+                    // 使用Markdown虚线作为分隔，在钉钉中更可靠地显示分隔
+                    text += '\n---\n';
+                }
             });
 
             // 推送钉钉消息
