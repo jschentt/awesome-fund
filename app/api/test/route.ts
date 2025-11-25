@@ -19,26 +19,6 @@ async function fetchOAuth2Token(
     try {
         console.log('OAuth2 token接口被调用:', new Date().toISOString());
 
-        // 在开发环境中模拟返回访问令牌（由于远程接口可能无法访问）
-        const mockResponse = {
-            status: 200,
-            statusText: 'OK',
-            data: {
-                access_token:
-                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6InRlc3RfYXBwIiwibmFtZSI6Iua1i-ivleW8gOWPkeiAhSIsInNjb3BlcyI6WyJyZWFkIiwid3JpdGUiXSwiaWF0IjoxNzY0MDUwOTM0LCJleHAiOjE3NjQwNTE4MzR9.4-V1-0OLG6vck1l1zSN-2igKdOYm2cua93nZcokCWwM',
-                token_type: 'Bearer',
-                expires_in: 900,
-                scope: scope,
-            },
-            headers: {},
-            config: {},
-        };
-
-        console.log('使用模拟的OAuth2 token响应:', mockResponse.data);
-
-        return mockResponse;
-
-        /* 实际调用远程接口的代码（暂时注释掉）
         // 设置请求体数据
         const requestBody = {
             grant_type: grantType,
@@ -63,11 +43,10 @@ async function fetchOAuth2Token(
         );
 
         console.log('OAuth2 token响应数据:', response.data);
-        
+
         return response;
-        */
     } catch (error) {
-        console.error('调用远程OAuth2 token接口时出错:', error);
+        // console.error('调用远程OAuth2 token接口时出错:', error);
         throw error;
     }
 }
@@ -81,6 +60,7 @@ async function fetchOAuth2Token(
  */
 async function fetchFundList(accessToken: string, page: number = 1, limit: number = 10) {
     try {
+        console.log('Access Token being used:', accessToken);
         // 使用axios发送GET请求，在Header中添加Authorization
         const response = await axios.get('https://maiqishare.xyz/open-api/fund/list', {
             params: {
@@ -98,7 +78,6 @@ async function fetchFundList(accessToken: string, page: number = 1, limit: numbe
 
         return response;
     } catch (error) {
-        console.error('调用远程基金列表接口时出错:', error);
         throw error;
     }
 }
@@ -113,8 +92,8 @@ export async function GET(request: Request) {
 
         // 第一步：获取OAuth2访问令牌
         const tokenResponse = await fetchOAuth2Token();
-        console.log('获取到的token响应完整数据:', tokenResponse);
-        const { access_token } = tokenResponse.data;
+        console.log('获取到的token响应数据:', tokenResponse.data);
+        const { access_token } = tokenResponse.data.data;
 
         if (!access_token) {
             console.error('响应中没有access_token字段:', tokenResponse.data);
@@ -132,7 +111,6 @@ export async function GET(request: Request) {
             },
         });
     } catch (error) {
-        console.error('API调用过程中发生错误:', error);
         return NextResponse.json(
             {
                 status: 'error',
