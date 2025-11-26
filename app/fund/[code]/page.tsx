@@ -375,10 +375,7 @@ export default function FundDetailPage() {
                                                     width: 120,
                                                     render: (text, record) => {
                                                         const changeRate = parseFloat(text);
-                                                        if (
-                                                            isNaN(changeRate) ||
-                                                            record.index === 0
-                                                        ) {
+                                                        if (isNaN(changeRate)) {
                                                             return '-';
                                                         }
                                                         const prefix = changeRate >= 0 ? '+' : '';
