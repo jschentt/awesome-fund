@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import axios from 'axios';
+import https from 'https';
 
 // 定义基金数据类型
 interface FundPerformance {
@@ -54,221 +56,185 @@ interface FundData {
     isMonitoring: boolean;
 }
 
-// 模拟基金数据
-const mockFundData: Record<string, FundData> = {
-    '320007': {
-        code: '320007',
-        name: '诺安成长混合',
-        currentValue: '1.8560',
-        accumulatedValue: '2.5110',
-        dailyChange: '-0.0340',
-        changePercent: '-1.80%',
-        updateTime: '2025-10-30',
-        status: '打开',
-        manager: '蔡嵩松',
-        establishDate: '2009-03-10',
-        scale: '31.56亿',
-        type: '混合型',
-        riskLevel: '中高风险',
-        performance: {
-            '1d': '-1.80%',
-            '1w': '+0.25%',
-            '1m': '-2.30%',
-            '3m': '+1.50%',
-            '6m': '+3.20%',
-            '1y': '+15.60%',
-            '3y': '+25.30%',
-            sinceEstablishment: '+151.10%',
-        },
-        assetAllocation: [
-            { name: '股票', value: 85 },
-            { name: '债券', value: 10 },
-            { name: '现金', value: 5 },
-        ],
-        stockTop10: [
-            { name: '中芯国际', code: '688981', proportion: '10.25%', change: '+2.10%' },
-            { name: '北方华创', code: '002371', proportion: '9.85%', change: '+1.80%' },
-            { name: '韦尔股份', code: '603501', proportion: '9.20%', change: '-0.50%' },
-            { name: '闻泰科技', code: '600745', proportion: '8.75%', change: '+0.30%' },
-            { name: '三安光电', code: '600703', proportion: '8.10%', change: '-1.20%' },
-            { name: '汇顶科技', code: '603160', proportion: '7.90%', change: '+1.50%' },
-            { name: '兆易创新', code: '603986', proportion: '7.50%', change: '-0.80%' },
-            { name: '长电科技', code: '600584', proportion: '7.20%', change: '+0.60%' },
-            { name: '通富微电', code: '002156', proportion: '6.80%', change: '-1.00%' },
-            { name: '紫光国微', code: '002049', proportion: '6.50%', change: '+2.30%' },
-        ],
-        announcement: '本基金将于2025年11月15日发放分红，每10份派发0.5元。',
-        managerInfo: {
-            name: '蔡嵩松',
-            education: '中国科学技术大学博士',
-            experience: '8年证券从业经验',
-            bio: '专注于科技领域投资，尤其在半导体行业有深入研究。',
-        },
-        isFavorite: false,
-        isMonitoring: true,
-    },
-    '163406': {
-        code: '163406',
-        name: '兴全合润混合',
-        currentValue: '2.1560',
-        accumulatedValue: '5.0460',
-        dailyChange: '-0.0120',
-        changePercent: '-0.55%',
-        updateTime: '2025-10-30',
-        status: '暂停',
-        manager: '谢治宇',
-        establishDate: '2010-04-22',
-        scale: '276.32亿',
-        type: '混合型',
-        riskLevel: '中风险',
-        performance: {
-            '1d': '-0.55%',
-            '1w': '+1.20%',
-            '1m': '+3.50%',
-            '3m': '+5.20%',
-            '6m': '+8.30%',
-            '1y': '+22.50%',
-            '3y': '+45.20%',
-            sinceEstablishment: '+404.60%',
-        },
-        assetAllocation: [
-            { name: '股票', value: 75 },
-            { name: '债券', value: 20 },
-            { name: '现金', value: 5 },
-        ],
-        stockTop10: [
-            { name: '贵州茅台', code: '600519', proportion: '7.80%', change: '-0.20%' },
-            { name: '腾讯控股', code: '00700', proportion: '7.20%', change: '+1.50%' },
-            { name: '宁德时代', code: '300750', proportion: '6.80%', change: '+0.80%' },
-            { name: '美团-W', code: '03690', proportion: '6.50%', change: '-0.50%' },
-            { name: '药明康德', code: '603259', proportion: '6.20%', change: '+2.10%' },
-            { name: '隆基绿能', code: '601012', proportion: '5.80%', change: '-1.20%' },
-            { name: '五粮液', code: '000858', proportion: '5.50%', change: '+0.30%' },
-            { name: '阿里巴巴-SW', code: '09988', proportion: '5.20%', change: '+1.80%' },
-            { name: '中国平安', code: '601318', proportion: '4.90%', change: '-0.80%' },
-            { name: '海康威视', code: '002415', proportion: '4.60%', change: '+0.60%' },
-        ],
-        announcement: '基金经理将于2025年11月20日举办线上交流会。',
-        managerInfo: {
-            name: '谢治宇',
-            education: '复旦大学硕士',
-            experience: '12年证券从业经验',
-            bio: '价值投资风格，注重企业长期竞争力和成长性。',
-        },
-        isFavorite: true,
-        isMonitoring: true,
-    },
-    '110011': {
-        code: '110011',
-        name: '易方达中小盘混合',
-        currentValue: '5.6723',
-        accumulatedValue: '6.3923',
-        dailyChange: '-0.0231',
-        changePercent: '-0.41%',
-        updateTime: '2025-10-30',
-        status: '监控',
-        manager: '张坤',
-        establishDate: '2008-06-19',
-        scale: '231.56亿',
-        type: '混合型',
-        riskLevel: '中风险',
-        performance: {
-            '1d': '-0.41%',
-            '1w': '+0.85%',
-            '1m': '+1.20%',
-            '3m': '+4.50%',
-            '6m': '+7.80%',
-            '1y': '+18.90%',
-            '3y': '+35.20%',
-            sinceEstablishment: '+539.23%',
-        },
-        assetAllocation: [
-            { name: '股票', value: 80 },
-            { name: '债券', value: 15 },
-            { name: '现金', value: 5 },
-        ],
-        stockTop10: [
-            { name: '贵州茅台', code: '600519', proportion: '8.20%', change: '-0.20%' },
-            { name: '五粮液', code: '000858', proportion: '7.50%', change: '+0.30%' },
-            { name: '泸州老窖', code: '000568', proportion: '6.80%', change: '-0.50%' },
-            { name: '洋河股份', code: '002304', proportion: '6.20%', change: '+1.20%' },
-            { name: '伊利股份', code: '600887', proportion: '5.80%', change: '+0.80%' },
-            { name: '贵州茅台', code: '600519', proportion: '5.50%', change: '-0.20%' },
-            { name: '美的集团', code: '000333', proportion: '5.20%', change: '+0.50%' },
-            { name: '格力电器', code: '000651', proportion: '4.90%', change: '-0.80%' },
-            { name: '中国中免', code: '601888', proportion: '4.60%', change: '+1.50%' },
-            { name: '山西汾酒', code: '600809', proportion: '4.20%', change: '+0.70%' },
-        ],
-        announcement: '本基金将于2025年12月1日起暂停大额申购。',
-        managerInfo: {
-            name: '张坤',
-            education: '清华大学硕士',
-            experience: '11年证券从业经验',
-            bio: '价值投资理念，长期持有优质企业，专注消费领域。',
-        },
-        isFavorite: false,
-        isMonitoring: false,
-    },
-    '110022': {
-        code: '110022',
-        name: '易方达消费行业股票',
-        currentValue: '3.8420',
-        accumulatedValue: '3.8420',
-        dailyChange: '+0.0280',
-        changePercent: '+0.73%',
-        updateTime: '2025-10-30',
-        status: '监控',
-        manager: '萧楠',
-        establishDate: '2012-09-28',
-        scale: '185.32亿',
-        type: '股票型',
-        riskLevel: '高风险',
-        performance: {
-            '1d': '+0.73%',
-            '1w': '+1.50%',
-            '1m': '+2.80%',
-            '3m': '+6.20%',
-            '6m': '+10.50%',
-            '1y': '+25.80%',
-            '3y': '+42.30%',
-            sinceEstablishment: '+284.20%',
-        },
-        assetAllocation: [
-            { name: '股票', value: 95 },
-            { name: '债券', value: 3 },
-            { name: '现金', value: 2 },
-        ],
-        stockTop10: [
-            { name: '贵州茅台', code: '600519', proportion: '9.50%', change: '-0.20%' },
-            { name: '五粮液', code: '000858', proportion: '8.80%', change: '+0.30%' },
-            { name: '泸州老窖', code: '000568', proportion: '7.50%', change: '-0.50%' },
-            { name: '洋河股份', code: '002304', proportion: '6.80%', change: '+1.20%' },
-            { name: '伊利股份', code: '600887', proportion: '6.20%', change: '+0.80%' },
-            { name: '中国中免', code: '601888', proportion: '5.80%', change: '+1.50%' },
-            { name: '山西汾酒', code: '600809', proportion: '5.50%', change: '+0.70%' },
-            { name: '美的集团', code: '000333', proportion: '5.20%', change: '+0.50%' },
-            { name: '格力电器', code: '000651', proportion: '4.80%', change: '-0.80%' },
-            { name: '青岛啤酒', code: '600600', proportion: '4.50%', change: '+1.00%' },
-        ],
-        announcement: '基金经理将在2025年11月10日发布季度投资策略报告。',
-        managerInfo: {
-            name: '萧楠',
-            education: '清华大学硕士',
-            experience: '10年证券从业经验',
-            bio: '专注消费行业投资，深入研究消费升级趋势。',
-        },
-        isFavorite: true,
-        isMonitoring: false,
-    },
-};
+// 定义API响应类型
+interface ApiResponse {
+    code: number;
+    message: string;
+    data: {
+        data: {
+            id: string;
+            code: string;
+            name: string;
+            shortName: string;
+            type: string;
+            netWorth: number;
+            expectWorth: number;
+            totalNetWorth: number;
+            expectGrowth: number;
+            actualDayGrowth: number;
+            estimatedChange: number;
+            netWorthDate: string;
+            expectWorthDate: string;
+            weeklyGrowth: number;
+            monthlyGrowth: number;
+            threeMonthsGrowth: number;
+            sixMonthsGrowth: number;
+            annualGrowth: number;
+            manager: string;
+            fundScale: string;
+            minBuyAmount: number;
+            originalBuyRate: number;
+            currentBuyRate: number;
+            establishDate: string;
+            description: string;
+            netWorthData: any[];
+        };
+    };
+}
 
+/**
+ * 获取OAuth2访问令牌的公共方法
+ * @param grantType 授权类型
+ * @param clientId 客户端ID
+ * @param clientSecret 客户端密钥
+ * @param scope 权限范围
+ * @returns OAuth2访问令牌响应
+ */
+async function fetchOAuth2Token(
+    grantType: string = 'client_credentials',
+    clientId: string = 'test_app',
+    clientSecret: string = 'test_secret',
+    scope: string = 'read,write',
+) {
+    try {
+        console.log('OAuth2 token接口被调用:', new Date().toISOString());
+
+        // 设置请求体数据
+        const requestBody = {
+            grant_type: grantType,
+            client_id: clientId,
+            client_secret: clientSecret,
+            scope: scope,
+        };
+
+        // 使用axios发送请求，支持忽略SSL证书验证
+        const response = await axios.post(
+            'https://maiqishare.xyz/open-api/oauth2/token',
+            requestBody,
+            {
+                headers: {
+                    accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                httpsAgent: new https.Agent({
+                    rejectUnauthorized: false, // 忽略SSL证书验证，仅在开发环境使用
+                }),
+            },
+        );
+
+        console.log('OAuth2 token响应数据:', response.data);
+
+        return response;
+    } catch (error) {
+        console.error('调用远程OAuth2 token接口时出错:', error);
+        throw error;
+    }
+}
+
+// 修改函数返回类型为新的数据结构格式
+function transformFundData(apiData: ApiResponse['data']['data']): any {
+    // 格式化百分比，添加正负号和%符号
+    const formatPercent = (value: number): string => {
+        const sign = value >= 0 ? '+' : '';
+        return `${sign}${value.toFixed(2)}%`;
+    };
+
+    // 计算日涨跌幅
+    const dailyChange = (apiData.estimatedChange || 0).toFixed(4);
+    const changePercent = formatPercent(apiData.actualDayGrowth || 0);
+
+    return {
+        code: 0,
+        message: 'success',
+        data: {
+            data: {
+                id: apiData.id || apiData.code,
+                code: apiData.code,
+                name: apiData.name,
+                shortName: apiData.shortName || apiData.name.substring(0, 8) + '...',
+                type: apiData.type || '指数型',
+                netWorth: apiData.netWorth,
+                expectWorth: apiData.expectWorth,
+                totalNetWorth: apiData.totalNetWorth,
+                expectGrowth: apiData.expectGrowth,
+                actualDayGrowth: apiData.actualDayGrowth,
+                estimatedChange: apiData.estimatedChange,
+                netWorthDate: apiData.netWorthDate,
+                expectWorthDate: apiData.expectWorthDate,
+                weeklyGrowth: apiData.weeklyGrowth,
+                monthlyGrowth: apiData.monthlyGrowth,
+                threeMonthsGrowth: apiData.threeMonthsGrowth,
+                sixMonthsGrowth: apiData.sixMonthsGrowth,
+                annualGrowth: apiData.annualGrowth,
+                manager: apiData.manager || '',
+                fundScale: apiData.fundScale || '',
+                minBuyAmount: apiData.minBuyAmount || 10,
+                originalBuyRate: apiData.originalBuyRate || 0,
+                currentBuyRate: apiData.currentBuyRate || 0,
+                establishDate: apiData.establishDate || '',
+                description:
+                    apiData.description ||
+                    `基金${apiData.code} - ${apiData.name}，类型：${apiData.type || '指数型'}，基金经理：${apiData.manager || ''}`,
+                netWorthData: apiData.netWorthData || [],
+            },
+        },
+    };
+}
+
+// 获取基金详情API
 export async function GET(request: Request, { params }: { params: { code: string } }) {
     const { code } = params;
-    const fundData = mockFundData[code];
 
-    if (!fundData) {
-        return NextResponse.json({ error: '基金不存在' }, { status: 404 });
+    try {
+        // 第一步：获取OAuth2访问令牌
+        const tokenResponse = await fetchOAuth2Token();
+        const { access_token } = tokenResponse.data.data;
+
+        if (!access_token) {
+            console.error('响应中没有access_token字段:', tokenResponse.data);
+            return NextResponse.json({ error: '无法获取有效的访问令牌' }, { status: 500 });
+        }
+
+        // 设置真实API的URL，根据curl命令调整
+        const API_BASE_URL = 'https://maiqishare.xyz/open-api/fund/detail';
+
+        // 调用真实API获取基金详情
+        const response = await axios.get(`${API_BASE_URL}/${code}`, {
+            headers: {
+                accept: 'application/json',
+                Authorization: `Bearer ${access_token}`,
+            },
+            httpsAgent: new https.Agent({
+                rejectUnauthorized: false, // 忽略SSL证书验证，仅在开发环境使用
+            }),
+        });
+
+        // axios会自动解析JSON，直接获取响应数据
+        const apiResponse: ApiResponse = response.data;
+
+        // 检查API响应状态
+        if (apiResponse.code !== 0) {
+            return NextResponse.json(
+                { error: apiResponse.message || '获取基金数据失败' },
+                { status: 400 },
+            );
+        }
+
+        // 返回原始API响应数据，不再进行转换
+        return NextResponse.json(apiResponse);
+    } catch (error) {
+        console.error('获取基金详情失败:', error);
+        // 如果发生异常，返回错误信息
+        return NextResponse.json({ error: '服务器内部错误' }, { status: 500 });
     }
-
-    return NextResponse.json(fundData);
 }

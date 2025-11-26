@@ -15,62 +15,61 @@ import {
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import Loading from '@/components/loading';
+import { Table } from 'antd';
+// 移除了echart相关的导入
 
-// 定义基金数据类型接口
-interface FundPerformance {
-    '1d': string;
-    '1w': string;
-    '1m': string;
-    '3m': string;
-    '6m': string;
-    '1y': string;
-    '3y': string;
-    sinceEstablishment: string;
-}
+// 修改NetWorthDataItem类型为二维数组类型
+type NetWorthDataItem = [string, string, string, string]; // [交易日期, 单位净值, 当日涨跌幅%, 其他]
 
-interface AssetAllocation {
-    name: string;
-    value: number;
-}
-
-interface StockItem {
-    name: string;
-    code: string;
-    proportion: string;
-    change: string;
-}
-
-interface ManagerInfo {
-    name: string;
-    education: string;
-    experience: string;
-    bio: string;
+// 定义新的基金数据类型接口
+interface ApiResponse {
+    code: number;
+    message: string;
+    data: {
+        data: FundData;
+    };
 }
 
 interface FundData {
+    id: string;
     code: string;
     name: string;
-    currentValue: string;
-    accumulatedValue: string;
-    dailyChange: string;
-    changePercent: string;
-    updateTime: string;
-    status: string;
-    manager: string;
-    establishDate: string;
-    scale: string;
+    shortName: string;
     type: string;
-    riskLevel: string;
-    performance: FundPerformance;
-    assetAllocation: AssetAllocation[];
-    stockTop10: StockItem[];
-    announcement: string;
-    managerInfo: ManagerInfo;
-    isFavorite: boolean;
-    isMonitoring: boolean;
+    netWorth: number;
+    expectWorth: number;
+    totalNetWorth: number;
+    expectGrowth: number;
+    actualDayGrowth: number;
+    estimatedChange: number;
+    netWorthDate: string;
+    expectWorthDate: string;
+    weeklyGrowth: number;
+    monthlyGrowth: number;
+    threeMonthsGrowth: number;
+    sixMonthsGrowth: number;
+    annualGrowth: number;
+    manager: string;
+    fundScale: string;
+    minBuyAmount: number;
+    originalBuyRate: number;
+    currentBuyRate: number;
+    establishDate: string;
+    description: string;
+    netWorthData: NetWorthDataItem[];
+    // 添加本地状态字段
+    isFavorite?: boolean;
+    isMonitoring?: boolean;
 }
 
 // 注意：现在从API获取基金数据，不再使用本地模拟数据
+
+// 格式化百分比显示
+const formatPercent = (value: number | undefined): string => {
+    if (value === undefined) return '0.00%';
+    const sign = value >= 0 ? '+' : '';
+    return `${sign}${value.toFixed(2)}%`;
+};
 
 export default function FundDetailPage() {
     const params = useParams();
@@ -79,9 +78,11 @@ export default function FundDetailPage() {
     const [fund, setFund] = useState<FundData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<
-        'performance' | 'portfolio' | 'manager' | 'overview'
-    >('performance');
+    const [activeTab, setActiveTab] = useState<'performance' | 'manager' | 'overview'>(
+        'performance',
+    );
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
     useEffect(() => {
         async function fetchFundDetail() {
@@ -95,8 +96,21 @@ export default function FundDetailPage() {
                     throw new Error('获取基金详情失败');
                 }
 
-                const data = await response.json();
-                setFund(data);
+                const apiResponse: ApiResponse = await response.json();
+
+                // 检查API响应状态
+                if (apiResponse.code !== 0 || !apiResponse.data?.data) {
+                    throw new Error(apiResponse.message || '获取基金数据失败');
+                }
+
+                // 添加本地状态字段
+                const fundDataWithLocalState = {
+                    ...apiResponse.data.data,
+                    isFavorite: false,
+                    isMonitoring: false,
+                };
+
+                setFund(fundDataWithLocalState);
             } catch (err) {
                 setError(err instanceof Error ? err.message : '获取基金详情失败');
             } finally {
@@ -157,8 +171,9 @@ export default function FundDetailPage() {
         );
     }
 
-    const isPositiveChange = fund.changePercent.startsWith('+');
-    const isNegativeChange = fund.changePercent.startsWith('-');
+    // 计算涨跌状态
+    const isPositiveChange = fund.actualDayGrowth > 0;
+    const isNegativeChange = fund.actualDayGrowth < 0;
 
     return (
         <div className="min-h-screen bg-gray-50" data-oid=".uayg5r">
@@ -245,17 +260,17 @@ export default function FundDetailPage() {
                                     className="text-3xl font-bold text-gray-900 mr-2"
                                     data-oid="wfhwwju"
                                 >
-                                    {fund.currentValue}
+                                    {fund.netWorth}
                                 </span>
                                 <span
-                                    className={`text-lg font-medium ${isPositiveChange ? 'text-green-600' : isNegativeChange ? 'text-red-600' : 'text-gray-600'}`}
+                                    className={`text-lg font-medium ${isPositiveChange ? 'text-red-600' : isNegativeChange ? 'text-green-600' : 'text-gray-600'}`}
                                     data-oid=".vs3k3f"
                                 >
-                                    {fund.changePercent}
+                                    {formatPercent(fund.actualDayGrowth)}
                                 </span>
                             </div>
                             <p className="text-sm text-gray-500 mt-1" data-oid="6xj5ou1">
-                                更新时间: {fund.updateTime}
+                                更新时间: {fund.netWorthDate}
                             </p>
                         </div>
                         <div data-oid="61ptcz5">
@@ -267,27 +282,27 @@ export default function FundDetailPage() {
                                     className="text-3xl font-bold text-gray-900 mr-2"
                                     data-oid="a3usqf3"
                                 >
-                                    {fund.accumulatedValue}
+                                    {fund.totalNetWorth}
                                 </span>
                                 <span
-                                    className={`text-lg font-medium ${isPositiveChange ? 'text-green-600' : isNegativeChange ? 'text-red-600' : 'text-gray-600'}`}
+                                    className={`text-lg font-medium ${isPositiveChange ? 'text-red-600' : isNegativeChange ? 'text-green-600' : 'text-gray-600'}`}
                                     data-oid="ievsf8w"
                                 >
-                                    {fund.dailyChange}
+                                    {fund.estimatedChange?.toFixed(4)}
                                 </span>
                             </div>
                             <div className="mt-2" data-oid="xrg8oxf">
                                 <span
-                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${fund.status === '打开' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}
+                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800`}
                                     data-oid="szxttgy"
                                 >
-                                    {fund.status}
+                                    开放
                                 </span>
                                 <span
                                     className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
                                     data-oid="0y5mqky"
                                 >
-                                    {fund.riskLevel}
+                                    {fund.type}
                                 </span>
                             </div>
                         </div>
@@ -303,13 +318,6 @@ export default function FundDetailPage() {
                             data-oid="0e6__8z"
                         >
                             业绩表现
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('portfolio')}
-                            className={`flex-1 py-4 px-4 text-sm font-medium ${activeTab === 'portfolio' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-                            data-oid=":v3esak"
-                        >
-                            投资组合
                         </button>
                         <button
                             onClick={() => setActiveTab('manager')}
@@ -335,17 +343,86 @@ export default function FundDetailPage() {
                                     className="text-lg font-medium text-gray-900 mb-4"
                                     data-oid="dnoje-o"
                                 >
-                                    业绩走势图
+                                    历史净值
                                 </h3>
-                                <div
-                                    className="h-64 bg-gray-100 rounded-lg flex items-center justify-center mb-6"
-                                    data-oid="8bfn-ro"
-                                >
-                                    <BarChart3
-                                        className="h-12 w-12 text-gray-400"
-                                        data-oid="em.zghz"
-                                    />
-                                </div>
+                                {fund.netWorthData && (
+                                    <div className="bg-white rounded-lg mb-6">
+                                        <Table
+                                            columns={[
+                                                {
+                                                    title: '交易日期',
+                                                    dataIndex: 'date',
+                                                    key: 'date',
+                                                    width: 120,
+                                                },
+                                                {
+                                                    title: '单位净值',
+                                                    dataIndex: 'netWorth',
+                                                    key: 'netWorth',
+                                                    width: 100,
+                                                    render: (text) => {
+                                                        // 格式化单位净值，保留3位小数
+                                                        const value = parseFloat(text);
+                                                        return !isNaN(value)
+                                                            ? value.toFixed(3)
+                                                            : 'N/A';
+                                                    },
+                                                },
+                                                {
+                                                    title: '当日涨跌幅%',
+                                                    dataIndex: 'changeRate',
+                                                    key: 'changeRate',
+                                                    width: 120,
+                                                    render: (text, record) => {
+                                                        const changeRate = parseFloat(text);
+                                                        if (
+                                                            isNaN(changeRate) ||
+                                                            record.index === 0
+                                                        ) {
+                                                            return '-';
+                                                        }
+                                                        const prefix = changeRate >= 0 ? '+' : '';
+                                                        const colorClass =
+                                                            changeRate > 0
+                                                                ? 'text-red-600'
+                                                                : changeRate < 0
+                                                                  ? 'text-green-600'
+                                                                  : 'text-gray-600';
+                                                        return (
+                                                            <span className={colorClass}>
+                                                                {prefix}
+                                                                {changeRate.toFixed(2)}%
+                                                            </span>
+                                                        );
+                                                    },
+                                                },
+                                            ]}
+                                            dataSource={[...fund.netWorthData]
+                                                .sort((a, b) => {
+                                                    // 按日期倒序排序（新日期在前）
+                                                    return (
+                                                        new Date(b[0]).getTime() -
+                                                        new Date(a[0]).getTime()
+                                                    );
+                                                })
+                                                .map((item, index) => ({
+                                                    key: index,
+                                                    date: item[0], // 索引0：交易日期
+                                                    netWorth: item[1], // 索引1：单位净值
+                                                    changeRate: item[2], // 索引2：当日涨跌幅%
+                                                    index,
+                                                }))}
+                                            pagination={{
+                                                current: currentPage,
+                                                pageSize: itemsPerPage,
+                                                total: fund.netWorthData.length,
+                                                onChange: (page) => setCurrentPage(page),
+                                                showSizeChanger: false,
+                                                showTotal: (total) => `共 ${total} 条记录`,
+                                            }}
+                                        />
+                                    </div>
+                                )}
 
                                 <h3
                                     className="text-lg font-medium text-gray-900 mb-4"
@@ -357,125 +434,30 @@ export default function FundDetailPage() {
                                     className="grid grid-cols-2 md:grid-cols-4 gap-4"
                                     data-oid="zygvpjc"
                                 >
-                                    {Object.entries(fund.performance).map(([period, value]) => (
+                                    {[
+                                        { label: '日涨幅', value: fund.actualDayGrowth },
+                                        { label: '周涨幅', value: fund.weeklyGrowth },
+                                        { label: '月涨幅', value: fund.monthlyGrowth },
+                                        { label: '季涨幅', value: fund.threeMonthsGrowth },
+                                        { label: '半年涨幅', value: fund.sixMonthsGrowth },
+                                        { label: '年涨幅', value: fund.annualGrowth },
+                                    ].map((item, index) => (
                                         <div
-                                            key={period}
+                                            key={index}
                                             className="bg-gray-50 p-4 rounded-lg"
                                             data-oid="f9k1cs3"
                                         >
                                             <p className="text-sm text-gray-500" data-oid="1obmlxd">
-                                                {period === '1d' && '日涨幅'}
-                                                {period === '1w' && '周涨幅'}
-                                                {period === '1m' && '月涨幅'}
-                                                {period === '3m' && '季涨幅'}
-                                                {period === '6m' && '半年涨幅'}
-                                                {period === '1y' && '年涨幅'}
-                                                {period === '3y' && '3年涨幅'}
-                                                {period === 'sinceEstablishment' && '成立以来'}
+                                                {item.label}
                                             </p>
                                             <p
-                                                className={`text-xl font-semibold mt-1 ${value.startsWith('+') ? 'text-green-600' : value.startsWith('-') ? 'text-red-600' : 'text-gray-600'}`}
+                                                className={`text-xl font-semibold mt-1 ${item.value > 0 ? 'text-green-600' : item.value < 0 ? 'text-red-600' : 'text-gray-600'}`}
                                                 data-oid="7cb.f0d"
                                             >
-                                                {value}
+                                                {formatPercent(item.value)}
                                             </p>
                                         </div>
                                     ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {activeTab === 'portfolio' && (
-                            <div data-oid="zd58y-c">
-                                <h3
-                                    className="text-lg font-medium text-gray-900 mb-4"
-                                    data-oid="5wdeibf"
-                                >
-                                    资产配置
-                                </h3>
-                                <div
-                                    className="h-64 bg-gray-100 rounded-lg flex items-center justify-center mb-6"
-                                    data-oid="ojnt3jn"
-                                >
-                                    <PieChart
-                                        className="h-12 w-12 text-gray-400"
-                                        data-oid="tbane53"
-                                    />
-                                </div>
-
-                                <h3
-                                    className="text-lg font-medium text-gray-900 mb-4"
-                                    data-oid=":8dsq70"
-                                >
-                                    前十大重仓股
-                                </h3>
-                                <div className="overflow-x-auto" data-oid="0_qug-c">
-                                    <table
-                                        className="min-w-full divide-y divide-gray-200"
-                                        data-oid="tq7w_1a"
-                                    >
-                                        <thead data-oid="a1h3jc:">
-                                            <tr data-oid="li107dx">
-                                                <th
-                                                    className="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                                    data-oid="3b4g94a"
-                                                >
-                                                    股票名称
-                                                </th>
-                                                <th
-                                                    className="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                                    data-oid="pl8_vq0"
-                                                >
-                                                    股票代码
-                                                </th>
-                                                <th
-                                                    className="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                                    data-oid="g3pns8y"
-                                                >
-                                                    占比
-                                                </th>
-                                                <th
-                                                    className="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                                    data-oid="mupuviy"
-                                                >
-                                                    日涨跌幅
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody
-                                            className="bg-white divide-y divide-gray-200"
-                                            data-oid="bpsqy37"
-                                        >
-                                            {fund.stockTop10.map((stock, index) => (
-                                                <tr key={index} data-oid="y.oazl7">
-                                                    <td
-                                                        className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900"
-                                                        data-oid="dctwqn6"
-                                                    >
-                                                        {stock.name}
-                                                    </td>
-                                                    <td
-                                                        className="px-4 py-3 whitespace-nowrap text-sm text-gray-500"
-                                                        data-oid="r0cajur"
-                                                    >
-                                                        {stock.code}
-                                                    </td>
-                                                    <td
-                                                        className="px-4 py-3 whitespace-nowrap text-sm text-gray-500"
-                                                        data-oid="x3ptk.0"
-                                                    >
-                                                        {stock.proportion}
-                                                    </td>
-                                                    <td
-                                                        className={`px-4 py-3 whitespace-nowrap text-sm ${stock.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}
-                                                        data-oid="8fd1vtb"
-                                                    >
-                                                        {stock.change}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
                                 </div>
                             </div>
                         )}
@@ -497,16 +479,16 @@ export default function FundDetailPage() {
                                             className="text-xl font-semibold text-gray-900"
                                             data-oid="jt-w2hl"
                                         >
-                                            {fund.managerInfo.name}
+                                            {fund.manager}
                                         </h3>
                                         <p
                                             className="text-sm text-gray-500 mt-1"
                                             data-oid="n0g_59f"
                                         >
-                                            {fund.managerInfo.education}
+                                            基金经理
                                         </p>
                                         <p className="text-sm text-gray-500" data-oid="ryo4s5y">
-                                            {fund.managerInfo.experience}
+                                            {fund.type}基金
                                         </p>
                                     </div>
                                 </div>
@@ -515,10 +497,10 @@ export default function FundDetailPage() {
                                         className="text-lg font-medium text-gray-900 mb-2"
                                         data-oid="2brxntm"
                                     >
-                                        个人简介
+                                        基金介绍
                                     </h4>
                                     <p className="text-gray-700" data-oid="f5gs37-">
-                                        {fund.managerInfo.bio}
+                                        {fund.description}
                                     </p>
                                 </div>
                             </div>
@@ -564,15 +546,7 @@ export default function FundDetailPage() {
                                             基金规模
                                         </p>
                                         <p className="text-gray-900 font-medium" data-oid="xqpp-1y">
-                                            {fund.scale}
-                                        </p>
-                                    </div>
-                                    <div data-oid=".26_r:n">
-                                        <p className="text-sm text-gray-500" data-oid=".3ob_ms">
-                                            风险等级
-                                        </p>
-                                        <p className="text-gray-900 font-medium" data-oid="av-j.1f">
-                                            {fund.riskLevel}
+                                            {fund.fundScale}
                                         </p>
                                     </div>
                                     <div data-oid=".j77wmp">
@@ -583,13 +557,25 @@ export default function FundDetailPage() {
                                             {fund.manager}
                                         </p>
                                     </div>
+                                    <div data-oid="new-field-min-buy">
+                                        <p className="text-sm text-gray-500">起购金额</p>
+                                        <p className="text-gray-900 font-medium">
+                                            {fund.minBuyAmount}元
+                                        </p>
+                                    </div>
+                                    <div data-oid="new-field-buy-rate">
+                                        <p className="text-sm text-gray-500">申购费率</p>
+                                        <p className="text-gray-900 font-medium">
+                                            {formatPercent(fund.currentBuyRate)}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         )}
                     </div>
                 </div>
 
-                {/* 公告信息 */}
+                {/* 基金预期表现 */}
                 <section className="bg-white rounded-xl shadow-sm p-6 mb-6" data-oid="kxf1a14">
                     <div className="flex items-start" data-oid="2s82syr">
                         <AlertCircle
@@ -598,49 +584,30 @@ export default function FundDetailPage() {
                         />
                         <div data-oid="avxxp45">
                             <h3 className="text-base font-medium text-gray-900" data-oid="7i2fn0j">
-                                基金公告
+                                预期表现
                             </h3>
-                            <p className="text-gray-700 mt-1" data-oid="-2md-u.">
-                                {fund.announcement}
-                            </p>
+                            <div className="mt-2 space-y-2">
+                                <div>
+                                    <span className="text-sm text-gray-500">预期净值：</span>
+                                    <span className="font-medium">{fund.expectWorth}</span>
+                                </div>
+                                <div>
+                                    <span className="text-sm text-gray-500">预期涨幅：</span>
+                                    <span
+                                        className={`font-medium ${fund.expectGrowth > 0 ? 'text-green-600' : 'text-red-600'}`}
+                                    >
+                                        {formatPercent(fund.expectGrowth)}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="text-sm text-gray-500">预期日期：</span>
+                                    <span className="text-gray-700">{fund.expectWorthDate}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </section>
             </main>
-
-            {/* Bottom Action Bar */}
-            <div
-                className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-3 px-4"
-                data-oid=":gjaiji"
-            >
-                <div
-                    className="max-w-7xl mx-auto flex justify-between items-center"
-                    data-oid="l:dyx_4"
-                >
-                    <div className="text-center" data-oid="8-gta6o">
-                        <p className="text-sm text-gray-500" data-oid="_5ulsx6">
-                            买入费率
-                        </p>
-                        <p className="text-lg font-medium text-gray-900" data-oid="l8dkx1j">
-                            0.15%
-                        </p>
-                    </div>
-                    <div className="flex space-x-3" data-oid="1cc-1q-">
-                        <button
-                            className="px-6 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors font-medium"
-                            data-oid="nlnvnzs"
-                        >
-                            定投
-                        </button>
-                        <button
-                            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
-                            data-oid="y:xk9ea"
-                        >
-                            买入
-                        </button>
-                    </div>
-                </div>
-            </div>
         </div>
     );
 }
