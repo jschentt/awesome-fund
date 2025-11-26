@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, Fragment } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Search,
     Eye,
-    EyeOff,
     Settings,
     Bell,
     ChevronDown,
@@ -18,10 +17,21 @@ import {
 import { Button } from 'antd';
 
 export interface FundItem {
+    id?: string;
     code: string;
     name: string;
+    type?: string;
+    shortName?: string;
+    netWorth?: number;
+    expectWorth?: number;
+    expectGrowth?: number;
+    estimatedChange?: number;
+    netWorthDate?: string;
+    expectWorthDate?: string;
+    totalCount?: number;
+    description?: string;
+    // Original fields
     currentValue: string;
-    accumulatedValue: string;
     dailyChange: string;
     changePercent: string;
     isMonitoring: boolean;
@@ -34,120 +44,49 @@ interface FundListProps {
     initialFunds?: FundItem[];
 }
 
-// 模拟基金数据，用于展示
-const mockFunds: FundItem[] = [
-    {
-        code: '000001',
-        name: '华夏成长混合',
-        currentValue: '1.2345',
-        accumulatedValue: '3.4567',
-        dailyChange: '+0.0345',
-        changePercent: '+2.85%',
-        isMonitoring: true,
-        isFavorite: true,
-        updateTime: '2023-10-15 15:00',
-        status: '打开',
-    },
-    {
-        code: '000002',
-        name: '易方达蓝筹精选混合',
-        currentValue: '2.3456',
-        accumulatedValue: '5.6789',
-        dailyChange: '-0.0123',
-        changePercent: '-0.52%',
-        isMonitoring: false,
-        isFavorite: true,
-        updateTime: '2023-10-15 15:00',
-        status: '打开',
-    },
-    {
-        code: '000003',
-        name: '嘉实沪深300ETF联接',
-        currentValue: '1.8901',
-        accumulatedValue: '2.3456',
-        dailyChange: '+0.0567',
-        changePercent: '+3.08%',
-        isMonitoring: true,
-        isFavorite: false,
-        updateTime: '2023-10-15 15:00',
-        status: '暂停',
-    },
-    {
-        code: '000004',
-        name: '南方中证500ETF联接',
-        currentValue: '1.4567',
-        accumulatedValue: '3.1234',
-        dailyChange: '+0.0234',
-        changePercent: '+1.63%',
-        isMonitoring: false,
-        isFavorite: false,
-        updateTime: '2023-10-15 15:00',
-        status: '打开',
-    },
-    {
-        code: '000005',
-        name: '博时沪深300指数',
-        currentValue: '1.6789',
-        accumulatedValue: '2.8901',
-        dailyChange: '-0.0345',
-        changePercent: '-2.01%',
-        isMonitoring: true,
-        isFavorite: true,
-        updateTime: '2023-10-15 15:00',
-        status: '打开',
-    },
-    {
-        code: '000006',
-        name: '富国天惠成长混合',
-        currentValue: '2.1234',
-        accumulatedValue: '4.5678',
-        dailyChange: '+0.0456',
-        changePercent: '+2.20%',
-        isMonitoring: false,
-        isFavorite: false,
-        updateTime: '2023-10-15 15:00',
-        status: '暂停',
-    },
-];
-
-export default function FundList({ initialFunds = mockFunds }: FundListProps) {
-    const [funds, setFunds] = useState<FundItem[]>(initialFunds);
-    const [loading, setLoading] = useState(false);
+export default function FundList({ initialFunds = [] }: FundListProps) {
+    // 确保每个基金项目都有isFavorite字段，并处理新旧数据结构转换
+    const [funds, setFunds] = useState<FundItem[]>(() =>
+        initialFunds.map((fund) => ({
+            ...fund,
+            // 数据转换逻辑
+            currentValue: fund.currentValue || fund.netWorth?.toString() || 'N/A',
+            dailyChange:
+                fund.dailyChange ||
+                (fund.estimatedChange
+                    ? fund.estimatedChange > 0
+                        ? `+${fund.estimatedChange.toFixed(4)}`
+                        : fund.estimatedChange.toFixed(4)
+                    : 'N/A'),
+            changePercent:
+                fund.changePercent ||
+                (fund.expectGrowth
+                    ? fund.expectGrowth > 0
+                        ? `+${fund.expectGrowth}%`
+                        : `${fund.expectGrowth}%`
+                    : 'N/A'),
+            isFavorite: fund.isFavorite ?? false, // 提供默认值
+            status: fund.status || '打开',
+            updateTime: fund.updateTime || new Date().toISOString(), // 添加updateTime默认值
+        })),
+    );
     const [sortOrder, setSortOrder] = useState<'desc' | 'asc' | 'none'>('none');
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState<'all' | 'monitoring' | 'favorite'>('all');
-    const [currentPage, setCurrentPage] = useState(1);
     const [notificationModalOpen, setNotificationModalOpen] = useState(false);
     const [favoriteModalOpen, setFavoriteModalOpen] = useState(false);
     const [selectedFund, setSelectedFund] = useState<FundItem | null>(null);
     const [selectedMethods, setSelectedMethods] = useState({ dingtalk: false, wechat: false });
     const [showFundActions, setShowFundActions] = useState<string | null>(null);
-    const [hoveredFundCode, setHoveredFundCode] = useState<string | null>(null);
 
-    const itemsPerPage = 6;
-
-    // 从API获取基金列表（模拟）
+    // 更新基金数据当外部传入的初始数据变化时
     useEffect(() => {
-        async function fetchFunds() {
-            try {
-                setLoading(true);
-                // 模拟API请求延迟
-                await new Promise((resolve) => setTimeout(resolve, 500));
-                // 在实际应用中，这里应该从API获取数据
-                // const response = await fetch('/api/funds');
-                // if (response.ok) {
-                //   const data = await response.json();
-                //   setFunds(data);
-                // }
-                setFunds(initialFunds);
-            } catch (error) {
-                console.error('获取基金列表失败:', error);
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        fetchFunds();
+        setFunds(
+            initialFunds.map((fund) => ({
+                ...fund,
+                isFavorite: fund.isFavorite ?? false,
+            })),
+        );
     }, [initialFunds]);
 
     const toggleMonitoring = (code: string) => {
@@ -196,21 +135,18 @@ export default function FundList({ initialFunds = mockFunds }: FundListProps) {
         return sortOrder === 'desc' ? bValue - aValue : aValue - bValue;
     });
 
-    // Pagination calculations
-    const totalPages = Math.ceil(sortedFunds.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentFunds = sortedFunds.slice(startIndex, endIndex);
+    // 使用排序后的所有基金数据，不再进行内部分页
+    const currentFunds = sortedFunds;
 
-    // Reset to first page when filters change
+    // 处理标签页切换
     const handleTabChange = (tab: 'all' | 'monitoring' | 'favorite') => {
         setActiveTab(tab);
-        setCurrentPage(1);
+        // 分页由父组件处理
     };
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value);
-        setCurrentPage(1);
+        // 分页由父组件处理
     };
 
     // 处理排序切换
@@ -223,18 +159,13 @@ export default function FundList({ initialFunds = mockFunds }: FundListProps) {
         } else {
             setSortOrder('none');
         }
-        setCurrentPage(1); // 排序后重置到第一页
+        // 分页由父组件处理
     };
 
     const handleSettingsClick = (fund: FundItem) => {
         setSelectedFund(fund);
         setSelectedMethods({ dingtalk: false, wechat: false });
         setNotificationModalOpen(true);
-    };
-
-    const handleAddToFavoriteClick = (fund: FundItem) => {
-        setSelectedFund(fund);
-        setFavoriteModalOpen(true);
     };
 
     const handleConfirmMonitoring = () => {
@@ -395,8 +326,6 @@ export default function FundList({ initialFunds = mockFunds }: FundListProps) {
                                 }}
                                 whileHover={{ y: -5 }}
                                 className="overflow-hidden border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow duration-300 relative group"
-                                onMouseEnter={() => setHoveredFundCode(fund.code)}
-                                onMouseLeave={() => setHoveredFundCode(null)}
                             >
                                 <Link
                                     href={`/fund/${fund.code}`}
@@ -428,9 +357,16 @@ export default function FundList({ initialFunds = mockFunds }: FundListProps) {
                                                     />
                                                 )}
                                             </div>
-                                            <h3 className="text-sm font-medium text-gray-900 line-clamp-2">
-                                                {fund.name}
-                                            </h3>
+                                            <div className="flex items-center space-x-2">
+                                                <h3 className="text-sm font-medium text-gray-900 line-clamp-2">
+                                                    {fund.name}
+                                                </h3>
+                                                {fund.type && (
+                                                    <span className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
+                                                        {fund.type}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
 
                                         {/* 操作按钮容器 */}
@@ -497,7 +433,7 @@ export default function FundList({ initialFunds = mockFunds }: FundListProps) {
                                     </div>
 
                                     {/* 基金净值信息 */}
-                                    <div className="grid grid-cols-2 gap-4 mb-4">
+                                    <div className="grid grid-cols-3 gap-4 mb-4">
                                         <div>
                                             <div className="text-xs text-gray-500 mb-1">
                                                 当日净值
@@ -505,15 +441,28 @@ export default function FundList({ initialFunds = mockFunds }: FundListProps) {
                                             <div className="text-lg font-semibold text-gray-900">
                                                 {fund.currentValue}
                                             </div>
+                                            {fund.netWorthDate && (
+                                                <div className="text-xs text-gray-400">
+                                                    {fund.netWorthDate}
+                                                </div>
+                                            )}
                                         </div>
-                                        <div>
-                                            <div className="text-xs text-gray-500 mb-1">
-                                                累计净值
+
+                                        {fund.expectWorth && (
+                                            <div>
+                                                <div className="text-xs text-gray-500 mb-1">
+                                                    预估净值
+                                                </div>
+                                                <div className="text-lg font-semibold text-gray-900">
+                                                    {fund.expectWorth}
+                                                </div>
+                                                {fund.expectWorthDate && (
+                                                    <div className="text-xs text-gray-400">
+                                                        {fund.expectWorthDate}
+                                                    </div>
+                                                )}
                                             </div>
-                                            <div className="text-lg font-semibold text-gray-900">
-                                                {fund.accumulatedValue}
-                                            </div>
-                                        </div>
+                                        )}
                                     </div>
 
                                     {/* 日涨跌信息 */}
@@ -521,7 +470,7 @@ export default function FundList({ initialFunds = mockFunds }: FundListProps) {
                                         <div>
                                             <div className="text-xs text-gray-500 mb-1">日涨跌</div>
                                             <div
-                                                className={`text-base font-semibold ${fund.dailyChange.startsWith('+') ? 'text-red-600' : 'text-green-600'}`}
+                                                className={`text-base font-semibold ${fund.dailyChange && fund.dailyChange.startsWith('+') ? 'text-red-600' : 'text-green-600'}`}
                                             >
                                                 {fund.dailyChange}
                                             </div>
@@ -529,7 +478,7 @@ export default function FundList({ initialFunds = mockFunds }: FundListProps) {
                                         <div>
                                             <div className="text-xs text-gray-500 mb-1">涨跌幅</div>
                                             <div
-                                                className={`text-base font-semibold ${fund.changePercent.startsWith('+') ? 'text-red-600' : 'text-green-600'}`}
+                                                className={`text-base font-semibold ${fund.changePercent && fund.changePercent.startsWith('+') ? 'text-red-600' : 'text-green-600'}`}
                                             >
                                                 {fund.changePercent}
                                             </div>
@@ -558,7 +507,7 @@ export default function FundList({ initialFunds = mockFunds }: FundListProps) {
                 </div>
 
                 {/* 空状态处理 */}
-                {currentFunds.length === 0 && !loading && (
+                {currentFunds.length === 0 && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -574,74 +523,7 @@ export default function FundList({ initialFunds = mockFunds }: FundListProps) {
                     </motion.div>
                 )}
 
-                {/* 加载状态 */}
-                {loading && (
-                    <div className="flex flex-col items-center justify-center py-20">
-                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4" />
-                        <p className="text-gray-500">正在加载基金数据...</p>
-                    </div>
-                )}
-
-                {/* Pagination */}
-                {totalPages > 1 && !loading && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: 0.4 }}
-                        className="mt-8 sm:mt-12 flex flex-col sm:flex-row justify-center items-center space-y-3 sm:space-y-0 sm:space-x-2"
-                    >
-                        <Button
-                            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                            disabled={currentPage === 1}
-                            className={`px-4 py-2 ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
-                        >
-                            上一页
-                        </Button>
-
-                        <div className="flex space-x-1 overflow-x-auto pb-2 sm:pb-0">
-                            {Array.from({ length: totalPages }, (_, i) => i + 1)
-                                .filter((page) => {
-                                    // 只显示当前页附近的页码，最多显示5个
-                                    if (totalPages <= 5) return true;
-                                    if (currentPage <= 3) return page <= 5;
-                                    if (currentPage >= totalPages - 2)
-                                        return page >= totalPages - 4;
-                                    return page >= currentPage - 2 && page <= currentPage + 2;
-                                })
-                                .map((page, index, array) => (
-                                    <Fragment key={page}>
-                                        {index > 0 && array[index - 1] !== page - 1 && (
-                                            <span className="px-3 py-2 text-gray-500">...</span>
-                                        )}
-                                        <Button
-                                            onClick={() => setCurrentPage(page)}
-                                            className={`px-3 py-2 text-sm ${currentPage === page ? 'bg-blue-600 text-white border-blue-600' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
-                                        >
-                                            {page}
-                                        </Button>
-                                    </Fragment>
-                                ))}
-                        </div>
-
-                        <Button
-                            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                            disabled={currentPage === totalPages}
-                            className={`px-4 py-2 ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
-                        >
-                            下一页
-                        </Button>
-                    </motion.div>
-                )}
-
-                {/* Results Info */}
-                {totalPages > 0 && !loading && (
-                    <div className="mt-4 sm:mt-6 text-center text-sm text-gray-500 px-4">
-                        显示 {startIndex + 1}-{Math.min(endIndex, sortedFunds.length)} 条，共{' '}
-                        {sortedFunds.length} 条结果
-                        {activeTab === 'monitoring' && ` (监控中: ${monitoringFunds} 只)`}
-                        {activeTab === 'favorite' && ` (收藏中: ${favoriteFunds} 只)`}
-                    </div>
-                )}
+                {/* 分页由父组件处理 */}
             </div>
 
             {/* 监控设置模态框 */}

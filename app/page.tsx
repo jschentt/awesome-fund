@@ -1,92 +1,189 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import useSWR from 'swr';
 import Navbar from '@/components/navbar';
 import FundList, { FundItem } from '@/components/fund-list';
+import Loading from '@/components/loading';
+
+// 定义 API 返回数据的接口
+interface ApiResponse {
+    data: ExtendedFundItem[];
+    total: number;
+    page: number;
+    limit: number;
+}
+
+// 扩展 FundItem 接口以匹配新的数据结构
+interface ExtendedFundItem {
+    id: string;
+    code: string;
+    name: string;
+    type: string;
+    shortName: string;
+    netWorth: number;
+    expectWorth: number;
+    expectGrowth: number;
+    estimatedChange: number;
+    netWorthDate: string;
+    expectWorthDate: string;
+    totalCount: number;
+    description: string;
+    // 兼容FundList组件所需的字段
+    currentValue?: string;
+    dailyChange?: string;
+    changePercent?: string;
+    isMonitoring?: boolean;
+    isFavorite?: boolean;
+    status?: string;
+    updateTime?: string; // 增加缺失的updateTime属性
+}
+
+// 定义 fetcher 函数
+const fetcher = async (url: string): Promise<ApiResponse> => {
+    const res = await fetch(url);
+    if (!res.ok) {
+        throw new Error('Failed to fetch data');
+    }
+    return res.json();
+};
 
 export default function Page() {
-    // 模拟基金数据
-    const [funds] = useState<FundItem[]>([
-        {
-            code: '000001',
-            name: '华夏成长混合',
-            currentValue: '1.2345',
-            accumulatedValue: '3.4567',
-            dailyChange: '+0.0345',
-            changePercent: '+2.85%',
-            isMonitoring: true,
-            isFavorite: true,
-            updateTime: '2023-10-15 15:00',
-            status: '打开',
-        },
-        {
-            code: '000002',
-            name: '易方达蓝筹精选混合',
-            currentValue: '2.3456',
-            accumulatedValue: '5.6789',
-            dailyChange: '-0.0123',
-            changePercent: '-0.52%',
-            isMonitoring: false,
-            isFavorite: true,
-            updateTime: '2023-10-15 15:00',
-            status: '打开',
-        },
-        {
-            code: '000003',
-            name: '嘉实沪深300ETF联接',
-            currentValue: '1.8901',
-            accumulatedValue: '2.3456',
-            dailyChange: '+0.0567',
-            changePercent: '+3.08%',
-            isMonitoring: true,
-            isFavorite: false,
-            updateTime: '2023-10-15 15:00',
-            status: '暂停',
-        },
-        {
-            code: '000004',
-            name: '南方中证500ETF联接',
-            currentValue: '1.4567',
-            accumulatedValue: '3.1234',
-            dailyChange: '+0.0234',
-            changePercent: '+1.63%',
-            isMonitoring: false,
-            isFavorite: false,
-            updateTime: '2023-10-15 15:00',
-            status: '打开',
-        },
-        {
-            code: '000005',
-            name: '博时沪深300指数',
-            currentValue: '1.6789',
-            accumulatedValue: '2.8901',
-            dailyChange: '-0.0345',
-            changePercent: '-2.01%',
-            isMonitoring: true,
-            isFavorite: true,
-            updateTime: '2023-10-15 15:00',
-            status: '打开',
-        },
-        {
-            code: '000006',
-            name: '富国天惠成长混合',
-            currentValue: '2.1234',
-            accumulatedValue: '4.5678',
-            dailyChange: '+0.0456',
-            changePercent: '+2.20%',
-            isMonitoring: false,
-            isFavorite: false,
-            updateTime: '2023-10-15 15:00',
-            status: '暂停',
-        },
-    ]);
+    // 分页状态
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(10);
+
+    // 构建 API URL 带分页参数
+    const apiUrl = `/api/funds?page=${page}&limit=${limit}`;
+
+    // 使用 SWR 从 API 获取基金数据
+    const { data, error, isLoading } = useSWR<ApiResponse>(apiUrl, fetcher);
+
+    // 解构基金数据，提供默认值
+    const funds = data?.data || [];
+    const pagination = {
+        page: data?.page || 1,
+        limit: data?.limit || 10,
+        total: data?.total || 0,
+        totalPages: Math.ceil((data?.total || 0) / (data?.limit || 10)),
+    };
+
+    // 同步本地状态与API返回的分页信息
+    useEffect(() => {
+        if (data?.page && data.page !== page) {
+            setPage(data.page);
+        }
+        if (data?.limit && data.limit !== limit) {
+            setLimit(data.limit);
+        }
+    }, [data, page, limit]);
+
+    // 加载状态
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <Loading />
+            </div>
+        );
+    }
+
+    // 错误状态
+    if (error || !funds) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
+                <Navbar />
+                <div className="p-6 bg-white rounded-lg shadow-sm mt-8">
+                    <h2 className="text-xl font-semibold text-red-500 mb-2">加载失败</h2>
+                    <p className="text-gray-600 mb-4">无法获取基金数据，请稍后重试。</p>
+                    <button
+                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                        onClick={() => window.location.reload()}
+                    >
+                        重试
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // 分页控制函数
+    const handlePageChange = (newPage: number) => {
+        if (newPage >= 1 && newPage <= pagination.totalPages) {
+            setPage(newPage);
+        }
+    };
+
+    // 每页数量改变处理函数
+    const handleLimitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setLimit(parseInt(e.target.value, 10));
+        setPage(1); // 重置到第一页
+    };
 
     return (
         <div className="min-h-screen bg-gray-50">
             {/* 使用导航栏组件 */}
             <Navbar />
-            {/* 使用基金列表组件 */}
-            <FundList initialFunds={funds} />
+
+            <div className="container mx-auto px-4 py-8">
+                {/* 使用基金列表组件 */}
+                <FundList initialFunds={funds as FundItem[]} />
+
+                {/* 分页控件 */}
+                {!isLoading && funds.length > 0 && (
+                    <div className="mt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                        {/* 分页信息 */}
+                        <div className="text-gray-600 text-sm">
+                            显示 {(page - 1) * limit + 1} 到{' '}
+                            {Math.min(page * limit, pagination.total)} 项， 共 {pagination.total} 项
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-4 items-center">
+                            {/* 每页数量选择 */}
+                            <div className="flex items-center gap-2">
+                                <label htmlFor="limit" className="text-sm text-gray-600">
+                                    每页显示：
+                                </label>
+                                <select
+                                    id="limit"
+                                    value={limit}
+                                    onChange={handleLimitChange}
+                                    className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="5">5</option>
+                                    <option value="10">10</option>
+                                    <option value="20">20</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </div>
+
+                            {/* 页码按钮 */}
+                            <div className="flex items-center gap-1">
+                                <button
+                                    onClick={() => handlePageChange(page - 1)}
+                                    disabled={page === 1}
+                                    className={`px-3 py-1 rounded border ${page === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'} transition-colors`}
+                                >
+                                    上一页
+                                </button>
+
+                                {/* 页码显示 */}
+                                <span className="px-3 py-1 text-sm font-medium">
+                                    {page} / {pagination.totalPages}
+                                </span>
+
+                                <button
+                                    onClick={() => handlePageChange(page + 1)}
+                                    disabled={page === pagination.totalPages}
+                                    className={`px-3 py-1 rounded border ${page === pagination.totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'} transition-colors`}
+                                >
+                                    下一页
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

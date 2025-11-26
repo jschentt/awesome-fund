@@ -179,7 +179,7 @@ export async function GET(request: Request) {
         // 第二步：使用获取到的access_token调用基金列表接口
         const fundListResponse = await fetchFundList(access_token, page, limit);
 
-        // 第三步：筛选出expectGrowth大于1的数据
+        // 第三步：筛选出expectGrowth大于3的数据
         const fundListData = fundListResponse.data.data.data || [];
         console.log('原始基金列表数量:', fundListData.length);
 
