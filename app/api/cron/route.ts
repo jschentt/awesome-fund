@@ -121,8 +121,6 @@ async function pushDingTalkMessage(accessToken: string, title: string, text: str
             {
                 title,
                 text,
-                webhookUrl:
-                    'https://oapi.dingtalk.com/robot/send?access_token=3687bbc5b17ee8d28465879b972b594e4a806db28aa8a673159fcd373aa3fed5',
             },
             {
                 headers: {
