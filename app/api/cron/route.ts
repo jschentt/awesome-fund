@@ -191,11 +191,11 @@ export async function GET(request: Request) {
 
         // 第四步：如果有符合条件的基金，推送钉钉消息
         if (filteredFunds.length > 0) {
-            const title = `基金预期增长率大于1%的通知 (${new Date().toLocaleDateString()})`;
+            const title = `基金预期增长率大于1%的通知 (${new Date().toLocaleDateString('zh-CN', { timeZone: 'Asia/Shanghai' })})`;
 
             // 构建Markdown格式的消息内容
             let text = `## 基金预期增长率大于3%的列表\n\n`;
-            text += `**更新时间:** ${new Date().toLocaleString()}\n\n`;
+            text += `**更新时间:** ${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}\n\n`;
             text += `**符合条件的基金数量:** ${filteredFunds.length}\n\n`;
             text += `### 详情列表\n`;
 
