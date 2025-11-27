@@ -128,6 +128,7 @@ export default function Page() {
             <div className="container mx-auto px-4 py-8">
                 {/* 使用基金列表组件 */}
                 <FundList
+                    total={pagination.total}
                     initialFunds={funds as FundItem[]}
                     isLoading={isLoading}
                     showFavoriteList={showFavoriteList}

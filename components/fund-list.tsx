@@ -47,9 +47,16 @@ interface FundListProps {
     isLoading?: boolean;
     showFavoriteList?: boolean;
     setShowFavoriteList?: (show: boolean) => void;
+    total?: number;
 }
 
-export default function FundList({ initialFunds = [], isLoading = false, showFavoriteList: parentShowFavoriteList, setShowFavoriteList: parentSetShowFavoriteList }: FundListProps) {
+export default function FundList({
+    initialFunds = [],
+    total,
+    isLoading = false,
+    showFavoriteList: parentShowFavoriteList,
+    setShowFavoriteList: parentSetShowFavoriteList,
+}: FundListProps) {
     // 确保每个基金项目都有isFavorite字段，并处理新旧数据结构转换
     const [funds, setFunds] = useState<FundItem[]>(() =>
         initialFunds.map((fund) => ({
@@ -493,7 +500,7 @@ export default function FundList({ initialFunds = [], isLoading = false, showFav
                                 <span
                                     className={`px-2 py-0.5 rounded-full text-xs font-medium ${activeTab === 'all' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
                                 >
-                                    {totalFunds}
+                                    {total}
                                 </span>
                             </Button>
                             <Button
