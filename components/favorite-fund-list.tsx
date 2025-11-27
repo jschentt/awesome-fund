@@ -163,6 +163,13 @@ export default function FavoriteFundList({
 
     // 处理搜索
     const handleSearch = () => {
+        // 当搜索框清空时，重新加载所有收藏数据
+        if (!searchQuery.trim()) {
+            loadFavoriteFunds(1);
+            setCurrentPage(1);
+            return;
+        }
+
         // 实际应用中可能需要调用搜索API
         // 这里简化为客户端过滤
         const filtered = funds.filter(

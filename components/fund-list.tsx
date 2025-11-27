@@ -45,9 +45,11 @@ export interface FundItem {
 interface FundListProps {
     initialFunds?: FundItem[];
     isLoading?: boolean;
+    showFavoriteList?: boolean;
+    setShowFavoriteList?: (show: boolean) => void;
 }
 
-export default function FundList({ initialFunds = [], isLoading = false }: FundListProps) {
+export default function FundList({ initialFunds = [], isLoading = false, showFavoriteList: parentShowFavoriteList, setShowFavoriteList: parentSetShowFavoriteList }: FundListProps) {
     // 确保每个基金项目都有isFavorite字段，并处理新旧数据结构转换
     const [funds, setFunds] = useState<FundItem[]>(() =>
         initialFunds.map((fund) => ({
@@ -81,8 +83,10 @@ export default function FundList({ initialFunds = [], isLoading = false }: FundL
     const [selectedFund, setSelectedFund] = useState<FundItem | null>(null);
     const [selectedMethods, setSelectedMethods] = useState({ dingtalk: false, wechat: false });
     const [showFundActions, setShowFundActions] = useState<string | null>(null);
-    // 添加状态控制是否显示收藏列表组件
-    const [showFavoriteList, setShowFavoriteList] = useState(false);
+    // 使用从父组件传递的showFavoriteList状态和setShowFavoriteList函数
+    // 如果父组件未提供，则使用默认值
+    const showFavoriteList = parentShowFavoriteList ?? false;
+    const setShowFavoriteList = parentSetShowFavoriteList || (() => {});
     // 存储当前用户邮箱，用于传递给收藏列表组件
     const [userEmail, setUserEmail] = useState<string | null>(null);
     // 存储实际的收藏基金数量
