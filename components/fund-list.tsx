@@ -15,6 +15,7 @@ import {
     Star,
 } from 'lucide-react';
 import { Button } from 'antd';
+import dayjs from 'dayjs';
 
 export interface FundItem {
     id?: string;
@@ -400,7 +401,9 @@ export default function FundList({ initialFunds = [] }: FundListProps) {
                                                     >
                                                         <button
                                                             className="flex items-center space-x-2 w-full px-4 py-3 text-left hover:bg-gray-50"
-                                                            onClick={() => {
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                e.preventDefault();
                                                                 handleSettingsClick(fund);
                                                                 toggleFundActions(fund.code);
                                                             }}
@@ -412,9 +415,19 @@ export default function FundList({ initialFunds = [] }: FundListProps) {
                                                         </button>
                                                         <button
                                                             className="flex items-center space-x-2 w-full px-4 py-3 text-left hover:bg-gray-50"
-                                                            onClick={() => {
-                                                                toggleFavorite(fund.code);
-                                                                toggleFundActions(fund.code);
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                e.preventDefault();
+                                                                // 对于取消收藏操作，直接执行
+                                                                if (fund.isFavorite) {
+                                                                    toggleFavorite(fund.code);
+                                                                    toggleFundActions(fund.code);
+                                                                } else {
+                                                                    // 对于添加收藏操作，打开确认模态框
+                                                                    setSelectedFund(fund);
+                                                                    setFavoriteModalOpen(true);
+                                                                    toggleFundActions(fund.code);
+                                                                }
                                                             }}
                                                         >
                                                             <Star
@@ -487,7 +500,8 @@ export default function FundList({ initialFunds = [] }: FundListProps) {
 
                                     {/* 更新时间 */}
                                     <div className="text-xs text-gray-400 pt-2 border-t border-gray-100">
-                                        更新时间: {fund.updateTime}
+                                        更新时间:{' '}
+                                        {dayjs(fund.updateTime).format('YYYY-MM-DD HH:mm:ss')}
                                     </div>
                                 </Link>
 
