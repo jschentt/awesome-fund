@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { supabaseServer } from '../../../../lib/supabase';
-import type { ApiResponse, UserFavorite } from '../../../../src/types/favorite';
+import { supabase } from '@/lib/supabase';
+import type { ApiResponse, UserFavorite } from '@/src/types/favorite';
 
 // 更新请求类型接口
 interface FavoriteRequest {
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
         }
 
         // 通过email查询用户ID
-        const { data: user, error: userQueryError } = await supabaseServer
+        const { data: user, error: userQueryError } = await supabase
             .from('users')
             .select('id')
             .eq('email', email)
@@ -42,11 +42,9 @@ export async function POST(request: Request) {
             );
         }
 
-        console.log('用户ID:', user.id);
-
         // 检查是否已经收藏
-        // 使用服务端客户端绕过RLS，并确保使用正确的user_id类型
-        const { data: existingFavorite, error: checkError } = await supabaseServer
+        // 确保使用正确的user_id类型
+        const { data: existingFavorite, error: checkError } = await supabase
             .from('user_favorite_fund')
             .select('id')
             .eq('user_id', String(user.id))
@@ -71,7 +69,7 @@ export async function POST(request: Request) {
         }
 
         // 添加收藏 - 注意：新表中created_at字段由数据库自动设置为now()
-        const { data, error } = await supabaseServer
+        const { data, error } = await supabase
             .from('user_favorite_fund')
             .insert([
                 {
@@ -119,7 +117,7 @@ export async function DELETE(request: Request) {
         }
 
         // 通过email查询用户ID
-        const { data: user, error: userQueryError } = await supabaseServer
+        const { data: user, error: userQueryError } = await supabase
             .from('users')
             .select('id')
             .eq('email', email)
@@ -137,8 +135,8 @@ export async function DELETE(request: Request) {
         }
 
         // 删除收藏
-        // 使用服务端客户端绕过RLS，并确保使用正确的user_id类型
-        const { error } = await supabaseServer
+        // 确保使用正确的user_id类型
+        const { error } = await supabase
             .from('user_favorite_fund')
             .delete()
             .eq('user_id', String(user.id))
