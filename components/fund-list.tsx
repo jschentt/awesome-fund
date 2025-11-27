@@ -522,32 +522,34 @@ export default function FundList({ initialFunds = [], isLoading = false }: FundL
                     </motion.div>
 
                     {/* Search Controls */}
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.5, delay: 0.2 }}
-                        className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4"
-                    >
-                        <div className="relative w-full sm:w-64">
-                            <input
-                                type="text"
-                                placeholder="搜索基金代码或名称..."
-                                value={searchTerm}
-                                onChange={handleSearchChange}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                            <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
-                        </div>
-                        <Button
-                            onClick={() => handleSortChange()}
-                            variant={sortOrder === 'none' ? 'text' : 'solid'}
-                            className={`flex items-center space-x-2 ${sortOrder === 'none' ? 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50' : 'bg-blue-50 text-blue-700 border-blue-200'}`}
+                    {!showFavoriteList && (
+                        <motion.div
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
+                            className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4"
                         >
-                            <span className="font-medium">按涨跌幅排序</span>
-                            {sortOrder === 'desc' && <ChevronDown className="w-4 h-4" />}
-                            {sortOrder === 'asc' && <ChevronUp className="w-4 h-4" />}
-                        </Button>
-                    </motion.div>
+                            <div className="relative w-full sm:w-64">
+                                <input
+                                    type="text"
+                                    placeholder="搜索基金代码或名称..."
+                                    value={searchTerm}
+                                    onChange={handleSearchChange}
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                />
+                                <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+                            </div>
+                            <Button
+                                onClick={() => handleSortChange()}
+                                variant={sortOrder === 'none' ? 'text' : 'solid'}
+                                className={`flex items-center space-x-2 ${sortOrder === 'none' ? 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50' : 'bg-blue-50 text-blue-700 border-blue-200'}`}
+                            >
+                                <span className="font-medium">按涨跌幅排序</span>
+                                {sortOrder === 'desc' && <ChevronDown className="w-4 h-4" />}
+                                {sortOrder === 'asc' && <ChevronUp className="w-4 h-4" />}
+                            </Button>
+                        </motion.div>
+                    )}
                 </div>
 
                 {/* 条件渲染：如果是收藏标签页且用户已登录，显示FavoriteFundList组件，否则显示原有的基金列表 */}
