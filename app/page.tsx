@@ -126,63 +126,47 @@ export default function Page() {
 
             <div className="container mx-auto px-4 py-8">
                 {/* 使用基金列表组件 */}
-                <FundList initialFunds={funds as FundItem[]} />
+                <FundList initialFunds={funds as FundItem[]} isLoading={isLoading} />
 
                 {/* 分页控件 */}
-                {!isLoading && funds.length > 0 && (
-                    <div className="mt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-                        {/* 分页信息 */}
-                        <div className="text-gray-600 text-sm">
-                            显示 {(page - 1) * limit + 1} 到{' '}
-                            {Math.min(page * limit, pagination.total)} 项， 共 {pagination.total} 项
-                        </div>
-
-                        <div className="flex flex-col sm:flex-row gap-4 items-center">
-                            {/* 每页数量选择 */}
-                            <div className="flex items-center gap-2">
-                                <label htmlFor="limit" className="text-sm text-gray-600">
-                                    每页显示：
-                                </label>
-                                <select
-                                    id="limit"
-                                    value={limit}
-                                    onChange={handleLimitChange}
-                                    className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="5">5</option>
-                                    <option value="10">10</option>
-                                    <option value="20">20</option>
-                                    <option value="50">50</option>
-                                    <option value="100">100</option>
-                                </select>
-                            </div>
-
-                            {/* 页码按钮 */}
-                            <div className="flex items-center gap-1">
-                                <button
-                                    onClick={() => handlePageChange(page - 1)}
-                                    disabled={page === 1}
-                                    className={`px-3 py-1 rounded border ${page === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'} transition-colors`}
-                                >
-                                    上一页
-                                </button>
-
-                                {/* 页码显示 */}
-                                <span className="px-3 py-1 text-sm font-medium">
-                                    {page} / {pagination.totalPages}
-                                </span>
-
-                                <button
-                                    onClick={() => handlePageChange(page + 1)}
-                                    disabled={page === pagination.totalPages}
-                                    className={`px-3 py-1 rounded border ${page === pagination.totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'} transition-colors`}
-                                >
-                                    下一页
-                                </button>
-                            </div>
+                <div className="mt-6 flex justify-between items-center">
+                    <div className="text-sm text-gray-500">
+                        显示 {(pagination.page - 1) * pagination.limit + 1} -{' '}
+                        {Math.min(pagination.page * pagination.limit, pagination.total)} 条，共{' '}
+                        {pagination.total} 条记录
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-500">每页显示：</span>
+                        <select
+                            value={pagination.limit}
+                            onChange={handleLimitChange}
+                            className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="10">10条</option>
+                            <option value="20">20条</option>
+                            <option value="50">50条</option>
+                        </select>
+                        <div className="flex items-center space-x-1 ml-4">
+                            <button
+                                onClick={() => handlePageChange(pagination.page - 1)}
+                                disabled={pagination.page === 1}
+                                className={`px-3 py-1 rounded border ${pagination.page === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'} transition-colors`}
+                            >
+                                上一页
+                            </button>
+                            <span className="px-3 py-1 text-sm">
+                                {pagination.page} / {pagination.totalPages}
+                            </span>
+                            <button
+                                onClick={() => handlePageChange(pagination.page + 1)}
+                                disabled={pagination.page === pagination.totalPages}
+                                className={`px-3 py-1 rounded border ${pagination.page === pagination.totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'} transition-colors`}
+                            >
+                                下一页
+                            </button>
                         </div>
                     </div>
-                )}
+                </div>
             </div>
         </div>
     );

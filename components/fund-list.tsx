@@ -44,9 +44,10 @@ export interface FundItem {
 
 interface FundListProps {
     initialFunds?: FundItem[];
+    isLoading?: boolean;
 }
 
-export default function FundList({ initialFunds = [] }: FundListProps) {
+export default function FundList({ initialFunds = [], isLoading = false }: FundListProps) {
     // 确保每个基金项目都有isFavorite字段，并处理新旧数据结构转换
     const [funds, setFunds] = useState<FundItem[]>(() =>
         initialFunds.map((fund) => ({
@@ -132,7 +133,7 @@ export default function FundList({ initialFunds = [] }: FundListProps) {
                 }
 
                 const data = await response.json();
-                const favoriteFundsList = data.data || [];
+                const favoriteFundsList = data?.data?.map((item: any) => item.data) || [];
 
                 // 创建一个收藏基金code的Set，方便快速查询
                 const favoriteCodes = new Set(
@@ -157,75 +158,75 @@ export default function FundList({ initialFunds = [] }: FundListProps) {
                 );
             }
         };
-
         updateFundsWithFavoriteStatus();
     }, [initialFunds]);
 
+    const fetchFavoriteCount = async () => {
+        try {
+            // 从localStorage获取缓存的邮箱
+            const getLocalStorageWithExpiry = (key: string): string | null => {
+                const itemStr = localStorage.getItem(key);
+                if (!itemStr) {
+                    setActualFavoriteCount(0);
+                    return null;
+                }
+
+                const item = JSON.parse(itemStr);
+                const now = new Date();
+
+                if (now.getTime() > item.expiry) {
+                    localStorage.removeItem(key);
+                    setActualFavoriteCount(0);
+                    return null;
+                }
+
+                return item.value;
+            };
+
+            const email = getLocalStorageWithExpiry('userEmail');
+            if (!email) {
+                setActualFavoriteCount(0);
+                return;
+            }
+
+            // 调用API获取收藏基金列表
+            const response = await fetch(
+                `/api/funds/favorite/list?email=${encodeURIComponent(email)}`,
+            );
+            if (!response.ok) {
+                throw new Error('获取收藏列表失败');
+            }
+
+            const data = await response.json();
+
+            const favoriteFunds = data?.data?.map((item: any) => item.data) || [];
+
+            setActualFavoriteCount(favoriteFunds ? favoriteFunds.length : 0);
+
+            // 创建收藏基金code的Set集合用于快速查找
+            const favoriteFundCodes = new Set(
+                favoriteFunds.map(
+                    (f: { fund_code?: string; code?: string }) => f.fund_code || f.code,
+                ),
+            );
+
+            // 更新initialFunds中基金的收藏状态
+            if (initialFunds && initialFunds.length > 0) {
+                setFunds(
+                    initialFunds.map((fund) => ({
+                        ...fund,
+                        isFavorite: favoriteFundCodes.has(fund.code), // 如果code在收藏列表中，则设置为true
+                    })),
+                );
+            }
+        } catch (error) {
+            console.error('获取收藏数量失败:', error);
+            setActualFavoriteCount(0);
+        }
+    };
+
     // 获取实际的收藏基金数量
     useEffect(() => {
-        const fetchFavoriteCount = async () => {
-            try {
-                // 从localStorage获取缓存的邮箱
-                const getLocalStorageWithExpiry = (key: string): string | null => {
-                    const itemStr = localStorage.getItem(key);
-                    if (!itemStr) {
-                        setActualFavoriteCount(0);
-                        return null;
-                    }
-
-                    const item = JSON.parse(itemStr);
-                    const now = new Date();
-
-                    if (now.getTime() > item.expiry) {
-                        localStorage.removeItem(key);
-                        setActualFavoriteCount(0);
-                        return null;
-                    }
-
-                    return item.value;
-                };
-
-                const email = getLocalStorageWithExpiry('userEmail');
-                if (!email) {
-                    setActualFavoriteCount(0);
-                    return;
-                }
-
-                // 调用API获取收藏基金列表
-                const response = await fetch(
-                    `/api/funds/favorite/list?email=${encodeURIComponent(email)}`,
-                );
-                if (!response.ok) {
-                    throw new Error('获取收藏列表失败');
-                }
-
-                const data = await response.json();
-
-                const favoriteFunds = data.data || [];
-                setActualFavoriteCount(favoriteFunds ? favoriteFunds.length : 0);
-
-                // 创建收藏基金code的Set集合用于快速查找
-                const favoriteFundCodes = new Set(
-                    favoriteFunds.map(
-                        (f: { fund_code?: string; code?: string }) => f.fund_code || f.code,
-                    ),
-                );
-
-                // 更新initialFunds中基金的收藏状态
-                if (initialFunds && initialFunds.length > 0) {
-                    setFunds(
-                        initialFunds.map((fund) => ({
-                            ...fund,
-                            isFavorite: favoriteFundCodes.has(fund.code), // 如果code在收藏列表中，则设置为true
-                        })),
-                    );
-                }
-            } catch (error) {
-                console.error('获取收藏数量失败:', error);
-                setActualFavoriteCount(0);
-            }
-        };
-
         fetchFavoriteCount();
     }, []);
 
@@ -292,6 +293,8 @@ export default function FundList({ initialFunds = [] }: FundListProps) {
 
             // 显示成功提示
             message.success(isAddFavorite ? '添加收藏成功' : '取消收藏成功');
+
+            fetchFavoriteCount();
         } catch (error) {
             console.error('收藏操作失败:', error);
             message.error('操作失败，请稍后重试');
@@ -366,7 +369,7 @@ export default function FundList({ initialFunds = [] }: FundListProps) {
                         okText: '去登录',
                         onOk: () => {
                             // 跳转到登录页面
-                            window.location.href = '/login';
+                            window.location.href = '/auth/login';
                         },
                     });
                     return;
@@ -549,7 +552,7 @@ export default function FundList({ initialFunds = [] }: FundListProps) {
 
                 {/* 条件渲染：如果是收藏标签页且用户已登录，显示FavoriteFundList组件，否则显示原有的基金列表 */}
                 {showFavoriteList && userEmail ? (
-                    <FavoriteFundList email={userEmail} />
+                    <FavoriteFundList email={userEmail} refreshFavoriteList={fetchFavoriteCount} />
                 ) : (
                     /* Fund Cards Grid */
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

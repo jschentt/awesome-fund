@@ -10,6 +10,7 @@ import { FundItem } from './fund-list';
 interface FavoriteFundListProps {
     email: string;
     onFundClick?: (fundCode: string) => void;
+    refreshFavoriteList?: () => void;
 }
 
 // 收藏基金API返回的数据结构
@@ -49,7 +50,11 @@ interface FavoriteFundResponse {
     total?: number;
 }
 
-export default function FavoriteFundList({ email, onFundClick }: FavoriteFundListProps) {
+export default function FavoriteFundList({
+    email,
+    onFundClick,
+    refreshFavoriteList,
+}: FavoriteFundListProps) {
     // 状态管理
     const [funds, setFunds] = useState<FundItem[]>([]);
     const [loading, setLoading] = useState(false);
@@ -109,6 +114,8 @@ export default function FavoriteFundList({ email, onFundClick }: FavoriteFundLis
                 if (res.ok) {
                     const data: FavoriteFundResponse = await res.json();
 
+                    console.log('API返回数据:', data);
+
                     if (data.data && Array.isArray(data.data)) {
                         // 映射数据格式
                         const mappedFunds = data.data.map(mapApiDataToFundItem);
@@ -167,9 +174,30 @@ export default function FavoriteFundList({ email, onFundClick }: FavoriteFundLis
     };
 
     // 处理收藏操作（从收藏列表移除）
-    const handleToggleFavorite = (fund: FundItem) => {
-        setSelectedFund(fund);
-        setFavoriteModalOpen(true);
+    const handleToggleFavorite = async (fund: FundItem) => {
+        const endpoint = `/api/funds/favorite`;
+
+        // 调用API
+        const response = await fetch(endpoint, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ fundCode: fund.code, email }),
+        });
+
+        // 检查响应状态
+        if (!response.ok) {
+            throw new Error(`API调用失败: ${response.statusText}`);
+        }
+
+        setFunds((prev) => prev.filter((item) => item.code !== fund.code));
+
+        message.success('已从收藏中移除');
+        // 刷新收藏列表
+        if (refreshFavoriteList) {
+            refreshFavoriteList();
+        }
     };
 
     // 确认从收藏中移除
