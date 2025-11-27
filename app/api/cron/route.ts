@@ -179,22 +179,24 @@ export async function GET(request: Request) {
         // 第二步：使用获取到的access_token调用基金列表接口
         const fundListResponse = await fetchFundList(access_token, page, limit);
 
-        // 第三步：筛选出expectGrowth大于3的数据
+        // 第三步：筛选出expectGrowth小于-4的数据
         const fundListData = fundListResponse.data.data.data || [];
         console.log('原始基金列表数量:', fundListData.length);
 
         const filteredFunds = fundListData.filter(
             (fund: any) =>
-                fund.expectGrowth && typeof fund.expectGrowth === 'number' && fund.expectGrowth > 3,
+                fund.expectGrowth &&
+                typeof fund.expectGrowth === 'number' &&
+                fund.expectGrowth < -4,
         );
-        console.log('筛选后expectGrowth>3的基金数据:', JSON.stringify(filteredFunds, null, 2));
+        console.log('筛选后expectGrowth<-4的基金数据:', JSON.stringify(filteredFunds, null, 2));
 
         // 第四步：如果有符合条件的基金，推送钉钉消息
         if (filteredFunds.length > 0) {
-            const title = `基金预期增长率大于3%的通知 (${new Date().toLocaleDateString('zh-CN', { timeZone: 'Asia/Shanghai' })})`;
+            const title = `基金预期增长率小于-4%的通知 (${new Date().toLocaleDateString('zh-CN', { timeZone: 'Asia/Shanghai' })})`;
 
             // 构建Markdown格式的消息内容
-            let text = `## 基金预期增长率大于3%的列表\n\n`;
+            let text = `## 基金预期增长率小于-4%的列表\n\n`;
             text += `**更新时间:** ${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}\n\n`;
             text += `**符合条件的基金数量:** ${filteredFunds.length}\n\n`;
             text += `### 详情列表\n`;
