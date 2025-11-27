@@ -53,7 +53,6 @@ src/
 
 ## 6. 安全红线
 
-- 不允许关闭 RLS 生产表；测试表需备注 `/* TEST ONLY */`
 - 任何上传文件先过 ClamAV 扫描（用 Vercel Blob + Serverless 函数）
 - 环境变量 `NEXT_PUBLIC_*` 只能放非敏感值
 
