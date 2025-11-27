@@ -14,7 +14,7 @@ import {
     Plus,
     Star,
 } from 'lucide-react';
-import { Button } from 'antd';
+import { Button, message } from 'antd';
 import dayjs from 'dayjs';
 
 export interface FundItem {
@@ -98,12 +98,65 @@ export default function FundList({ initialFunds = [] }: FundListProps) {
         );
     };
 
-    const toggleFavorite = (code: string) => {
-        setFunds(
-            funds.map((fund) =>
-                fund.code === code ? { ...fund, isFavorite: !fund.isFavorite } : fund,
-            ),
-        );
+    const toggleFavorite = async (code: string) => {
+        try {
+            const fund = funds.find((f) => f.code === code);
+            if (!fund) return;
+
+            // 从localStorage获取缓存的邮箱
+            const getLocalStorageWithExpiry = (key: string): string | null => {
+                const itemStr = localStorage.getItem(key);
+                if (!itemStr) {
+                    return null;
+                }
+
+                const item = JSON.parse(itemStr);
+                const now = new Date();
+
+                if (now.getTime() > item.expiry) {
+                    localStorage.removeItem(key);
+                    return null;
+                }
+
+                return item.value;
+            };
+
+            const email = getLocalStorageWithExpiry('userEmail');
+            if (!email) {
+                throw new Error('用户未登录，请先登录');
+            }
+
+            // 确定是添加还是取消收藏
+            const isAddFavorite = !fund.isFavorite;
+            const endpoint = `/api/funds/favorite`;
+
+            // 调用API
+            const response = await fetch(endpoint, {
+                method: isAddFavorite ? 'POST' : 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ fundCode: code, email }),
+            });
+
+            // 检查响应状态
+            if (!response.ok) {
+                throw new Error(`API调用失败: ${response.statusText}`);
+            }
+
+            // 只在API调用成功后更新本地状态
+            setFunds(
+                funds.map((fund) =>
+                    fund.code === code ? { ...fund, isFavorite: !fund.isFavorite } : fund,
+                ),
+            );
+
+            // 显示成功提示
+            message.success(isAddFavorite ? '添加收藏成功' : '取消收藏成功');
+        } catch (error) {
+            console.error('收藏操作失败:', error);
+            message.error('操作失败，请稍后重试');
+        }
     };
 
     const filteredFunds = funds.filter((fund) => {

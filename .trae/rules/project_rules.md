@@ -11,7 +11,7 @@
 - 包管理器：必须 pnpm（仓库含 `pnpm-lock.yaml`）
 - 前端框架：Next.js 14 App Router
 - UI 框架：Ant Design 5.x（官方组件 + css-in-js）
-- 数据库：Supabase（PostgreSQL 15，Row Level Security 默认开启）
+- 数据库：Supabase（PostgreSQL 15）
 - 环境变量：统一 `.env` 管理，禁止硬编码密钥
 
 ## 2. 目录规范
@@ -35,8 +35,6 @@ src/
 - TypeScript 严格模式：开启
 - 函数组件 + hooks，禁止 class 组件
 - AntD 组件按需自动引入（已配 `plugin:next-plugin-antd`）
-- 任何数据库操作必须走 RLS 策略，前端只用 `anonKey`
-- 敏感逻辑（支付、admin）必须写成 Vercel Edge Function 或 Next.js Route Handler，并用 `serviceRoleKey`（服务端 only）
 
 ## 4. 分支与提交
 

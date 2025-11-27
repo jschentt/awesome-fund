@@ -1,0 +1,34 @@
+/**
+ * 用户收藏基金的类型定义（对应user_favorite_fund表）
+ */
+export interface UserFavorite {
+  id: string | number; // 表中id为bigserial类型
+  user_id: string; // uuid类型
+  fund_code: string; // character varying(10)类型
+  created_at: string; // timestamp with time zone类型
+}
+
+/**
+ * 添加收藏请求参数
+ */
+export interface AddFavoriteRequest {
+  fundCode: string;
+  userId: string;
+}
+
+/**
+ * 取消收藏请求参数
+ */
+export interface RemoveFavoriteRequest {
+  fundCode: string;
+  userId: string;
+}
+
+/**
+ * API响应类型
+ */
+export interface ApiResponse<T = any> {
+  message: string;
+  data?: T;
+  error?: string;
+}
