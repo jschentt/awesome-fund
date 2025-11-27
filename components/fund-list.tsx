@@ -14,8 +14,9 @@ import {
     Plus,
     Star,
 } from 'lucide-react';
-import { Button, message } from 'antd';
+import { Button, message, Modal } from 'antd';
 import dayjs from 'dayjs';
+import FavoriteFundList from './favorite-fund-list';
 
 export interface FundItem {
     id?: string;
@@ -79,16 +80,154 @@ export default function FundList({ initialFunds = [] }: FundListProps) {
     const [selectedFund, setSelectedFund] = useState<FundItem | null>(null);
     const [selectedMethods, setSelectedMethods] = useState({ dingtalk: false, wechat: false });
     const [showFundActions, setShowFundActions] = useState<string | null>(null);
+    // 添加状态控制是否显示收藏列表组件
+    const [showFavoriteList, setShowFavoriteList] = useState(false);
+    // 存储当前用户邮箱，用于传递给收藏列表组件
+    const [userEmail, setUserEmail] = useState<string | null>(null);
+    // 存储实际的收藏基金数量
+    const [actualFavoriteCount, setActualFavoriteCount] = useState(0);
 
     // 更新基金数据当外部传入的初始数据变化时
     useEffect(() => {
-        setFunds(
-            initialFunds.map((fund) => ({
-                ...fund,
-                isFavorite: fund.isFavorite ?? false,
-            })),
-        );
+        const updateFundsWithFavoriteStatus = async () => {
+            // 从localStorage获取缓存的邮箱
+            const getLocalStorageWithExpiry = (key: string): string | null => {
+                const itemStr = localStorage.getItem(key);
+                if (!itemStr) {
+                    return null;
+                }
+
+                const item = JSON.parse(itemStr);
+                const now = new Date();
+
+                if (now.getTime() > item.expiry) {
+                    localStorage.removeItem(key);
+                    return null;
+                }
+
+                return item.value;
+            };
+
+            const email = getLocalStorageWithExpiry('userEmail');
+
+            // 如果没有email，按照原逻辑执行
+            if (!email) {
+                setFunds(
+                    initialFunds.map((fund) => ({
+                        ...fund,
+                        isFavorite: fund.isFavorite ?? false,
+                    })),
+                );
+                return;
+            }
+
+            try {
+                // 调用API获取收藏基金列表
+                const response = await fetch(
+                    `/api/funds/favorite/list?email=${encodeURIComponent(email)}`,
+                );
+
+                if (!response.ok) {
+                    throw new Error('获取收藏列表失败');
+                }
+
+                const data = await response.json();
+                const favoriteFundsList = data.data || [];
+
+                // 创建一个收藏基金code的Set，方便快速查询
+                const favoriteCodes = new Set(
+                    favoriteFundsList.map((f: any) => f.code || f.fundCode),
+                );
+
+                // 更新基金数据，根据API返回结果设置isFavorite状态
+                setFunds(
+                    initialFunds.map((fund) => ({
+                        ...fund,
+                        isFavorite: favoriteCodes.has(fund.code),
+                    })),
+                );
+            } catch (error) {
+                console.error('获取收藏状态失败:', error);
+                // 出错时按照原逻辑执行
+                setFunds(
+                    initialFunds.map((fund) => ({
+                        ...fund,
+                        isFavorite: fund.isFavorite ?? false,
+                    })),
+                );
+            }
+        };
+
+        updateFundsWithFavoriteStatus();
     }, [initialFunds]);
+
+    // 获取实际的收藏基金数量
+    useEffect(() => {
+        const fetchFavoriteCount = async () => {
+            try {
+                // 从localStorage获取缓存的邮箱
+                const getLocalStorageWithExpiry = (key: string): string | null => {
+                    const itemStr = localStorage.getItem(key);
+                    if (!itemStr) {
+                        setActualFavoriteCount(0);
+                        return null;
+                    }
+
+                    const item = JSON.parse(itemStr);
+                    const now = new Date();
+
+                    if (now.getTime() > item.expiry) {
+                        localStorage.removeItem(key);
+                        setActualFavoriteCount(0);
+                        return null;
+                    }
+
+                    return item.value;
+                };
+
+                const email = getLocalStorageWithExpiry('userEmail');
+                if (!email) {
+                    setActualFavoriteCount(0);
+                    return;
+                }
+
+                // 调用API获取收藏基金列表
+                const response = await fetch(
+                    `/api/funds/favorite/list?email=${encodeURIComponent(email)}`,
+                );
+                if (!response.ok) {
+                    throw new Error('获取收藏列表失败');
+                }
+
+                const data = await response.json();
+
+                const favoriteFunds = data.data || [];
+                setActualFavoriteCount(favoriteFunds ? favoriteFunds.length : 0);
+
+                // 创建收藏基金code的Set集合用于快速查找
+                const favoriteFundCodes = new Set(
+                    favoriteFunds.map(
+                        (f: { fund_code?: string; code?: string }) => f.fund_code || f.code,
+                    ),
+                );
+
+                // 更新initialFunds中基金的收藏状态
+                if (initialFunds && initialFunds.length > 0) {
+                    setFunds(
+                        initialFunds.map((fund) => ({
+                            ...fund,
+                            isFavorite: favoriteFundCodes.has(fund.code), // 如果code在收藏列表中，则设置为true
+                        })),
+                    );
+                }
+            } catch (error) {
+                console.error('获取收藏数量失败:', error);
+                setActualFavoriteCount(0);
+            }
+        };
+
+        fetchFavoriteCount();
+    }, []);
 
     const toggleMonitoring = (code: string) => {
         setFunds(
@@ -193,9 +332,60 @@ export default function FundList({ initialFunds = [] }: FundListProps) {
     const currentFunds = sortedFunds;
 
     // 处理标签页切换
-    const handleTabChange = (tab: 'all' | 'monitoring' | 'favorite') => {
+    const handleTabChange = async (tab: 'all' | 'monitoring' | 'favorite') => {
         setActiveTab(tab);
         // 分页由父组件处理
+
+        if (tab === 'favorite') {
+            try {
+                // 从localStorage获取email
+                const getLocalStorageWithExpiry = (key: string): string | null => {
+                    const itemStr = localStorage.getItem(key);
+                    if (!itemStr) {
+                        return null;
+                    }
+
+                    const item = JSON.parse(itemStr);
+                    const now = new Date();
+
+                    if (now.getTime() > item.expiry) {
+                        localStorage.removeItem(key);
+                        return null;
+                    }
+
+                    return item.value;
+                };
+
+                const email = getLocalStorageWithExpiry('userEmail');
+
+                if (!email) {
+                    // 如果没有email，使用Modal提示用户登录
+                    Modal.error({
+                        title: '请先登录',
+                        content: '查看收藏列表需要先登录账号',
+                        okText: '去登录',
+                        onOk: () => {
+                            // 跳转到登录页面
+                            window.location.href = '/login';
+                        },
+                    });
+                    return;
+                }
+
+                // 设置用户邮箱和显示收藏列表组件
+                setUserEmail(email);
+                setShowFavoriteList(true);
+            } catch (error) {
+                console.error('Error preparing favorite list:', error);
+                Modal.error({
+                    title: '获取收藏列表失败',
+                    content: '网络错误，请检查网络连接后重试',
+                });
+            }
+        } else {
+            // 当切换到其他标签页时，隐藏收藏列表组件
+            setShowFavoriteList(false);
+        }
     };
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -246,7 +436,8 @@ export default function FundList({ initialFunds = [] }: FundListProps) {
 
     const totalFunds = funds.length;
     const monitoringFunds = funds.filter((f) => f.isMonitoring).length;
-    const favoriteFunds = funds.filter((f) => f.isFavorite).length;
+    // 优先使用实际从API获取的收藏数量，如果未获取到则使用本地过滤的结果
+    const favoriteFunds = actualFavoriteCount;
 
     const toggleFundActions = (code: string) => {
         if (showFundActions === code) {
@@ -353,228 +544,236 @@ export default function FundList({ initialFunds = [] }: FundListProps) {
                             {sortOrder === 'desc' && <ChevronDown className="w-4 h-4" />}
                             {sortOrder === 'asc' && <ChevronUp className="w-4 h-4" />}
                         </Button>
-                        <Button
-                            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
-                            onClick={() => {
-                                /* 添加自选功能 */
-                            }}
-                        >
-                            <Plus className="w-4 h-4" />
-                            <span className="font-medium">添加自选</span>
-                        </Button>
                     </motion.div>
                 </div>
 
-                {/* Fund Cards Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <AnimatePresence>
-                        {currentFunds.map((fund, index) => (
-                            <motion.div
-                                key={fund.code}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                                transition={{
-                                    duration: 0.5,
-                                    delay: index * 0.1,
-                                }}
-                                whileHover={{ y: -5 }}
-                                className="overflow-hidden border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow duration-300 relative group"
-                            >
-                                <Link
-                                    href={`/fund/${fund.code}`}
-                                    className="block p-5"
-                                    aria-label={`查看基金详情: ${fund.name}`}
+                {/* 条件渲染：如果是收藏标签页且用户已登录，显示FavoriteFundList组件，否则显示原有的基金列表 */}
+                {showFavoriteList && userEmail ? (
+                    <FavoriteFundList email={userEmail} />
+                ) : (
+                    /* Fund Cards Grid */
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <AnimatePresence>
+                            {currentFunds.map((fund, index) => (
+                                <motion.div
+                                    key={fund.code}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    transition={{
+                                        duration: 0.5,
+                                        delay: index * 0.1,
+                                    }}
+                                    whileHover={{ y: -5 }}
+                                    className="overflow-hidden border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow duration-300 relative group"
                                 >
-                                    {/* 基金头部信息 */}
-                                    <div className="flex justify-between items-start w-full mb-4">
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center space-x-2 mb-1">
-                                                <span className="text-base font-semibold text-gray-900">
-                                                    {fund.code}
-                                                </span>
-                                                <span
-                                                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                                        fund.status === '打开'
-                                                            ? 'bg-blue-100 text-blue-700'
-                                                            : fund.status === '暂停'
-                                                              ? 'bg-orange-100 text-orange-700'
-                                                              : 'bg-gray-100 text-gray-700'
-                                                    }`}
-                                                >
-                                                    {fund.status}
-                                                </span>
-                                                {fund.isFavorite && (
-                                                    <Star
-                                                        className="w-4 h-4 text-yellow-500 fill-yellow-500"
-                                                        aria-label="已收藏"
-                                                    />
-                                                )}
-                                            </div>
-                                            <div className="flex items-center space-x-2">
-                                                <h3 className="text-sm font-medium text-gray-900 line-clamp-2">
-                                                    {fund.name}
-                                                </h3>
-                                                {fund.type && (
-                                                    <span className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
-                                                        {fund.type}
+                                    <Link
+                                        href={`/fund/${fund.code}`}
+                                        className="block p-5"
+                                        aria-label={`查看基金详情: ${fund.name}`}
+                                    >
+                                        {/* 基金头部信息 */}
+                                        <div className="flex justify-between items-start w-full mb-4">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center space-x-2 mb-1">
+                                                    <span className="text-base font-semibold text-gray-900">
+                                                        {fund.code}
                                                     </span>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* 操作按钮容器 */}
-                                        <div className="relative">
-                                            <Button
-                                                variant="text"
-                                                size="small"
-                                                className="w-8 h-8 rounded-full text-gray-500 hover:bg-gray-100"
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                    toggleFundActions(fund.code);
-                                                }}
-                                                aria-label="基金操作"
-                                            >
-                                                <Settings className="w-4 h-4" />
-                                            </Button>
-
-                                            {/* 下拉操作菜单 */}
-                                            <AnimatePresence>
-                                                {showFundActions === fund.code && (
-                                                    <motion.div
-                                                        initial={{
-                                                            opacity: 0,
-                                                            scale: 0.95,
-                                                            y: -10,
-                                                        }}
-                                                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                                                        exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                                                        className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 z-50 overflow-hidden"
+                                                    <span
+                                                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                                            fund.status === '打开'
+                                                                ? 'bg-blue-100 text-blue-700'
+                                                                : fund.status === '暂停'
+                                                                  ? 'bg-orange-100 text-orange-700'
+                                                                  : 'bg-gray-100 text-gray-700'
+                                                        }`}
                                                     >
-                                                        <button
-                                                            className="flex items-center space-x-2 w-full px-4 py-3 text-left hover:bg-gray-50"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                e.preventDefault();
-                                                                handleSettingsClick(fund);
-                                                                toggleFundActions(fund.code);
-                                                            }}
-                                                        >
-                                                            <Bell className="w-4 h-4 text-blue-600" />
-                                                            <span className="text-sm">
-                                                                设置监控
-                                                            </span>
-                                                        </button>
-                                                        <button
-                                                            className="flex items-center space-x-2 w-full px-4 py-3 text-left hover:bg-gray-50"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                e.preventDefault();
-                                                                // 对于取消收藏操作，直接执行
-                                                                if (fund.isFavorite) {
-                                                                    toggleFavorite(fund.code);
-                                                                    toggleFundActions(fund.code);
-                                                                } else {
-                                                                    // 对于添加收藏操作，打开确认模态框
-                                                                    setSelectedFund(fund);
-                                                                    setFavoriteModalOpen(true);
-                                                                    toggleFundActions(fund.code);
-                                                                }
-                                                            }}
-                                                        >
-                                                            <Star
-                                                                className={`w-4 h-4 ${fund.isFavorite ? 'text-yellow-500 fill-yellow-500' : 'text-gray-500'}`}
-                                                            />
-                                                            <span className="text-sm">
-                                                                {fund.isFavorite
-                                                                    ? '取消收藏'
-                                                                    : '添加收藏'}
-                                                            </span>
-                                                        </button>
-                                                    </motion.div>
-                                                )}
-                                            </AnimatePresence>
-                                        </div>
-                                    </div>
+                                                        {fund.status}
+                                                    </span>
+                                                    {fund.isFavorite && (
+                                                        <Star
+                                                            className="w-4 h-4 text-yellow-500 fill-yellow-500"
+                                                            aria-label="已收藏"
+                                                        />
+                                                    )}
+                                                </div>
+                                                <div className="flex items-center space-x-2">
+                                                    <h3 className="text-sm font-medium text-gray-900 line-clamp-2">
+                                                        {fund.name}
+                                                    </h3>
+                                                    {fund.type && (
+                                                        <span className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
+                                                            {fund.type}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
 
-                                    {/* 基金净值信息 */}
-                                    <div className="grid grid-cols-3 gap-4 mb-4">
-                                        <div>
-                                            <div className="text-xs text-gray-500 mb-1">
-                                                当日净值
+                                            {/* 操作按钮容器 */}
+                                            <div className="relative">
+                                                <Button
+                                                    variant="text"
+                                                    size="small"
+                                                    className="w-8 h-8 rounded-full text-gray-500 hover:bg-gray-100"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        toggleFundActions(fund.code);
+                                                    }}
+                                                    aria-label="基金操作"
+                                                >
+                                                    <Settings className="w-4 h-4" />
+                                                </Button>
+
+                                                {/* 下拉操作菜单 */}
+                                                <AnimatePresence>
+                                                    {showFundActions === fund.code && (
+                                                        <motion.div
+                                                            initial={{
+                                                                opacity: 0,
+                                                                scale: 0.95,
+                                                                y: -10,
+                                                            }}
+                                                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                            exit={{
+                                                                opacity: 0,
+                                                                scale: 0.95,
+                                                                y: -10,
+                                                            }}
+                                                            className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 z-50 overflow-hidden"
+                                                        >
+                                                            <button
+                                                                className="flex items-center space-x-2 w-full px-4 py-3 text-left hover:bg-gray-50"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    e.preventDefault();
+                                                                    handleSettingsClick(fund);
+                                                                    toggleFundActions(fund.code);
+                                                                }}
+                                                            >
+                                                                <Bell className="w-4 h-4 text-blue-600" />
+                                                                <span className="text-sm">
+                                                                    设置监控
+                                                                </span>
+                                                            </button>
+                                                            <button
+                                                                className="flex items-center space-x-2 w-full px-4 py-3 text-left hover:bg-gray-50"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    e.preventDefault();
+                                                                    // 对于取消收藏操作，直接执行
+                                                                    if (fund.isFavorite) {
+                                                                        toggleFavorite(fund.code);
+                                                                        toggleFundActions(
+                                                                            fund.code,
+                                                                        );
+                                                                    } else {
+                                                                        // 对于添加收藏操作，打开确认模态框
+                                                                        setSelectedFund(fund);
+                                                                        setFavoriteModalOpen(true);
+                                                                        toggleFundActions(
+                                                                            fund.code,
+                                                                        );
+                                                                    }
+                                                                }}
+                                                            >
+                                                                <Star
+                                                                    className={`w-4 h-4 ${fund.isFavorite ? 'text-yellow-500 fill-yellow-500' : 'text-gray-500'}`}
+                                                                />
+                                                                <span className="text-sm">
+                                                                    {fund.isFavorite
+                                                                        ? '取消收藏'
+                                                                        : '添加收藏'}
+                                                                </span>
+                                                            </button>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
                                             </div>
-                                            <div className="text-lg font-semibold text-gray-900">
-                                                {fund.currentValue}
+                                        </div>
+
+                                        {/* 基金净值信息 */}
+                                        <div className="grid grid-cols-3 gap-4 mb-4">
+                                            <div>
+                                                <div className="text-xs text-gray-500 mb-1">
+                                                    当日净值
+                                                </div>
+                                                <div className="text-lg font-semibold text-gray-900">
+                                                    {fund.currentValue}
+                                                </div>
+                                                {fund.netWorthDate && (
+                                                    <div className="text-xs text-gray-400">
+                                                        {fund.netWorthDate}
+                                                    </div>
+                                                )}
                                             </div>
-                                            {fund.netWorthDate && (
-                                                <div className="text-xs text-gray-400">
-                                                    {fund.netWorthDate}
+
+                                            {fund.expectWorth && (
+                                                <div>
+                                                    <div className="text-xs text-gray-500 mb-1">
+                                                        预估净值
+                                                    </div>
+                                                    <div className="text-lg font-semibold text-gray-900">
+                                                        {fund.expectWorth}
+                                                    </div>
+                                                    {fund.expectWorthDate && (
+                                                        <div className="text-xs text-gray-400">
+                                                            {fund.expectWorthDate}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>
 
-                                        {fund.expectWorth && (
+                                        {/* 日涨跌信息 */}
+                                        <div className="grid grid-cols-2 gap-4 mb-3">
                                             <div>
                                                 <div className="text-xs text-gray-500 mb-1">
-                                                    预估净值
+                                                    日涨跌
                                                 </div>
-                                                <div className="text-lg font-semibold text-gray-900">
-                                                    {fund.expectWorth}
+                                                <div
+                                                    className={`text-base font-semibold ${fund.dailyChange && fund.dailyChange.startsWith('+') ? 'text-red-600' : 'text-green-600'}`}
+                                                >
+                                                    {fund.dailyChange}
                                                 </div>
-                                                {fund.expectWorthDate && (
-                                                    <div className="text-xs text-gray-400">
-                                                        {fund.expectWorthDate}
-                                                    </div>
-                                                )}
                                             </div>
-                                        )}
-                                    </div>
-
-                                    {/* 日涨跌信息 */}
-                                    <div className="grid grid-cols-2 gap-4 mb-3">
-                                        <div>
-                                            <div className="text-xs text-gray-500 mb-1">日涨跌</div>
-                                            <div
-                                                className={`text-base font-semibold ${fund.dailyChange && fund.dailyChange.startsWith('+') ? 'text-red-600' : 'text-green-600'}`}
-                                            >
-                                                {fund.dailyChange}
+                                            <div>
+                                                <div className="text-xs text-gray-500 mb-1">
+                                                    涨跌幅
+                                                </div>
+                                                <div
+                                                    className={`text-base font-semibold ${fund.changePercent && fund.changePercent.startsWith('+') ? 'text-red-600' : 'text-green-600'}`}
+                                                >
+                                                    {fund.changePercent}
+                                                </div>
                                             </div>
                                         </div>
-                                        <div>
-                                            <div className="text-xs text-gray-500 mb-1">涨跌幅</div>
-                                            <div
-                                                className={`text-base font-semibold ${fund.changePercent && fund.changePercent.startsWith('+') ? 'text-red-600' : 'text-green-600'}`}
-                                            >
-                                                {fund.changePercent}
-                                            </div>
+
+                                        {/* 更新时间 */}
+                                        <div className="text-xs text-gray-400 pt-2 border-t border-gray-100">
+                                            更新时间:{' '}
+                                            {dayjs(fund.updateTime).format('YYYY-MM-DD HH:mm:ss')}
                                         </div>
-                                    </div>
+                                    </Link>
 
-                                    {/* 更新时间 */}
-                                    <div className="text-xs text-gray-400 pt-2 border-t border-gray-100">
-                                        更新时间:{' '}
-                                        {dayjs(fund.updateTime).format('YYYY-MM-DD HH:mm:ss')}
-                                    </div>
-                                </Link>
-
-                                {/* 监控状态指示器 */}
-                                {fund.isMonitoring && (
-                                    <div className="absolute top-3 right-3">
-                                        <motion.div
-                                            initial={{ scale: 0 }}
-                                            animate={{ scale: 1 }}
-                                            className="w-2 h-2 bg-blue-500 rounded-full"
-                                        />
-                                    </div>
-                                )}
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
-                </div>
+                                    {/* 监控状态指示器 */}
+                                    {fund.isMonitoring && (
+                                        <div className="absolute top-3 right-3">
+                                            <motion.div
+                                                initial={{ scale: 0 }}
+                                                animate={{ scale: 1 }}
+                                                className="w-2 h-2 bg-blue-500 rounded-full"
+                                            />
+                                        </div>
+                                    )}
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                    </div>
+                )}
 
                 {/* 空状态处理 */}
-                {currentFunds.length === 0 && (
+                {currentFunds.length === 0 && !showFavoriteList && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
