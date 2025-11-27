@@ -1,51 +1,38 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/providers/auth-provider';
 import Loading from './loading';
+import Link from 'next/link';
 
 export default function Navbar() {
     const { user, loading, logout } = useAuth();
-    const [email, setEmail] = useState('');
-    const [sendLoading, setSendLoading] = useState(false);
-    const [message, setMessage] = useState<string | null>(null);
-    const [showDialog, setShowDialog] = useState(false);
+    const [logoutLoading, setLogoutLoading] = useState(false);
+    const [cachedEmail, setCachedEmail] = useState<string | null>(null);
 
-    const handleSendMagicLink = async () => {
-        if (!email) {
-            setMessage('请输入邮箱地址');
-            return;
+    // 获取本地存储的值（检查是否过期）
+    const getLocalStorageWithExpiry = (key: string): string | null => {
+        const itemStr = localStorage.getItem(key);
+        if (!itemStr) {
+            return null;
         }
 
-        setSendLoading(true);
-        setMessage(null);
+        const item = JSON.parse(itemStr);
+        const now = new Date();
 
-        try {
-            const response = await fetch('/api/auth/send-magic-link', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email }),
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                setMessage(data.message);
-                setEmail('');
-                setTimeout(() => setShowDialog(false), 3000);
-            } else {
-                setMessage(data.error || '发送失败');
-            }
-        } catch (error) {
-            setMessage('服务器错误');
-        } finally {
-            setSendLoading(false);
+        if (now.getTime() > item.expiry) {
+            localStorage.removeItem(key);
+            return null;
         }
+
+        return item.value;
     };
 
-    const [logoutLoading, setLogoutLoading] = useState(false);
+    // 组件挂载时获取缓存的邮箱
+    useEffect(() => {
+        const email = getLocalStorageWithExpiry('userEmail');
+        setCachedEmail(email);
+    }, []);
 
     const handleLogout = async () => {
         setLogoutLoading(true);
@@ -58,24 +45,6 @@ export default function Navbar() {
         }
     };
 
-    // 简单的弹窗组件
-    const SimpleDialog = ({
-        open,
-        onClose,
-        children,
-    }: {
-        open: boolean;
-        onClose: () => void;
-        children: React.ReactNode;
-    }) => {
-        if (!open) return null;
-        return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-                <div className="bg-white rounded-lg shadow-lg w-full max-w-md">{children}</div>
-            </div>
-        );
-    };
-
     if (loading) {
         return <Loading text="加载中" type="spinner" />;
     }
@@ -85,9 +54,11 @@ export default function Navbar() {
             <div className="container mx-auto px-4 flex h-16 items-center justify-between">
                 <div className="flex items-center gap-2"></div>
                 <div className="flex items-center gap-4">
-                    {user ? (
+                    {cachedEmail || user ? (
                         <>
-                            <span className="text-sm font-medium">欢迎, {user.email}</span>
+                            <span className="text-sm font-medium">
+                                欢迎, {cachedEmail || user?.email}
+                            </span>
                             <button
                                 onClick={handleLogout}
                                 disabled={logoutLoading}
@@ -104,81 +75,12 @@ export default function Navbar() {
                             </button>
                         </>
                     ) : (
-                        <>
-                            <button
-                                onClick={() => setShowDialog(true)}
-                                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-                            >
-                                邮箱登录
-                            </button>
-
-                            <SimpleDialog open={showDialog} onClose={() => setShowDialog(false)}>
-                                <div className="p-6">
-                                    <div className="mb-4">
-                                        <h3 className="text-lg font-semibold">Magic Link 登录</h3>
-                                        <p className="text-gray-600 text-sm">
-                                            输入您的邮箱，我们将发送一个登录链接
-                                        </p>
-                                    </div>
-                                    <div className="space-y-4 py-4">
-                                        <div className="space-y-2">
-                                            <label
-                                                htmlFor="email"
-                                                className="text-sm font-medium block"
-                                            >
-                                                邮箱地址
-                                            </label>
-                                            <input
-                                                id="email"
-                                                type="email"
-                                                placeholder="your@email.com"
-                                                value={email}
-                                                onChange={(
-                                                    e: React.ChangeEvent<HTMLInputElement>,
-                                                ) => setEmail(e.target.value)}
-                                                autoFocus
-                                                className="w-full p-2 border rounded"
-                                            />
-                                        </div>
-                                        {message && (
-                                            <div
-                                                className={`text-sm font-medium ${message.includes('已发送') ? 'text-green-500' : 'text-red-500'}`}
-                                            >
-                                                {message}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="flex justify-end gap-2 mt-4">
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowDialog(false)}
-                                            className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded"
-                                        >
-                                            取消
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={handleSendMagicLink}
-                                            disabled={sendLoading}
-                                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center justify-center gap-2"
-                                        >
-                                            {sendLoading ? (
-                                                <>
-                                                    <Loading
-                                                        size="small"
-                                                        type="dots"
-                                                        color="white"
-                                                    />
-                                                    <span>发送中</span>
-                                                </>
-                                            ) : (
-                                                '发送登录链接'
-                                            )}
-                                        </button>
-                                    </div>
-                                </div>
-                            </SimpleDialog>
-                        </>
+                        <Link
+                            href="/auth/login"
+                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                        >
+                            登录/注册
+                        </Link>
                     )}
                 </div>
             </div>
