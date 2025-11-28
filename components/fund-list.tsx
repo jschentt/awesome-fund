@@ -17,6 +17,7 @@ import {
 import { Button, message, Modal } from 'antd';
 import dayjs from 'dayjs';
 import FavoriteFundList from './favorite-fund-list';
+import { SubscriptionDialog } from './subscription-dialog';
 
 export interface FundItem {
     id?: string;
@@ -98,6 +99,8 @@ export default function FundList({
     const [userEmail, setUserEmail] = useState<string | null>(null);
     // 存储实际的收藏基金数量
     const [actualFavoriteCount, setActualFavoriteCount] = useState(0);
+    // 订阅对话框状态
+    const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState(false);
 
     // 更新基金数据当外部传入的初始数据变化时
     useEffect(() => {
@@ -423,7 +426,14 @@ export default function FundList({
     const handleSettingsClick = (fund: FundItem) => {
         setSelectedFund(fund);
         setSelectedMethods({ dingtalk: false, wechat: false });
-        setNotificationModalOpen(true);
+
+        // 检查当前监控数量，如果超过3个，显示订阅对话框
+        const monitoringCount = funds.filter((f) => f.isMonitoring).length;
+        if (monitoringCount >= 3 && !fund.isMonitoring) {
+            setSubscriptionDialogOpen(true);
+        } else {
+            setNotificationModalOpen(true);
+        }
     };
 
     const handleConfirmMonitoring = () => {
@@ -459,6 +469,14 @@ export default function FundList({
         } else {
             setShowFundActions(code);
         }
+    };
+
+    const handleSubscribe = (type: 'free' | 'monthly' | 'yearly') => {
+        // 订阅成功后的处理逻辑
+        console.log('订阅成功:', type);
+        // 可以在这里添加实际的订阅逻辑，比如调用API保存订阅信息
+        // 订阅成功后，打开监控设置对话框
+        setNotificationModalOpen(true);
     };
 
     return (
@@ -1000,6 +1018,14 @@ export default function FundList({
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* 订阅对话框 */}
+            <SubscriptionDialog
+                open={subscriptionDialogOpen}
+                onOpenChange={setSubscriptionDialogOpen}
+                currentMonitorCount={funds.filter((f) => f.isMonitoring).length}
+                onSubscribe={handleSubscribe}
+            />
         </div>
     );
 }

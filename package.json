@@ -10,7 +10,14 @@
         "format": "prettier --write .",
         "deploy": "vercel --prod",
         "db:init": "tsx scripts/init-db.ts",
-        "db:check": "tsx scripts/check-db.ts"
+        "db:check": "tsx scripts/check-db.ts",
+        "commit": "git-cz",
+        "prepare": "husky install"
+    },
+    "config": {
+        "commitizen": {
+            "path": "cz-conventional-changelog"
+        }
     },
     "dependencies": {
         "@radix-ui/react-slot": "^1.1.0",
@@ -26,17 +33,23 @@
         "next": "14.2.23",
         "react": "^18",
         "react-dom": "^18",
+        "sonner": "^2.0.7",
         "swr": "^2.3.6",
         "tailwind-merge": "^2.5.2",
         "tailwindcss-animate": "^1.0.7"
     },
     "devDependencies": {
+        "@commitlint/cli": "^20.1.0",
+        "@commitlint/config-conventional": "^20.0.0",
         "@types/node": "^20",
         "@types/react": "^18",
         "@types/react-dom": "^18",
+        "commitizen": "^4.3.1",
+        "cz-conventional-changelog": "^3.3.0",
         "dotenv": "^17.2.3",
         "eslint": "^8",
         "eslint-config-next": "^15.1.6",
+        "husky": "^9.1.7",
         "postcss": "^8",
         "prettier": "^3.3.3",
         "tailwindcss": "^3.4.1",
