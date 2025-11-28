@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Loading from '@/components/loading';
+import { Spin } from 'antd';
 
 // 这个页面只在客户端执行，专门处理认证回调逻辑
 export default function ClientCallbackPage() {
@@ -81,7 +81,11 @@ export default function ClientCallbackPage() {
     // 显示不同的状态UI
     switch (status) {
         case 'loading':
-            return <Loading fullScreen text="正在处理认证" type="spinner" size="large" />;
+            return (
+                <div className="flex flex-col items-center justify-center min-h-screen">
+                    <Spin size="large" tip="正在处理认证" />
+                </div>
+            );
         case 'success':
             return (
                 <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">

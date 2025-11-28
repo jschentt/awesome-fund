@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/providers/auth-provider';
-import Loading from './loading';
 import Link from 'next/link';
+import { Spin } from 'antd';
 
 export default function Navbar() {
     const { user, loading, logout } = useAuth();
@@ -46,7 +46,11 @@ export default function Navbar() {
     };
 
     if (loading) {
-        return <Loading text="加载中" type="spinner" />;
+        return (
+            <div className="flex items-center justify-center h-16">
+                <Spin tip="加载中" size="small" />
+            </div>
+        );
     }
 
     return (
@@ -66,7 +70,7 @@ export default function Navbar() {
                             >
                                 {logoutLoading ? (
                                     <>
-                                        <Loading size="small" type="dots" />
+                                        <Spin size="small" className="mr-1" />
                                         <span>退出中</span>
                                     </>
                                 ) : (

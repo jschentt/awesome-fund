@@ -14,8 +14,7 @@ import {
     BookmarkCheck,
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
-import Loading from '@/components/loading';
-import { Table } from 'antd';
+import { Table, Spin } from 'antd';
 // 移除了echart相关的导入
 
 // 修改NetWorthDataItem类型为二维数组类型
@@ -144,7 +143,7 @@ export default function FundDetailPage() {
     };
 
     if (loading) {
-        return <Loading />;
+        return <Spin size="large" className="flex justify-center mt-10" />;
     }
 
     if (error || !fund) {

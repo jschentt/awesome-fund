@@ -1,12 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import type { ApiResponse, UserFavorite } from '@/types/favorite';
-
-// 更新请求类型接口
-interface FavoriteRequest {
-    fundCode: string;
-    email: string;
-}
+import type { ApiResponse, UserFavorite, FavoriteRequest } from '@/types/favorite';
 
 /**
  * 添加基金到收藏列表的API接口

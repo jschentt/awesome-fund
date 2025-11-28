@@ -9,19 +9,11 @@ export interface UserFavorite {
 }
 
 /**
- * 添加收藏请求参数
+ * 收藏相关请求参数（使用email而非userId）
  */
-export interface AddFavoriteRequest {
+export interface FavoriteRequest {
   fundCode: string;
-  userId: string;
-}
-
-/**
- * 取消收藏请求参数
- */
-export interface RemoveFavoriteRequest {
-  fundCode: string;
-  userId: string;
+  email: string;
 }
 
 /**

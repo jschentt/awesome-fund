@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import Navbar from '@/components/navbar';
 import FundList, { FundItem } from '@/components/fund-list';
-import Loading from '@/components/loading';
+import { Spin } from 'antd';
 
 // 定义 API 返回数据的接口
 interface ApiResponse {
@@ -83,7 +83,7 @@ export default function Page() {
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <Loading />
+                <Spin size="large" className="flex justify-center mt-10" />
             </div>
         );
     }
