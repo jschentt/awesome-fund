@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import type { ApiResponse, UserFavorite } from '@/src/types/favorite';
+import type { ApiResponse, UserFavorite } from '@/types/favorite';
 
 // 更新请求类型接口
 interface FavoriteRequest {
