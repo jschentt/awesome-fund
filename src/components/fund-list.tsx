@@ -162,8 +162,10 @@ export default function FundList({
 
     // 获取实际的收藏基金数量
     useEffect(() => {
-        fetchFavoriteCount();
-    }, [initialFunds]);
+        if (!showFavoriteList) {
+            fetchFavoriteCount();
+        }
+    }, [initialFunds, showFavoriteList]);
 
     const toggleMonitoring = (code: string) => {
         setFunds(
@@ -436,7 +438,11 @@ export default function FundList({
 
                 {/* 条件渲染：如果是收藏标签页且用户已登录，显示FavoriteFundList组件，否则显示原有的基金列表 */}
                 {showFavoriteList && userEmail ? (
-                    <FavoriteFundList email={userEmail} refreshFavoriteList={fetchFavoriteCount} />
+                    <FavoriteFundList
+                        email={userEmail}
+                        refreshFavoriteList={fetchFavoriteCount}
+                        visible={showFavoriteList}
+                    />
                 ) : (
                     <>
                         <FundCardsGrid

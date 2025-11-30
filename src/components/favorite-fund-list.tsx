@@ -11,6 +11,7 @@ interface FavoriteFundListProps {
     email: string;
     onFundClick?: (fundCode: string) => void;
     refreshFavoriteList?: () => void;
+    visible?: boolean;
 }
 
 // 收藏基金API返回的数据结构
@@ -54,6 +55,7 @@ export default function FavoriteFundList({
     email,
     onFundClick,
     refreshFavoriteList,
+    visible = true,
 }: FavoriteFundListProps) {
     // 状态管理
     const [funds, setFunds] = useState<FundItem[]>([]);
@@ -151,9 +153,11 @@ export default function FavoriteFundList({
 
     // 组件挂载时和email变化时加载数据
     useEffect(() => {
-        loadFavoriteFunds(1);
-        setCurrentPage(1);
-    }, [email, loadFavoriteFunds]);
+        if (visible) {
+            loadFavoriteFunds(1);
+            setCurrentPage(1);
+        }
+    }, [email, loadFavoriteFunds, visible]);
 
     // 处理分页变化
     const handlePageChange = (page: number) => {
