@@ -95,79 +95,6 @@ export default function FundList({
     // 订阅对话框状态
     const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState(false);
 
-    // 更新基金数据当外部传入的初始数据变化时
-    useEffect(() => {
-        const updateFundsWithFavoriteStatus = async () => {
-            // 从localStorage获取缓存的邮箱
-            const getLocalStorageWithExpiry = (key: string): string | null => {
-                const itemStr = localStorage.getItem(key);
-                if (!itemStr) {
-                    return null;
-                }
-
-                const item = JSON.parse(itemStr);
-                const now = new Date();
-
-                if (now.getTime() > item.expiry) {
-                    localStorage.removeItem(key);
-                    return null;
-                }
-
-                return item.value;
-            };
-
-            const email = getLocalStorageWithExpiry('userEmail');
-
-            // 如果没有email，按照原逻辑执行
-            if (!email) {
-                setFunds(
-                    initialFunds.map((fund) => ({
-                        ...fund,
-                        isFavorite: fund.isFavorite ?? false,
-                    })),
-                );
-                return;
-            }
-
-            try {
-                // 调用API获取收藏基金列表
-                const response = await fetch(
-                    `/api/funds/favorite/list?email=${encodeURIComponent(email)}`,
-                );
-
-                if (!response.ok) {
-                    throw new Error('获取收藏列表失败');
-                }
-
-                const data = await response.json();
-                const favoriteFundsList = data?.data?.map((item: any) => item.data) || [];
-
-                // 创建一个收藏基金code的Set，方便快速查询
-                const favoriteCodes = new Set(
-                    favoriteFundsList.map((f: any) => f.code || f.fundCode),
-                );
-
-                // 更新基金数据，根据API返回结果设置isFavorite状态
-                setFunds(
-                    initialFunds.map((fund) => ({
-                        ...fund,
-                        isFavorite: favoriteCodes.has(fund.code),
-                    })),
-                );
-            } catch (error) {
-                console.error('获取收藏状态失败:', error);
-                // 出错时按照原逻辑执行
-                setFunds(
-                    initialFunds.map((fund) => ({
-                        ...fund,
-                        isFavorite: fund.isFavorite ?? false,
-                    })),
-                );
-            }
-        };
-        updateFundsWithFavoriteStatus();
-    }, [initialFunds]);
-
     const fetchFavoriteCount = async () => {
         try {
             // 从localStorage获取缓存的邮箱
@@ -196,6 +123,10 @@ export default function FundList({
                 return;
             }
 
+            if (!initialFunds || initialFunds?.length <= 0) {
+                return;
+            }
+
             // 调用API获取收藏基金列表
             const response = await fetch(
                 `/api/funds/favorite/list?email=${encodeURIComponent(email)}`,
@@ -217,15 +148,12 @@ export default function FundList({
                 ),
             );
 
-            // 更新initialFunds中基金的收藏状态
-            if (initialFunds && initialFunds.length > 0) {
-                setFunds(
-                    initialFunds.map((fund) => ({
-                        ...fund,
-                        isFavorite: favoriteFundCodes.has(fund.code), // 如果code在收藏列表中，则设置为true
-                    })),
-                );
-            }
+            setFunds(
+                initialFunds.map((fund) => ({
+                    ...fund,
+                    isFavorite: favoriteFundCodes.has(fund.code), // 如果code在收藏列表中，则设置为true
+                })),
+            );
         } catch (error) {
             console.error('获取收藏数量失败:', error);
             setActualFavoriteCount(0);
@@ -235,7 +163,7 @@ export default function FundList({
     // 获取实际的收藏基金数量
     useEffect(() => {
         fetchFavoriteCount();
-    }, []);
+    }, [initialFunds]);
 
     const toggleMonitoring = (code: string) => {
         setFunds(
@@ -521,7 +449,7 @@ export default function FundList({
                             setFavoriteModalOpen={setFavoriteModalOpen}
                             setSelectedFund={setSelectedFund}
                         />
-                        
+
                         {/* 空状态处理 */}
                         <FundEmptyState showFavoriteList={showFavoriteList} />
                     </>
