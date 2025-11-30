@@ -492,9 +492,9 @@ export default function FundList({
                     >
                         基金列表
                     </motion.h1>
-                    <div className="flex items-center justify-end space-x-3 sm:space-x-4">
+                    {/* <div className="flex items-center justify-end space-x-3 sm:space-x-4">
                         <span className="text-sm text-gray-500">总数量: {totalFunds}</span>
-                    </div>
+                    </div> */}
                 </div>
             </div>
 
