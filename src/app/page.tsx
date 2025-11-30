@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import Navbar from '@/components/navbar';
 import FundList, { FundItem } from '@/components/fund-list';
+import Pagination from '@/components/Pagination';
 import { Spin } from 'antd';
 
 // 定义 API 返回数据的接口
@@ -120,6 +121,12 @@ export default function Page() {
         setPage(1); // 重置到第一页
     };
 
+    // 为组件提供的简化版limit改变处理函数
+    const handleLimitChangeForComponent = (newLimit: string) => {
+        setLimit(parseInt(newLimit, 10));
+        setPage(1); // 重置到第一页
+    };
+
     return (
         <div className="min-h-screen bg-gray-50">
             {/* 使用导航栏组件 */}
@@ -137,44 +144,14 @@ export default function Page() {
 
                 {/* 分页控件 - 当显示收藏列表时隐藏 */}
                 {!showFavoriteList && (
-                    <div className="mt-6 flex justify-between items-center">
-                        <div className="text-sm text-gray-500">
-                            显示 {(pagination.page - 1) * pagination.limit + 1} -{' '}
-                            {Math.min(pagination.page * pagination.limit, pagination.total)} 条，共{' '}
-                            {pagination.total} 条记录
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <span className="text-sm text-gray-500">每页显示：</span>
-                            <select
-                                value={pagination.limit}
-                                onChange={handleLimitChange}
-                                className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="10">10条</option>
-                                <option value="20">20条</option>
-                                <option value="50">50条</option>
-                            </select>
-                            <div className="flex items-center space-x-1 ml-4">
-                                <button
-                                    onClick={() => handlePageChange(pagination.page - 1)}
-                                    disabled={pagination.page === 1}
-                                    className={`px-3 py-1 rounded border ${pagination.page === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'} transition-colors`}
-                                >
-                                    上一页
-                                </button>
-                                <span className="px-3 py-1 text-sm">
-                                    {pagination.page} / {pagination.totalPages}
-                                </span>
-                                <button
-                                    onClick={() => handlePageChange(pagination.page + 1)}
-                                    disabled={pagination.page === pagination.totalPages}
-                                    className={`px-3 py-1 rounded border ${pagination.page === pagination.totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'} transition-colors`}
-                                >
-                                    下一页
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    <Pagination
+                        page={pagination.page}
+                        limit={pagination.limit}
+                        total={pagination.total}
+                        totalPages={pagination.totalPages}
+                        onPageChange={handlePageChange}
+                        onLimitChange={handleLimitChangeForComponent}
+                    />
                 )}
             </div>
         </div>
