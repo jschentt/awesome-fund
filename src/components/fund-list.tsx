@@ -11,6 +11,7 @@ import FundCardsGrid from './fund-cards-grid';
 import FundEmptyState from './fund-empty-state';
 import MonitoringModal from './monitoring-modal';
 import AddFavoriteModal from './add-favorite-modal';
+import { getLocalStorageWithExpiry } from '@/lib/utils';
 
 export interface FundItem {
     id?: string;
@@ -97,26 +98,6 @@ export default function FundList({
 
     const fetchFavoriteCount = async () => {
         try {
-            // 从localStorage获取缓存的邮箱
-            const getLocalStorageWithExpiry = (key: string): string | null => {
-                const itemStr = localStorage.getItem(key);
-                if (!itemStr) {
-                    setActualFavoriteCount(0);
-                    return null;
-                }
-
-                const item = JSON.parse(itemStr);
-                const now = new Date();
-
-                if (now.getTime() > item.expiry) {
-                    localStorage.removeItem(key);
-                    setActualFavoriteCount(0);
-                    return null;
-                }
-
-                return item.value;
-            };
-
             const email = getLocalStorageWithExpiry('userEmail');
             if (!email) {
                 setActualFavoriteCount(0);
@@ -162,10 +143,10 @@ export default function FundList({
 
     // 获取实际的收藏基金数量
     useEffect(() => {
-        if (!showFavoriteList) {
+        if (initialFunds?.length > 0) {
             fetchFavoriteCount();
         }
-    }, [initialFunds, showFavoriteList]);
+    }, [initialFunds]);
 
     const toggleMonitoring = (code: string) => {
         setFunds(

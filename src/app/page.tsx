@@ -6,6 +6,7 @@ import Navbar from '@/components/navbar';
 import FundList, { FundItem } from '@/components/fund-list';
 import Pagination from '@/components/Pagination';
 import { Spin } from 'antd';
+import { getLocalStorageWithExpiry } from '@/lib/utils';
 
 // 定义 API 返回数据的接口
 interface ApiResponse {
@@ -60,6 +61,27 @@ export default function Page() {
 
     // 使用 SWR 从 API 获取基金数据
     const { data, error, isLoading } = useSWR<ApiResponse>(apiUrl, fetcher);
+
+    const loadFavoriteList = async () => {
+        try {
+            const email = getLocalStorageWithExpiry('userEmail');
+            if (!email) {
+                return;
+            }
+
+            // 调用API获取收藏基金列表
+            const response = await fetch(
+                `/api/funds/favorite/list?email=${encodeURIComponent(email)}`,
+            );
+            if (!response.ok) {
+                throw new Error('获取收藏列表失败');
+            }
+            const data = await response.json();
+            return data.data;
+        } catch (error) {
+            console.error('获取收藏列表失败:', error);
+        }
+    };
 
     // 解构基金数据，提供默认值
     const funds = data?.data || [];
