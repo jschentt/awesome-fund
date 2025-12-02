@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Search, Eye, Star, ChevronDown, ChevronUp } from 'lucide-react';
-import { Button } from 'antd';
+import { Button, Space } from 'antd';
 
 interface FundStatsAndSearchProps {
     activeTab: 'all' | 'monitoring' | 'favorite';
@@ -11,6 +11,7 @@ interface FundStatsAndSearchProps {
     monitoringFunds: number;
     favoriteFunds: number;
     showFavoriteList: boolean;
+    showMonitorList: boolean;
     onTabChange: (tab: 'all' | 'monitoring' | 'favorite') => void;
     onSortChange: () => void;
     searchTerm: string;
@@ -24,6 +25,7 @@ export default function FundStatsAndSearch({
     monitoringFunds,
     favoriteFunds,
     showFavoriteList,
+    showMonitorList,
     onTabChange,
     onSortChange,
     searchTerm,
@@ -40,49 +42,51 @@ export default function FundStatsAndSearch({
                 className="bg-white border border-gray-200 rounded-lg p-1 shadow-sm"
             >
                 <div className="flex flex-col sm:flex-row">
-                    <Button
-                        variant={activeTab === 'all' ? 'solid' : 'text'}
-                        className={`flex items-center space-x-2 px-4 py-2 w-full sm:w-auto ${activeTab === 'all' ? 'bg-blue-50 border-blue-200 text-blue-700 rounded-md' : ''}`}
-                        onClick={() => onTabChange('all')}
-                    >
-                        <span className="text-sm font-medium">全部基金</span>
-                        <span
-                            className={`px-2 py-0.5 rounded-full text-xs font-medium ${activeTab === 'all' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
+                    <Space.Compact>
+                        <Button
+                            variant={activeTab === 'all' ? 'solid' : 'text'}
+                            className={`flex items-center space-x-2 px-4 py-2 w-full sm:w-auto ${activeTab === 'all' ? 'bg-blue-50 border-blue-200 text-blue-700 rounded-md' : ''}`}
+                            onClick={() => onTabChange('all')}
                         >
-                            {total}
-                        </span>
-                    </Button>
-                    <Button
-                        variant={activeTab === 'monitoring' ? 'solid' : 'text'}
-                        className={`flex items-center space-x-2 px-4 py-2 w-full sm:w-auto ${activeTab === 'monitoring' ? 'bg-blue-50 border-blue-200 text-blue-700 rounded-md' : ''}`}
-                        onClick={() => onTabChange('monitoring')}
-                    >
-                        <Eye className="w-4 h-4" />
-                        <span className="text-sm font-medium">我的监控</span>
-                        <span
-                            className={`px-2 py-0.5 rounded-full text-xs font-medium ${activeTab === 'monitoring' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
+                            <span className="text-sm font-medium">全部基金</span>
+                            <span
+                                className={`px-2 py-0.5 rounded-full text-xs font-medium ${activeTab === 'all' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
+                            >
+                                {total}
+                            </span>
+                        </Button>
+                        <Button
+                            variant={activeTab === 'monitoring' ? 'solid' : 'text'}
+                            className={`flex items-center space-x-2 px-4 py-2 w-full sm:w-auto ${activeTab === 'monitoring' ? 'bg-blue-50 border-blue-200 text-blue-700 rounded-md' : ''}`}
+                            onClick={() => onTabChange('monitoring')}
                         >
-                            {monitoringFunds}
-                        </span>
-                    </Button>
-                    <Button
-                        variant={activeTab === 'favorite' ? 'solid' : 'text'}
-                        className={`flex items-center space-x-2 px-4 py-2 w-full sm:w-auto ${activeTab === 'favorite' ? 'bg-blue-50 border-blue-200 text-blue-700 rounded-md' : ''}`}
-                        onClick={() => onTabChange('favorite')}
-                    >
-                        <Star className="w-4 h-4" />
-                        <span className="text-sm font-medium">我的收藏</span>
-                        <span
-                            className={`px-2 py-0.5 rounded-full text-xs font-medium ${activeTab === 'favorite' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
+                            <Eye className="w-4 h-4" />
+                            <span className="text-sm font-medium">我的监控</span>
+                            <span
+                                className={`px-2 py-0.5 rounded-full text-xs font-medium ${activeTab === 'monitoring' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
+                            >
+                                {monitoringFunds}
+                            </span>
+                        </Button>
+                        <Button
+                            variant={activeTab === 'favorite' ? 'solid' : 'text'}
+                            className={`flex items-center space-x-2 px-4 py-2 w-full sm:w-auto ${activeTab === 'favorite' ? 'bg-blue-50 border-blue-200 text-blue-700 rounded-md' : ''}`}
+                            onClick={() => onTabChange('favorite')}
                         >
-                            {favoriteFunds}
-                        </span>
-                    </Button>
+                            <Star className="w-4 h-4" />
+                            <span className="text-sm font-medium">我的收藏</span>
+                            <span
+                                className={`px-2 py-0.5 rounded-full text-xs font-medium ${activeTab === 'favorite' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
+                            >
+                                {favoriteFunds}
+                            </span>
+                        </Button>
+                    </Space.Compact>
                 </div>
             </motion.div>
 
             {/* Search Controls */}
-            {!showFavoriteList && (
+            {!showFavoriteList && !showMonitorList && (
                 <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}

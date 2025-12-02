@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 import type { ApiResponse, UserFund, CommonRequest } from '@/types/common';
 
 /**
- * 添加基金到收藏列表的API接口
+ * 添加基金到监控列表的API接口
  * 注意：接口显式验证用户身份，确保用户只能操作自己的数据
  */
 export async function POST(request: Request) {
@@ -36,10 +36,10 @@ export async function POST(request: Request) {
             );
         }
 
-        // 检查是否已经收藏
+        // 检查是否已经监控
         // 确保使用正确的user_id类型
-        const { data: existingFavorite, error: checkError } = await supabase
-            .from('user_favorite_fund')
+        const { data: existingMonitor, error: checkError } = await supabase
+            .from('user_monitor_fund')
             .select('id')
             .eq('user_id', String(user.id))
             .eq('fund_code', fundCode)
@@ -47,24 +47,24 @@ export async function POST(request: Request) {
 
         if (checkError && checkError.code !== 'PGRST116') {
             // PGRST116表示未找到记录
-            console.error('检查收藏状态失败:', checkError);
+            console.error('检查监控状态失败:', checkError);
             return NextResponse.json<ApiResponse>(
                 { message: '服务器错误，请稍后重试' },
                 { status: 500 },
             );
         }
 
-        if (existingFavorite) {
-            // existingFavorite 可能是 null 或 UserFund
+        if (existingMonitor) {
+            // existingMonitor 可能是 null 或 UserFund
             return NextResponse.json<ApiResponse>(
-                { message: '基金已在收藏列表中' },
+                { message: '基金已在监控列表中' },
                 { status: 400 },
             );
         }
 
-        // 添加收藏 - 注意：新表中created_at字段由数据库自动设置为now()
+        // 添加监控 - 注意：新表中created_at字段由数据库自动设置为now()
         const { data, error } = await supabase
-            .from('user_favorite_fund')
+            .from('user_monitor_fund')
             .insert([
                 {
                     user_id: String(user.id),
@@ -74,28 +74,28 @@ export async function POST(request: Request) {
             .select();
 
         if (error) {
-            console.error('添加收藏失败:', error);
+            console.error('添加监控失败:', error);
             return NextResponse.json<ApiResponse>(
-                { message: '添加收藏失败，请稍后重试' },
+                { message: '添加监控失败，请稍后重试' },
                 { status: 500 },
             );
         }
 
         return NextResponse.json<ApiResponse<UserFund[]>>(
             {
-                message: '添加收藏成功',
+                message: '添加监控成功',
                 data,
             },
             { status: 200 },
         );
     } catch (error) {
-        console.error('添加收藏接口异常:', error);
+        console.error('添加监控接口异常:', error);
         return NextResponse.json<ApiResponse>({ message: '服务器内部错误' }, { status: 500 });
     }
 }
 
 /**
- * 取消收藏基金的API接口
+ * 取消监控基金的API接口
  * 注意：接口显式验证用户身份，确保用户只能操作自己的数据
  */
 export async function DELETE(request: Request) {
@@ -128,25 +128,25 @@ export async function DELETE(request: Request) {
             );
         }
 
-        // 删除收藏
+        // 删除监控
         // 确保使用正确的user_id类型
         const { error } = await supabase
-            .from('user_favorite_fund')
+            .from('user_monitor_fund')
             .delete()
             .eq('user_id', String(user.id))
             .eq('fund_code', fundCode);
 
         if (error) {
-            console.error('取消收藏失败:', error);
+            console.error('取消监控失败:', error);
             return NextResponse.json<ApiResponse>(
-                { message: '取消收藏失败，请稍后重试' },
+                { message: '取消监控失败，请稍后重试' },
                 { status: 500 },
             );
         }
 
-        return NextResponse.json<ApiResponse>({ message: '取消收藏成功' }, { status: 200 });
+        return NextResponse.json<ApiResponse>({ message: '取消监控成功' }, { status: 200 });
     } catch (error) {
-        console.error('取消收藏接口异常:', error);
+        console.error('取消监控接口异常:', error);
         return NextResponse.json<ApiResponse>({ message: '服务器内部错误' }, { status: 500 });
     }
 }

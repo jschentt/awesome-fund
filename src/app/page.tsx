@@ -54,9 +54,11 @@ export default function Page() {
     // 分页状态
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
-    const [favoriteCount, setFavoriteCount] = useState(0);
     const [favoriteFunds, setFavoriteFunds] = useState<ExtendedFundItem[]>([]);
     const [showFavoriteList, setShowFavoriteList] = useState(false);
+    const [monitorFunds, setMonitorFunds] = useState<ExtendedFundItem[]>([]);
+    const [showMonitorList, setShowMonitorList] = useState(false);
+
     const firstLoad = useRef(true);
 
     // 构建 API URL 带分页参数
@@ -94,15 +96,40 @@ export default function Page() {
                 data?.data?.map((item: { data: ExtendedFundItem }) => item.data) || [];
 
             setFavoriteFunds(favoriteFunds);
-            setFavoriteCount(favoriteFunds?.length || 0);
         } catch (error) {
             console.error('获取收藏列表失败:', error);
+        }
+    };
+
+    const loadMonitorList = async () => {
+        try {
+            const email = getLocalStorageWithExpiry('userEmail');
+            if (!email) {
+                return;
+            }
+
+            // 调用API获取收藏基金列表
+            const response = await fetch(
+                `/api/funds/monitor/list?email=${encodeURIComponent(email)}`,
+            );
+            if (!response.ok) {
+                throw new Error('获取监控列表失败');
+            }
+            const data = await response.json();
+
+            const monitorFunds =
+                data?.data?.map((item: { data: ExtendedFundItem }) => item.data) || [];
+
+            setMonitorFunds(monitorFunds);
+        } catch (error) {
+            console.error('获取监控列表失败:', error);
         }
     };
 
     useEffect(() => {
         if (firstLoad.current) {
             loadFavoriteList();
+            loadMonitorList();
             firstLoad.current = false;
         }
     }, []);
@@ -119,6 +146,7 @@ export default function Page() {
     const fundsWithFavorite = funds.map((fund) => ({
         ...fund,
         isFavorite: favoriteFunds.some((fav) => fav.id === fund.id),
+        isMonitoring: monitorFunds.some((mon) => mon.id === fund.id),
     }));
 
     // 同步本地状态与API返回的分页信息
@@ -166,12 +194,6 @@ export default function Page() {
         }
     };
 
-    // 每页数量改变处理函数
-    const handleLimitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setLimit(parseInt(e.target.value, 10));
-        setPage(1); // 重置到第一页
-    };
-
     // 为组件提供的简化版limit改变处理函数
     const handleLimitChangeForComponent = (newLimit: string) => {
         setLimit(parseInt(newLimit, 10));
@@ -188,10 +210,12 @@ export default function Page() {
                 <FundList
                     total={pagination.total}
                     initialFunds={fundsWithFavorite as FundItem[]}
-                    favoriteCount={favoriteCount}
                     showFavoriteList={showFavoriteList}
                     setShowFavoriteList={setShowFavoriteList}
                     refreshFavoriteList={loadFavoriteList}
+                    showMonitorList={showMonitorList}
+                    setShowMonitorList={setShowMonitorList}
+                    refreshMonitorList={loadMonitorList}
                 />
 
                 {/* 分页控件 - 当显示收藏列表时隐藏 */}

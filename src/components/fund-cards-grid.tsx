@@ -56,17 +56,15 @@ export default function FundCardsGrid({
                                         <span className="text-base font-semibold text-gray-900">
                                             {fund.code}
                                         </span>
-                                        <span
-                                            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                                                fund.status === '打开'
-                                                    ? 'bg-blue-100 text-blue-700'
-                                                    : fund.status === '暂停'
-                                                      ? 'bg-orange-100 text-orange-700'
-                                                      : 'bg-gray-100 text-gray-700'
-                                            }`}
-                                        >
-                                            {fund.status}
-                                        </span>
+                                        {fund.isMonitoring && (
+                                            <span
+                                                className={
+                                                    'px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700'
+                                                }
+                                            >
+                                                监控中
+                                            </span>
+                                        )}
                                         {fund.isFavorite && (
                                             <Star
                                                 className="w-4 h-4 text-yellow-500 fill-yellow-500"
@@ -129,7 +127,11 @@ export default function FundCardsGrid({
                                                     }}
                                                 >
                                                     <Bell className="w-4 h-4 text-blue-600" />
-                                                    <span className="text-sm">设置监控</span>
+                                                    <span className="text-sm">
+                                                        {fund.isMonitoring
+                                                            ? '取消监控'
+                                                            : '设置监控'}
+                                                    </span>
                                                 </button>
                                                 <button
                                                     className="flex items-center space-x-2 w-full px-4 py-3 text-left hover:bg-gray-50"

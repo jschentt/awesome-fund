@@ -11,6 +11,7 @@ import FundEmptyState from './fund-empty-state';
 import MonitoringModal from './monitoring-modal';
 import AddFavoriteModal from './add-favorite-modal';
 import { getLocalStorageWithExpiry } from '@/lib/utils';
+import MonitorFundList from './monitor-fund-list';
 
 export interface FundItem {
     id?: string;
@@ -37,20 +38,24 @@ export interface FundItem {
 
 interface FundListProps {
     initialFunds?: FundItem[];
-    showFavoriteList?: boolean;
-    favoriteCount: number;
+    showFavoriteList: boolean;
     setShowFavoriteList?: (show: boolean) => void;
     total?: number;
     refreshFavoriteList?: () => void;
+    showMonitorList: boolean;
+    setShowMonitorList?: (show: boolean) => void;
+    refreshMonitorList?: () => void;
 }
 
 export default function FundList({
     initialFunds = [],
     total,
-    favoriteCount,
     refreshFavoriteList,
-    showFavoriteList: parentShowFavoriteList,
-    setShowFavoriteList: parentSetShowFavoriteList,
+    showFavoriteList,
+    setShowFavoriteList,
+    showMonitorList,
+    setShowMonitorList,
+    refreshMonitorList,
 }: FundListProps) {
     const [funds, setFunds] = useState<FundItem[]>([]);
     const [sortOrder, setSortOrder] = useState<'desc' | 'asc' | 'none'>('none');
@@ -61,8 +66,6 @@ export default function FundList({
     const [selectedFund, setSelectedFund] = useState<FundItem | null>(null);
     const [selectedMethods, setSelectedMethods] = useState({ dingtalk: false, wechat: false });
     const [showFundActions, setShowFundActions] = useState<string | null>(null);
-    const showFavoriteList = parentShowFavoriteList ?? false;
-    const setShowFavoriteList = parentSetShowFavoriteList || (() => {});
     const [userEmail, setUserEmail] = useState<string | null>(null);
     const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState(false);
 
@@ -86,18 +89,44 @@ export default function FundList({
                             : `${fund.expectGrowth}%`
                         : 'N/A'),
                 isFavorite: fund.isFavorite ?? false,
+                isMonitoring: fund.isMonitoring ?? false,
                 status: fund.status || '打开',
                 updateTime: fund.updateTime || new Date().toISOString(),
             })),
         );
     }, [initialFunds]);
 
-    const toggleMonitoring = (code: string) => {
-        setFunds(
-            funds.map((fund) =>
-                fund.code === code ? { ...fund, isMonitoring: !fund.isMonitoring } : fund,
-            ),
-        );
+    const toggleMonitoring = async (code: string) => {
+        try {
+            const fund = funds.find((f) => f.code === code);
+            if (!fund) return;
+
+            const email = getLocalStorageWithExpiry('userEmail');
+            if (!email) {
+                throw new Error('用户未登录，请先登录');
+            }
+
+            const isAddMonitoring = !fund.isMonitoring;
+            const endpoint = `/api/funds/monitor`;
+
+            const response = await fetch(endpoint, {
+                method: isAddMonitoring ? 'POST' : 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ fundCode: code, email }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`API调用失败: ${response.statusText}`);
+            }
+
+            refreshMonitorList?.();
+            message.success(isAddMonitoring ? '添加监控成功' : '取消监控成功');
+        } catch (error) {
+            console.error('监控操作失败:', error);
+            message.error(error instanceof Error ? error.message : '监控操作失败，请稍后重试');
+        }
     };
 
     const toggleFavorite = async (code: string) => {
@@ -168,23 +197,6 @@ export default function FundList({
 
         if (tab === 'favorite') {
             try {
-                const getLocalStorageWithExpiry = (key: string): string | null => {
-                    const itemStr = localStorage.getItem(key);
-                    if (!itemStr) {
-                        return null;
-                    }
-
-                    const item = JSON.parse(itemStr);
-                    const now = new Date();
-
-                    if (now.getTime() > item.expiry) {
-                        localStorage.removeItem(key);
-                        return null;
-                    }
-
-                    return item.value;
-                };
-
                 const email = getLocalStorageWithExpiry('userEmail');
 
                 if (!email) {
@@ -200,16 +212,46 @@ export default function FundList({
                 }
 
                 setUserEmail(email);
-                setShowFavoriteList(true);
+                setShowFavoriteList?.(true);
             } catch (error) {
                 console.error('Error preparing favorite list:', error);
                 Modal.error({
                     title: '获取收藏列表失败',
                     content: '网络错误，请检查网络连接后重试',
                 });
+            } finally {
+                setShowMonitorList?.(false);
+            }
+        } else if (tab === 'monitoring') {
+            try {
+                const email = getLocalStorageWithExpiry('userEmail');
+
+                if (!email) {
+                    Modal.error({
+                        title: '请先登录',
+                        content: '查看收藏列表需要先登录账号',
+                        okText: '去登录',
+                        onOk: () => {
+                            window.location.href = '/auth/login';
+                        },
+                    });
+                    return;
+                }
+
+                setUserEmail(email);
+                setShowMonitorList?.(true);
+            } catch (error) {
+                console.error('Error preparing monitoring list:', error);
+                Modal.error({
+                    title: '获取监控列表失败',
+                    content: '网络错误，请检查网络连接后重试',
+                });
+            } finally {
+                setShowFavoriteList?.(false);
             }
         } else {
-            setShowFavoriteList(false);
+            setShowFavoriteList?.(false);
+            setShowMonitorList?.(false);
         }
     };
 
@@ -235,6 +277,11 @@ export default function FundList({
         if (monitoringCount >= 3 && !fund.isMonitoring) {
             setSubscriptionDialogOpen(true);
         } else {
+            const isAddMonitoring = !fund.isMonitoring;
+            if (!isAddMonitoring) {
+                toggleMonitoring(fund.code);
+                return;
+            }
             setNotificationModalOpen(true);
         }
     };
@@ -262,6 +309,7 @@ export default function FundList({
     };
 
     const monitoringFunds = funds.filter((f) => f.isMonitoring).length;
+    const favoriteFunds = funds.filter((f) => f.isFavorite).length;
 
     const toggleFundActions = (code: string) => {
         if (showFundActions === code) {
@@ -274,6 +322,42 @@ export default function FundList({
     const handleSubscribe = (type: 'free' | 'monthly' | 'yearly') => {
         console.log('订阅成功:', type);
         setNotificationModalOpen(true);
+    };
+
+    const render = () => {
+        if (showFavoriteList && userEmail) {
+            return (
+                <FavoriteFundList
+                    email={userEmail}
+                    refreshFavoriteList={refreshFavoriteList}
+                    visible={showFavoriteList}
+                />
+            );
+        }
+        if (showMonitorList && userEmail) {
+            return (
+                <MonitorFundList
+                    email={userEmail}
+                    refreshMonitorList={refreshMonitorList}
+                    visible={showMonitorList}
+                />
+            );
+        }
+        return (
+            <>
+                <FundCardsGrid
+                    funds={currentFunds}
+                    onHandleSettingsClick={handleSettingsClick}
+                    showFundActions={showFundActions}
+                    onToggleFundActions={toggleFundActions}
+                    onToggleFavorite={toggleFavorite}
+                    setFavoriteModalOpen={setFavoriteModalOpen}
+                    setSelectedFund={setSelectedFund}
+                />
+
+                <FundEmptyState showFunds={currentFunds.length > 0} />
+            </>
+        );
     };
 
     return (
@@ -296,8 +380,9 @@ export default function FundList({
                     activeTab={activeTab}
                     total={total}
                     monitoringFunds={monitoringFunds}
-                    favoriteFunds={favoriteCount}
+                    favoriteFunds={favoriteFunds}
                     showFavoriteList={showFavoriteList}
+                    showMonitorList={showMonitorList}
                     onTabChange={handleTabChange}
                     onSortChange={handleSortChange}
                     searchTerm={searchTerm}
@@ -305,27 +390,7 @@ export default function FundList({
                     sortOrder={sortOrder}
                 />
 
-                {showFavoriteList && userEmail ? (
-                    <FavoriteFundList
-                        email={userEmail}
-                        refreshFavoriteList={refreshFavoriteList}
-                        visible={showFavoriteList}
-                    />
-                ) : (
-                    <>
-                        <FundCardsGrid
-                            funds={currentFunds}
-                            showFundActions={showFundActions}
-                            onToggleFundActions={toggleFundActions}
-                            onHandleSettingsClick={handleSettingsClick}
-                            onToggleFavorite={toggleFavorite}
-                            setFavoriteModalOpen={setFavoriteModalOpen}
-                            setSelectedFund={setSelectedFund}
-                        />
-
-                        <FundEmptyState showFunds={currentFunds.length > 0} />
-                    </>
-                )}
+                {render()}
             </div>
 
             <MonitoringModal

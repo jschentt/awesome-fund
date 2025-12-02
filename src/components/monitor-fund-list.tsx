@@ -7,18 +7,19 @@ import dayjs from 'dayjs';
 // 导入FundItem接口
 import { FundItem } from './fund-list';
 
-interface FavoriteFundListProps {
+interface MonitorFundListProps {
     email: string;
     onFundClick?: (fundCode: string) => void;
-    refreshFavoriteList?: () => void;
+    refreshMonitorList?: () => void;
     visible?: boolean;
 }
 
-// 收藏基金API返回的数据结构
-interface FavoriteFundResponse {
+// 监控基金API返回的数据结构
+interface MonitorFundResponse {
     message: string;
     data: {
         data: {
+            isMonitoring: boolean;
             id: string;
             code: string;
             name: string;
@@ -46,31 +47,30 @@ interface FavoriteFundResponse {
             description: string;
             netWorthData?: [string, string, string, string][];
         };
-        favorite_at: string;
+        monitor_at: string;
     }[];
     total?: number;
 }
 
-export default function FavoriteFundList({
+export default function MonitorFundList({
     email,
     onFundClick,
-    refreshFavoriteList,
+    refreshMonitorList,
     visible = false,
-}: FavoriteFundListProps) {
+}: MonitorFundListProps) {
     // 状态管理
     const [funds, setFunds] = useState<FundItem[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedFund, setSelectedFund] = useState<FundItem | null>(null);
-    const [favoriteModalOpen, setFavoriteModalOpen] = useState(false);
+    const [monitorModalOpen, setMonitorModalOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(10);
     const [totalFunds, setTotalFunds] = useState(0);
     const hasLoaded = useRef(true);
-
     // 映射API返回数据到FundItem接口
     const mapApiDataToFundItem = useCallback(
-        (apiData: FavoriteFundResponse['data'][0]): FundItem => {
+        (apiData: MonitorFundResponse['data'][0]): FundItem => {
             const fund = apiData.data;
             return {
                 id: fund.id,
@@ -98,19 +98,19 @@ export default function FavoriteFundList({
         [],
     );
 
-    // 加载收藏基金列表
-    const loadFavoriteFunds = useCallback(
+    // 加载监控基金列表
+    const loadMonitorFunds = useCallback(
         async (page: number = 1) => {
             if (!email) return;
 
             setLoading(true);
             try {
                 const res = await fetch(
-                    `/api/funds/favorite/list?email=${encodeURIComponent(email)}&page=${page}&pageSize=${pageSize}`,
+                    `/api/funds/monitor/list?email=${encodeURIComponent(email)}&page=${page}&pageSize=${pageSize}`,
                 );
 
                 if (res.ok) {
-                    const data: FavoriteFundResponse = await res.json();
+                    const data: MonitorFundResponse = await res.json();
 
                     console.log('API返回数据:', data);
 
@@ -128,16 +128,16 @@ export default function FavoriteFundList({
                         }
                     }
                 } else {
-                    console.error('Failed to fetch favorite funds');
+                    console.error('Failed to fetch monitor funds');
                     Modal.error({
-                        title: '获取收藏列表失败',
+                        title: '获取监控列表失败',
                         content: '请稍后重试',
                     });
                 }
             } catch (error) {
-                console.error('Error fetching favorite funds:', error);
+                console.error('Error fetching monitor funds:', error);
                 Modal.error({
-                    title: '获取收藏列表失败',
+                    title: '获取监控列表失败',
                     content: '网络错误，请检查网络连接后重试',
                 });
             } finally {
@@ -152,7 +152,7 @@ export default function FavoriteFundList({
         // 只有当visible为true且数据尚未加载过时才加载
         if (visible && email) {
             if (hasLoaded.current) {
-                loadFavoriteFunds(1);
+                loadMonitorFunds(1);
                 setCurrentPage(1);
                 hasLoaded.current = false;
             }
@@ -166,14 +166,14 @@ export default function FavoriteFundList({
     // 处理分页变化
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
-        loadFavoriteFunds(page);
+        loadMonitorFunds(page);
     };
 
     // 处理搜索
     const handleSearch = () => {
-        // 当搜索框清空时，重新加载所有收藏数据
+        // 当搜索框清空时，重新加载所有监控数据
         if (!searchQuery.trim()) {
-            loadFavoriteFunds(1);
+            loadMonitorFunds(1);
             setCurrentPage(1);
             return;
         }
@@ -188,9 +188,9 @@ export default function FavoriteFundList({
         setFunds(filtered);
     };
 
-    // 处理收藏操作（从收藏列表移除）
-    const handleToggleFavorite = async (fund: FundItem) => {
-        const endpoint = `/api/funds/favorite`;
+    // 处理监控操作（从监控列表移除）
+    const handleToggleMonitor = async (fund: FundItem) => {
+        const endpoint = `/api/funds/monitor`;
 
         // 调用API
         const response = await fetch(endpoint, {
@@ -208,24 +208,24 @@ export default function FavoriteFundList({
 
         setFunds((prev) => prev.filter((item) => item.code !== fund.code));
 
-        message.success('已从收藏中移除');
-        // 刷新收藏列表
-        if (refreshFavoriteList) {
-            refreshFavoriteList();
+        message.success('已从监控中移除');
+        // 刷新监控列表
+        if (refreshMonitorList) {
+            refreshMonitorList();
         }
     };
 
-    // 确认从收藏中移除
-    const handleConfirmRemoveFromFavorite = async () => {
+    // 确认从监控中移除
+    const handleConfirmRemoveFromMonitor = async () => {
         if (!selectedFund || !email) return;
 
         try {
-            await handleToggleFavorite(selectedFund);
+            await handleToggleMonitor(selectedFund);
         } catch (error) {
-            console.error('Error removing favorite:', error);
-            message.error('移除收藏失败，请稍后重试');
+            console.error('Error removing monitor:', error);
+            message.error('移除监控失败，请稍后重试');
         } finally {
-            setFavoriteModalOpen(false);
+            setMonitorModalOpen(false);
         }
     };
 
@@ -326,7 +326,7 @@ export default function FavoriteFundList({
                                             )}
                                         </div>
                                     </div>
-                                    <Tooltip title="已收藏">
+                                    <Tooltip title="已监控">
                                         <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                                     </Tooltip>
                                 </div>
@@ -420,12 +420,12 @@ export default function FavoriteFundList({
                                         className="border border-red-200 text-red-600 hover:bg-red-50"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            setFavoriteModalOpen(true);
+                                            setMonitorModalOpen(true);
                                             setSelectedFund(fund);
                                         }}
                                     >
                                         <Star className="w-4 h-4 mr-1" />
-                                        取消收藏
+                                        取消监控
                                     </Button>
                                 </div>
                             </div>
@@ -449,15 +449,15 @@ export default function FavoriteFundList({
                 </div>
             )}
 
-            {/* 取消收藏确认模态框 */}
+            {/* 取消监控确认模态框 */}
             <AnimatePresence>
-                {favoriteModalOpen && selectedFund && (
+                {monitorModalOpen && selectedFund && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-                        onClick={() => setFavoriteModalOpen(false)}
+                        onClick={() => setMonitorModalOpen(false)}
                     >
                         <motion.div
                             initial={{ scale: 0.9, y: 20 }}
@@ -469,21 +469,21 @@ export default function FavoriteFundList({
                             <div>
                                 <h3 className="flex items-center space-x-2 text-xl font-semibold text-gray-900 mb-4">
                                     <Star className="w-5 h-5 text-yellow-500" />
-                                    <span>取消收藏</span>
+                                    <span>取消监控</span>
                                 </h3>
                             </div>
                             <div className="py-4">
                                 <p className="text-gray-600 mb-2">
-                                    确定要将 {selectedFund.name} 从收藏中移除吗？
+                                    确定要将 {selectedFund.name} 从监控中移除吗？
                                 </p>
-                                <p className="text-sm text-gray-500">移除后可重新添加到收藏列表</p>
+                                <p className="text-sm text-gray-500">移除后可重新添加到监控列表</p>
                             </div>
                             <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
                                 <Button
                                     className="bg-gray-100 text-gray-700 hover:bg-gray-200 border-none"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        setFavoriteModalOpen(false);
+                                        setMonitorModalOpen(false);
                                     }}
                                 >
                                     取消
@@ -492,7 +492,7 @@ export default function FavoriteFundList({
                                     className="bg-red-500 hover:bg-red-600 text-white"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        handleConfirmRemoveFromFavorite();
+                                        handleConfirmRemoveFromMonitor();
                                     }}
                                 >
                                     确认移除
