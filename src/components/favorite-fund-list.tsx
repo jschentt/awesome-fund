@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Star, Bell, Check, ChevronDown, ChevronUp, Filter } from 'lucide-react';
 import { Button, Input, Empty, Tooltip, Modal, message, Pagination } from 'antd';
@@ -55,7 +55,7 @@ export default function FavoriteFundList({
     email,
     onFundClick,
     refreshFavoriteList,
-    visible = true,
+    visible = false,
 }: FavoriteFundListProps) {
     // 状态管理
     const [funds, setFunds] = useState<FundItem[]>([]);
@@ -71,6 +71,7 @@ export default function FavoriteFundList({
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(10);
     const [totalFunds, setTotalFunds] = useState(0);
+    const hasLoaded = useRef(true);
 
     // 映射API返回数据到FundItem接口
     const mapApiDataToFundItem = useCallback(
@@ -153,11 +154,19 @@ export default function FavoriteFundList({
 
     // 组件挂载时和email变化时加载数据
     useEffect(() => {
-        if (visible) {
-            loadFavoriteFunds(1);
-            setCurrentPage(1);
+        // 只有当visible为true且数据尚未加载过时才加载
+        if (visible && email) {
+            if (hasLoaded.current) {
+                loadFavoriteFunds(1);
+                setCurrentPage(1);
+                hasLoaded.current = false;
+            }
         }
-    }, [email, loadFavoriteFunds, visible]);
+        // 当visible变为false时，可以重置加载状态
+        if (!visible) {
+            hasLoaded.current = true;
+        }
+    }, [visible, email]);
 
     // 处理分页变化
     const handlePageChange = (page: number) => {
