@@ -1,8 +1,7 @@
-// 从localStorage获取缓存的邮箱e
+// 从localStorage获取缓存的数据
 export const getLocalStorageWithExpiry = (key: string): string | null => {
     const itemStr = localStorage.getItem(key);
     if (!itemStr) {
-        setActualFavoriteCount(0);
         return null;
     }
 
@@ -11,7 +10,6 @@ export const getLocalStorageWithExpiry = (key: string): string | null => {
 
     if (now.getTime() > item.expiry) {
         localStorage.removeItem(key);
-        setActualFavoriteCount(0);
         return null;
     }
 

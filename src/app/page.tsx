@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import useSWR from 'swr';
+import { useState, useEffect, useRef } from 'react';
+import { useRequest } from 'ahooks';
 import Navbar from '@/components/navbar';
 import FundList, { FundItem } from '@/components/fund-list';
 import Pagination from '@/components/Pagination';
@@ -54,13 +54,25 @@ export default function Page() {
     // 分页状态
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
+    const [favoriteCount, setFavoriteCount] = useState(0);
+    const [favoriteFunds, setFavoriteFunds] = useState<ExtendedFundItem[]>([]);
     const [showFavoriteList, setShowFavoriteList] = useState(false);
+    const firstLoad = useRef(true);
 
     // 构建 API URL 带分页参数
     const apiUrl = `/api/funds?page=${page}&limit=${limit}`;
 
-    // 使用 SWR 从 API 获取基金数据
-    const { data, error, isLoading } = useSWR<ApiResponse>(apiUrl, fetcher);
+    // ✅ 防抖 500 ms，请求真正发出
+    const {
+        data,
+        error,
+        loading: isLoading,
+    } = useRequest(fetcher, {
+        defaultParams: [apiUrl],
+        debounceWait: 500, // 关键参数
+        refreshDeps: [apiUrl], // url 变化就重新防抖
+        ready: !!apiUrl, // 空 url 时不发请求
+    });
 
     const loadFavoriteList = async () => {
         try {
@@ -77,11 +89,23 @@ export default function Page() {
                 throw new Error('获取收藏列表失败');
             }
             const data = await response.json();
-            return data.data;
+
+            const favoriteFunds =
+                data?.data?.map((item: { data: ExtendedFundItem }) => item.data) || [];
+
+            setFavoriteFunds(favoriteFunds);
+            setFavoriteCount(favoriteFunds?.length || 0);
         } catch (error) {
             console.error('获取收藏列表失败:', error);
         }
     };
+
+    useEffect(() => {
+        if (firstLoad.current) {
+            loadFavoriteList();
+            firstLoad.current = false;
+        }
+    }, []);
 
     // 解构基金数据，提供默认值
     const funds = data?.data || [];
@@ -91,6 +115,11 @@ export default function Page() {
         total: data?.total || 0,
         totalPages: Math.ceil((data?.total || 0) / (data?.limit || 10)),
     };
+
+    const fundsWithFavorite = funds.map((fund) => ({
+        ...fund,
+        isFavorite: favoriteFunds.some((fav) => fav.id === fund.id),
+    }));
 
     // 同步本地状态与API返回的分页信息
     useEffect(() => {
@@ -158,10 +187,11 @@ export default function Page() {
                 {/* 使用基金列表组件 */}
                 <FundList
                     total={pagination.total}
-                    initialFunds={funds as FundItem[]}
-                    isLoading={isLoading}
+                    initialFunds={fundsWithFavorite as FundItem[]}
+                    favoriteCount={favoriteCount}
                     showFavoriteList={showFavoriteList}
                     setShowFavoriteList={setShowFavoriteList}
+                    refreshFavoriteList={loadFavoriteList}
                 />
 
                 {/* 分页控件 - 当显示收藏列表时隐藏 */}
