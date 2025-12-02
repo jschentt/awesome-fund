@@ -51,30 +51,41 @@ const fetcher = async (url: string): Promise<ApiResponse> => {
 };
 
 export default function Page() {
-    // 分页状态
-    const [page, setPage] = useState(1);
-    const [limit, setLimit] = useState(10);
     const [favoriteFunds, setFavoriteFunds] = useState<ExtendedFundItem[]>([]);
     const [showFavoriteList, setShowFavoriteList] = useState(false);
     const [monitorFunds, setMonitorFunds] = useState<ExtendedFundItem[]>([]);
     const [showMonitorList, setShowMonitorList] = useState(false);
+    const [pagination, setPagination] = useState({
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 0,
+    });
 
     const firstLoad = useRef(true);
 
     // 构建 API URL 带分页参数
-    const apiUrl = `/api/funds?page=${page}&limit=${limit}`;
+    const apiUrl = `/api/funds?page=${pagination.page}&limit=${pagination.limit}`;
 
     // ✅ 防抖 500 ms，请求真正发出
     const {
         data,
         error,
         loading: isLoading,
+        run: refreshFunds,
     } = useRequest(fetcher, {
         defaultParams: [apiUrl],
         debounceWait: 500, // 关键参数
-        refreshDeps: [apiUrl], // url 变化就重新防抖
+        refreshDeps: [pagination.page, pagination.limit], // 显式监听page和limit变化
         ready: !!apiUrl, // 空 url 时不发请求
     });
+
+    // 当page或limit变化时，显式重新请求数据
+    useEffect(() => {
+        // 直接在effect内部构建最新的apiUrl，确保使用最新的page和limit值
+        const currentApiUrl = `/api/funds?page=${pagination.page}&limit=${pagination.limit}`;
+        refreshFunds(currentApiUrl);
+    }, [pagination.page, pagination.limit, refreshFunds]);
 
     const loadFavoriteList = async () => {
         try {
@@ -136,28 +147,21 @@ export default function Page() {
 
     // 解构基金数据，提供默认值
     const funds = data?.data || [];
-    const pagination = {
-        page: data?.page || 1,
-        limit: data?.limit || 10,
-        total: data?.total || 0,
-        totalPages: Math.ceil((data?.total || 0) / (data?.limit || 10)),
-    };
+
+    useEffect(() => {
+        setPagination({
+            page: data?.page || 1,
+            limit: data?.limit || 10,
+            total: data?.total || 0,
+            totalPages: Math.ceil((data?.total || 0) / (data?.limit || 10)),
+        });
+    }, [data]);
 
     const fundsWithFavorite = funds.map((fund) => ({
         ...fund,
         isFavorite: favoriteFunds.some((fav) => fav.id === fund.id),
         isMonitoring: monitorFunds.some((mon) => mon.id === fund.id),
     }));
-
-    // 同步本地状态与API返回的分页信息
-    useEffect(() => {
-        if (data?.page && data.page !== page) {
-            setPage(data.page);
-        }
-        if (data?.limit && data.limit !== limit) {
-            setLimit(data.limit);
-        }
-    }, [data, page, limit]);
 
     // 加载状态
     if (isLoading) {
@@ -190,14 +194,17 @@ export default function Page() {
     // 分页控制函数
     const handlePageChange = (newPage: number) => {
         if (newPage >= 1 && newPage <= pagination.totalPages) {
-            setPage(newPage);
+            setPagination({ ...pagination, page: newPage });
         }
     };
 
     // 为组件提供的简化版limit改变处理函数
     const handleLimitChangeForComponent = (newLimit: string) => {
-        setLimit(parseInt(newLimit, 10));
-        setPage(1); // 重置到第一页
+        setPagination({
+            ...pagination,
+            limit: parseInt(newLimit, 10),
+            page: 1, // 重置到第一页
+        });
     };
 
     return (
