@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { message, Modal } from 'antd';
 import FavoriteFundList from './favorite-fund-list';
@@ -52,29 +52,7 @@ export default function FundList({
     showFavoriteList: parentShowFavoriteList,
     setShowFavoriteList: parentSetShowFavoriteList,
 }: FundListProps) {
-    const [funds, setFunds] = useState<FundItem[]>(() =>
-        initialFunds.map((fund) => ({
-            ...fund,
-            currentValue: fund.currentValue || fund.netWorth?.toString() || 'N/A',
-            dailyChange:
-                fund.dailyChange ||
-                (fund.estimatedChange
-                    ? fund.estimatedChange > 0
-                        ? `+${fund.estimatedChange.toFixed(4)}`
-                        : fund.estimatedChange.toFixed(4)
-                    : 'N/A'),
-            changePercent:
-                fund.changePercent ||
-                (fund.expectGrowth
-                    ? fund.expectGrowth > 0
-                        ? `+${fund.expectGrowth}%`
-                        : `${fund.expectGrowth}%`
-                    : 'N/A'),
-            isFavorite: fund.isFavorite ?? false,
-            status: fund.status || '打开',
-            updateTime: fund.updateTime || new Date().toISOString(),
-        })),
-    );
+    const [funds, setFunds] = useState<FundItem[]>([]);
     const [sortOrder, setSortOrder] = useState<'desc' | 'asc' | 'none'>('none');
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState<'all' | 'monitoring' | 'favorite'>('all');
@@ -88,6 +66,32 @@ export default function FundList({
     const [userEmail, setUserEmail] = useState<string | null>(null);
     const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState(false);
 
+    useEffect(() => {
+        setFunds(
+            initialFunds.map((fund) => ({
+                ...fund,
+                currentValue: fund.currentValue || fund.netWorth?.toString() || 'N/A',
+                dailyChange:
+                    fund.dailyChange ||
+                    (fund.estimatedChange
+                        ? fund.estimatedChange > 0
+                            ? `+${fund.estimatedChange.toFixed(4)}`
+                            : fund.estimatedChange.toFixed(4)
+                        : 'N/A'),
+                changePercent:
+                    fund.changePercent ||
+                    (fund.expectGrowth
+                        ? fund.expectGrowth > 0
+                            ? `+${fund.expectGrowth}%`
+                            : `${fund.expectGrowth}%`
+                        : 'N/A'),
+                isFavorite: fund.isFavorite ?? false,
+                status: fund.status || '打开',
+                updateTime: fund.updateTime || new Date().toISOString(),
+            })),
+        );
+    }, [initialFunds]);
+
     const toggleMonitoring = (code: string) => {
         setFunds(
             funds.map((fund) =>
@@ -100,23 +104,6 @@ export default function FundList({
         try {
             const fund = funds.find((f) => f.code === code);
             if (!fund) return;
-
-            const getLocalStorageWithExpiry = (key: string): string | null => {
-                const itemStr = localStorage.getItem(key);
-                if (!itemStr) {
-                    return null;
-                }
-
-                const item = JSON.parse(itemStr);
-                const now = new Date();
-
-                if (now.getTime() > item.expiry) {
-                    localStorage.removeItem(key);
-                    return null;
-                }
-
-                return item.value;
-            };
 
             const email = getLocalStorageWithExpiry('userEmail');
             if (!email) {
@@ -142,7 +129,7 @@ export default function FundList({
             message.success(isAddFavorite ? '添加收藏成功' : '取消收藏成功');
         } catch (error) {
             console.error('收藏操作失败:', error);
-            message.error('操作失败，请稍后重试');
+            message.error(error instanceof Error ? error.message : '收藏操作失败，请稍后重试');
         }
     };
 
@@ -332,12 +319,11 @@ export default function FundList({
                             onToggleFundActions={toggleFundActions}
                             onHandleSettingsClick={handleSettingsClick}
                             onToggleFavorite={toggleFavorite}
-                            favoriteModalOpen={favoriteModalOpen}
                             setFavoriteModalOpen={setFavoriteModalOpen}
                             setSelectedFund={setSelectedFund}
                         />
 
-                        <FundEmptyState showFavoriteList={showFavoriteList} />
+                        <FundEmptyState showFunds={currentFunds.length > 0} />
                     </>
                 )}
             </div>

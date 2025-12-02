@@ -5,11 +5,11 @@ import { motion } from 'framer-motion';
 import { Search } from 'lucide-react';
 
 interface FundEmptyStateProps {
-    showFavoriteList: boolean;
+    showFunds: boolean;
 }
 
-export default function FundEmptyState({ showFavoriteList }: FundEmptyStateProps) {
-    if (showFavoriteList) return null;
+export default function FundEmptyState({ showFunds }: FundEmptyStateProps) {
+    if (showFunds) return null;
 
     return (
         <motion.div

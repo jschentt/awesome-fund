@@ -14,7 +14,6 @@ interface FundCardsGridProps {
     onToggleFundActions: (code: string) => void;
     onHandleSettingsClick: (fund: FundItem) => void;
     onToggleFavorite: (code: string) => void;
-    favoriteModalOpen: boolean;
     setFavoriteModalOpen: (open: boolean) => void;
     setSelectedFund: (fund: FundItem) => void;
 }
@@ -25,7 +24,6 @@ export default function FundCardsGrid({
     onToggleFundActions,
     onHandleSettingsClick,
     onToggleFavorite,
-    favoriteModalOpen,
     setFavoriteModalOpen,
     setSelectedFund,
 }: FundCardsGridProps) {
