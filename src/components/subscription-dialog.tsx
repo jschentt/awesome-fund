@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Modal, Button, Card, Badge, Radio, Divider } from 'antd';
+import { Modal, Button, Card, Badge, Radio, Divider, Tag } from 'antd';
 import { Crown, Check, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -33,7 +33,7 @@ export const subscriptionPlans: Record<SubscriptionType, SubscriptionPlan> = {
         price: 99,
         period: '年',
         features: ['无限基金监控', '实时涨跌提醒', '每日更新多次', '优先技术支持', '专属客服'],
-        discount: '立省20%',
+        discount: '立省19.8元',
     },
 };
 
@@ -107,9 +107,11 @@ export function SubscriptionDialog({
                 <div className="flex items-start justify-between mb-4">
                     <div>
                         <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-gray-900">{plan.name}</h3>
+                            <h3 className="text-gray-900 whitespace-nowrap">{plan.name}</h3>
                             {type === 'yearly' && (
-                                <Badge text="最划算" className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0" />
+                                <Tag className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0">
+                                    最划算
+                                </Tag>
                             )}
                         </div>
                         {isFree ? (
@@ -122,14 +124,16 @@ export function SubscriptionDialog({
                         )}
                     </div>
                     {isSelected && !isFree && (
-                        <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
+                        <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
                             <Check className="w-4 h-4 text-white" />
                         </div>
                     )}
                 </div>
 
                 {type === 'yearly' && plan.discount && (
-                    <Badge text={plan.discount} className="mb-3 text-orange-600 border-orange-200 bg-orange-50" />
+                    <Tag className="mb-3 text-orange-600 border-orange-200 bg-orange-50">
+                        {plan.discount}
+                    </Tag>
                 )}
 
                 <ul className="space-y-2">
@@ -147,13 +151,7 @@ export function SubscriptionDialog({
     };
 
     return (
-        <Modal
-            open={open}
-            onCancel={handleClose}
-            footer={null}
-            width={800}
-            centered
-        >
+        <Modal open={open} onCancel={handleClose} footer={null} width={800} centered>
             <div className="sm:max-w-2xl mx-auto">
                 {step === 'plan' ? (
                     <>
@@ -196,13 +194,19 @@ export function SubscriptionDialog({
                             <h2 className="text-2xl font-bold">选择支付方式</h2>
                         </div>
                         <p className="text-gray-500 mb-4">
-                            {subscriptionPlans[selectedPlan].name} - ¥{subscriptionPlans[selectedPlan].price}/{subscriptionPlans[selectedPlan].period}
+                            {subscriptionPlans[selectedPlan].name} - ¥
+                            {subscriptionPlans[selectedPlan].price}/
+                            {subscriptionPlans[selectedPlan].period}
                         </p>
 
                         <div className="space-y-4 my-4 mb-6">
-                            <Radio.Group value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}>
+                            <Radio.Group
+                                value={paymentMethod}
+                                onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
+                                className="w-full"
+                            >
                                 <Card
-                                    className={`p-4 cursor-pointer transition-all ${
+                                    className={`p-4 cursor-pointer transition-all w-full ${
                                         paymentMethod === 'alipay'
                                             ? 'border-blue-500 border-2'
                                             : 'border-gray-200'
@@ -211,9 +215,14 @@ export function SubscriptionDialog({
                                 >
                                     <div className="flex items-center gap-3">
                                         <Radio value="alipay" id="alipay" />
-                                        <label htmlFor="alipay" className="flex-1 cursor-pointer flex items-center gap-3">
+                                        <label
+                                            htmlFor="alipay"
+                                            className="flex-1 cursor-pointer flex items-center gap-3"
+                                        >
                                             <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                                                <span className="text-white text-xl font-bold">支</span>
+                                                <span className="text-white text-xl font-bold">
+                                                    支
+                                                </span>
                                             </div>
                                             <div className="flex-1">
                                                 <div className="text-gray-900">支付宝</div>
@@ -225,8 +234,8 @@ export function SubscriptionDialog({
                                     </div>
                                 </Card>
 
-                                <Card
-                                    className={`p-4 cursor-pointer transition-all ${
+                                {/* <Card
+                                    className={`p-4 cursor-pointer transition-all w-full mt-3 ${
                                         paymentMethod === 'wechat'
                                             ? 'border-green-500 border-2'
                                             : 'border-gray-200'
@@ -235,9 +244,14 @@ export function SubscriptionDialog({
                                 >
                                     <div className="flex items-center gap-3">
                                         <Radio value="wechat" id="wechat" />
-                                        <label htmlFor="wechat" className="flex-1 cursor-pointer flex items-center gap-3">
+                                        <label
+                                            htmlFor="wechat"
+                                            className="flex-1 cursor-pointer flex items-center gap-3"
+                                        >
                                             <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
-                                                <span className="text-white text-xl font-bold">微</span>
+                                                <span className="text-white text-xl font-bold">
+                                                    微
+                                                </span>
                                             </div>
                                             <div className="flex-1">
                                                 <div className="text-gray-900">微信支付</div>
@@ -247,7 +261,7 @@ export function SubscriptionDialog({
                                             </div>
                                         </label>
                                     </div>
-                                </Card>
+                                </Card> */}
                             </Radio.Group>
 
                             <Divider />
@@ -290,7 +304,14 @@ export function SubscriptionDialog({
                             <Button onClick={handleBack} className="flex-1">
                                 返回
                             </Button>
-                            <Button type="primary" onClick={handlePay} className="flex-1" style={{ background: 'linear-gradient(to right, #1890ff, #096dd9)' }}>
+                            <Button
+                                type="primary"
+                                onClick={handlePay}
+                                className="flex-1"
+                                style={{
+                                    background: 'linear-gradient(to right, #1890ff, #096dd9)',
+                                }}
+                            >
                                 立即支付 ¥{subscriptionPlans[selectedPlan].price}
                             </Button>
                         </div>
