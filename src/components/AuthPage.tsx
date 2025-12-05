@@ -203,8 +203,8 @@ const AuthPage: React.FC = () => {
 
             notification.success({ message: '注册成功' });
 
-            // 注册成功后将邮箱存入本地存储，24小时有效期
-            setLocalStorageWithExpiry('userEmail', formData.email, 24 * 60 * 60 * 1000);
+            // 注册成功后将用户信息存入本地存储，24小时有效期
+            setLocalStorageWithExpiry('userInfo', data.data.user, 24 * 60 * 60 * 1000);
 
             setActiveTab('login');
             setFormData({ email: '', code: '', password: '' });
@@ -246,14 +246,18 @@ const AuthPage: React.FC = () => {
 
             const data = await response.json();
 
+            const user = data.data.user;
+
+            console.debug(data, 'data');
+
             if (!response.ok) {
                 throw new Error(data.error || '登录失败');
             }
 
             notification.success({ message: '登录成功' });
 
-            // 登录成功后将邮箱存入本地存储，24小时有效期
-            setLocalStorageWithExpiry('userEmail', formData.email, 24 * 60 * 60 * 1000);
+            // 登录成功后将用户信息存入本地存储，24小时有效期
+            setLocalStorageWithExpiry('userInfo', user, 24 * 60 * 60 * 1000);
 
             // 登录成功后立即跳转到首页
             router.replace('/');

@@ -101,8 +101,8 @@ export default function FundList({
             const fund = funds.find((f) => f.code === code);
             if (!fund) return;
 
-            const email = getLocalStorageWithExpiry('userEmail');
-            if (!email) {
+            const userInfo = getLocalStorageWithExpiry('userInfo');
+            if (!userInfo) {
                 throw new Error('用户未登录，请先登录');
             }
 
@@ -114,7 +114,7 @@ export default function FundList({
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ fundCode: code, email }),
+                body: JSON.stringify({ fundCode: code, email: userInfo.email }),
             });
 
             if (!response.ok) {
@@ -134,8 +134,8 @@ export default function FundList({
             const fund = funds.find((f) => f.code === code);
             if (!fund) return;
 
-            const email = getLocalStorageWithExpiry('userEmail');
-            if (!email) {
+            const userInfo = getLocalStorageWithExpiry('userInfo');
+            if (!userInfo) {
                 throw new Error('用户未登录，请先登录');
             }
 
@@ -147,7 +147,7 @@ export default function FundList({
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ fundCode: code, email }),
+                body: JSON.stringify({ fundCode: code, email: userInfo.email }),
             });
 
             if (!response.ok) {
@@ -197,9 +197,11 @@ export default function FundList({
 
         if (tab === 'favorite') {
             try {
-                const email = getLocalStorageWithExpiry('userEmail');
+                const userInfo = getLocalStorageWithExpiry('userInfo') as unknown as {
+                    email: string;
+                };
 
-                if (!email) {
+                if (!userInfo?.email) {
                     Modal.error({
                         title: '请先登录',
                         content: '查看收藏列表需要先登录账号',
@@ -211,7 +213,7 @@ export default function FundList({
                     return;
                 }
 
-                setUserEmail(email);
+                setUserEmail(userInfo.email);
                 setShowFavoriteList?.(true);
             } catch (error) {
                 console.error('Error preparing favorite list:', error);
@@ -224,12 +226,14 @@ export default function FundList({
             }
         } else if (tab === 'monitoring') {
             try {
-                const email = getLocalStorageWithExpiry('userEmail');
+                const userInfo = getLocalStorageWithExpiry('userInfo') as unknown as {
+                    email: string;
+                };
 
-                if (!email) {
+                if (!userInfo?.email) {
                     Modal.error({
                         title: '请先登录',
-                        content: '查看收藏列表需要先登录账号',
+                        content: '查看监控列表需要先登录账号',
                         okText: '去登录',
                         onOk: () => {
                             window.location.href = '/auth/login';
@@ -238,7 +242,7 @@ export default function FundList({
                     return;
                 }
 
-                setUserEmail(email);
+                setUserEmail(userInfo.email);
                 setShowMonitorList?.(true);
             } catch (error) {
                 console.error('Error preparing monitoring list:', error);

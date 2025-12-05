@@ -30,8 +30,13 @@ export default function Navbar() {
 
     // 组件挂载时获取缓存的邮箱
     useEffect(() => {
-        const email = getLocalStorageWithExpiry('userEmail');
-        setCachedEmail(email);
+        const userInfo = getLocalStorageWithExpiry('userInfo') as unknown as {
+            email: string;
+        };
+        console.debug('userInfo:', userInfo);
+        if (userInfo) {
+            setCachedEmail(userInfo.email);
+        }
     }, []);
 
     const handleLogout = async () => {
