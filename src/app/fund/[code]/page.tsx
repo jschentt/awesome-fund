@@ -503,15 +503,21 @@ export default function FundDetailPage() {
                                 </div>
                             </div>
                         )}
-
                         {activeTab === 'overview' && (
                             <div data-oid="ngd-w6s">
-                                <div className="space-y-4" data-oid="17-m:6d">
+                                {/* 使用响应式栅格布局：手机端2列，平板及以上3列 */}
+                                <div
+                                    className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-5"
+                                    data-oid="17-m:6d"
+                                >
                                     <div data-oid="b0yzm_j">
                                         <p className="text-sm text-gray-500" data-oid="ixo61s_">
                                             基金全称
                                         </p>
-                                        <p className="text-gray-900 font-medium" data-oid="lfzco9s">
+                                        <p
+                                            className="text-gray-900 font-medium break-words"
+                                            data-oid="lfzco9s"
+                                        >
                                             {fund.name}
                                         </p>
                                     </div>
@@ -536,7 +542,7 @@ export default function FundDetailPage() {
                                             成立日期
                                         </p>
                                         <p className="text-gray-900 font-medium" data-oid="-qtqxbc">
-                                            {fund.establishDate}
+                                            {fund.establishDate || '-'}
                                         </p>
                                     </div>
                                     <div data-oid="z._sb79">
