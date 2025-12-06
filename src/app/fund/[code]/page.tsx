@@ -12,7 +12,7 @@ import {
     BookmarkCheck,
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
-import { Table, Spin } from 'antd';
+import { Table, Spin, notification } from 'antd';
 // 移除了echart相关的导入
 
 // 修改NetWorthDataItem类型为二维数组类型
@@ -237,6 +237,25 @@ export default function FundDetailPage() {
                             )}
                         </button>
                         <button
+                            onClick={() => {
+                                const detailUrl = `${window.location.origin}/fund/${fundCode}`;
+                                navigator.clipboard
+                                    .writeText(detailUrl)
+                                    .then(() => {
+                                        notification.success({
+                                            message: '复制成功',
+                                            description: '链接已复制到剪贴板',
+                                            placement: 'top',
+                                        });
+                                    })
+                                    .catch(() => {
+                                        notification.error({
+                                            message: '复制失败',
+                                            description: '请手动复制链接',
+                                            placement: 'top',
+                                        });
+                                    });
+                            }}
                             className="p-2 rounded-full hover:bg-gray-100 transition-colors"
                             aria-label="分享"
                             data-oid="o1j:-.."
