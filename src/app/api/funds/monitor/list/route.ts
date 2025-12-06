@@ -28,41 +28,18 @@ export interface MonitorFund extends FundDetail {
 // GET方法获取用户监控基金列表
 export async function GET(request: Request) {
     try {
-        // 从请求查询参数中获取email
-        const url = new URL(request.url);
-        const email = url.searchParams.get('email');
+        // 从Header中获取X-User-Id
+        const userId = request.headers.get('X-User-Id');
 
-        // 验证必要参数
-        if (!email) {
-            return NextResponse.json<ApiResponse>(
-                { message: '缺少必要参数：email' },
-                { status: 400 },
-            );
-        }
-
-        // 通过email查询用户ID
-        const { data: user, error: userQueryError } = await supabase
-            .from('users')
-            .select('id')
-            .eq('email', email)
-            .single();
-
-        if (userQueryError) {
-            if (userQueryError.code === 'PGRST116') {
-                return NextResponse.json<ApiResponse>({ message: '用户不存在' }, { status: 404 });
-            }
-            console.error('查询用户信息失败:', userQueryError);
-            return NextResponse.json<ApiResponse>(
-                { message: '服务器错误，请稍后重试' },
-                { status: 500 },
-            );
+        if (!userId) {
+            return NextResponse.json<ApiResponse>({ message: '用户不存在' }, { status: 400 });
         }
 
         // 查询用户监控的基金列表
         const { data: monitorFunds, error: monitorQueryError } = await supabase
             .from('user_monitor_fund')
             .select('fund_code, created_at')
-            .eq('user_id', String(user.id));
+            .eq('user_id', userId);
 
         if (monitorQueryError) {
             console.error('查询用户监控基金失败:', monitorQueryError);

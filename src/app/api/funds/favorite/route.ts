@@ -8,32 +8,21 @@ import type { ApiResponse, UserFund, CommonRequest } from '@/types/common';
  */
 export async function POST(request: Request) {
     try {
-        const { fundCode, email }: CommonRequest = await request.json();
+        const { fundCode }: CommonRequest = await request.json();
 
         // 验证必要参数
-        if (!fundCode || !email) {
+        if (!fundCode) {
             return NextResponse.json<ApiResponse>(
-                { message: '缺少必要参数：fundCode和email' },
+                { message: '缺少必要参数：fundCode' },
                 { status: 400 },
             );
         }
 
-        // 通过email查询用户ID
-        const { data: user, error: userQueryError } = await supabase
-            .from('users')
-            .select('id')
-            .eq('email', email)
-            .single();
+        // 从Header中获取X-User-Id
+        const userId = request.headers.get('X-User-Id');
 
-        if (userQueryError) {
-            if (userQueryError.code === 'PGRST116') {
-                return NextResponse.json<ApiResponse>({ message: '用户不存在' }, { status: 404 });
-            }
-            console.error('查询用户信息失败:', userQueryError);
-            return NextResponse.json<ApiResponse>(
-                { message: '服务器错误，请稍后重试' },
-                { status: 500 },
-            );
+        if (!userId) {
+            return NextResponse.json<ApiResponse>({ message: '用户不存在' }, { status: 400 });
         }
 
         // 检查是否已经收藏
@@ -41,7 +30,7 @@ export async function POST(request: Request) {
         const { data: existingFavorite, error: checkError } = await supabase
             .from('user_favorite_fund')
             .select('id')
-            .eq('user_id', String(user.id))
+            .eq('user_id', userId)
             .eq('fund_code', fundCode)
             .single();
 
@@ -67,7 +56,7 @@ export async function POST(request: Request) {
             .from('user_favorite_fund')
             .insert([
                 {
-                    user_id: String(user.id),
+                    user_id: userId,
                     fund_code: fundCode,
                 },
             ])
@@ -100,32 +89,21 @@ export async function POST(request: Request) {
  */
 export async function DELETE(request: Request) {
     try {
-        const { fundCode, email }: CommonRequest = await request.json();
+        const { fundCode }: CommonRequest = await request.json();
 
         // 验证必要参数
-        if (!fundCode || !email) {
+        if (!fundCode) {
             return NextResponse.json<ApiResponse>(
-                { message: '缺少必要参数：fundCode和email' },
+                { message: '缺少必要参数：fundCode' },
                 { status: 400 },
             );
         }
 
-        // 通过email查询用户ID
-        const { data: user, error: userQueryError } = await supabase
-            .from('users')
-            .select('id')
-            .eq('email', email)
-            .single();
+        // 从Header中获取X-User-Id
+        const userId = request.headers.get('X-User-Id');
 
-        if (userQueryError) {
-            if (userQueryError.code === 'PGRST116') {
-                return NextResponse.json<ApiResponse>({ message: '用户不存在' }, { status: 404 });
-            }
-            console.error('查询用户信息失败:', userQueryError);
-            return NextResponse.json<ApiResponse>(
-                { message: '服务器错误，请稍后重试' },
-                { status: 500 },
-            );
+        if (!userId) {
+            return NextResponse.json<ApiResponse>({ message: '用户不存在' }, { status: 400 });
         }
 
         // 删除收藏
@@ -133,7 +111,7 @@ export async function DELETE(request: Request) {
         const { error } = await supabase
             .from('user_favorite_fund')
             .delete()
-            .eq('user_id', String(user.id))
+            .eq('user_id', userId)
             .eq('fund_code', fundCode);
 
         if (error) {

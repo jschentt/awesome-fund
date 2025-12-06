@@ -66,8 +66,13 @@ export default function FundList({
     const [selectedFund, setSelectedFund] = useState<FundItem | null>(null);
     const [selectedMethods, setSelectedMethods] = useState({ dingtalk: true, wechat: false });
     const [showFundActions, setShowFundActions] = useState<string | null>(null);
-    const [userEmail, setUserEmail] = useState<string | null>(null);
+    const [userId, setUserId] = useState<string | null>(null);
     const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState(false);
+    const userInfo = getLocalStorageWithExpiry('userInfo');
+
+    useEffect(() => {
+        setUserId(userInfo?.id || null);
+    }, [userInfo]);
 
     useEffect(() => {
         setFunds(
@@ -101,8 +106,7 @@ export default function FundList({
             const fund = funds.find((f) => f.code === code);
             if (!fund) return;
 
-            const userInfo = getLocalStorageWithExpiry('userInfo');
-            if (!userInfo) {
+            if (!userId) {
                 throw new Error('用户未登录，请先登录');
             }
 
@@ -113,8 +117,9 @@ export default function FundList({
                 method: isAddMonitoring ? 'POST' : 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
+                    'X-User-ID': userId,
                 },
-                body: JSON.stringify({ fundCode: code, email: userInfo.email }),
+                body: JSON.stringify({ fundCode: code }),
             });
 
             if (!response.ok) {
@@ -134,8 +139,7 @@ export default function FundList({
             const fund = funds.find((f) => f.code === code);
             if (!fund) return;
 
-            const userInfo = getLocalStorageWithExpiry('userInfo');
-            if (!userInfo) {
+            if (!userId) {
                 throw new Error('用户未登录，请先登录');
             }
 
@@ -146,8 +150,9 @@ export default function FundList({
                 method: isAddFavorite ? 'POST' : 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
+                    'X-User-ID': userId,
                 },
-                body: JSON.stringify({ fundCode: code, email: userInfo.email }),
+                body: JSON.stringify({ fundCode: code }),
             });
 
             if (!response.ok) {
@@ -198,10 +203,10 @@ export default function FundList({
         if (tab === 'favorite') {
             try {
                 const userInfo = getLocalStorageWithExpiry('userInfo') as unknown as {
-                    email: string;
+                    id: string;
                 };
 
-                if (!userInfo?.email) {
+                if (!userInfo?.id) {
                     Modal.error({
                         title: '请先登录',
                         content: '查看收藏列表需要先登录账号',
@@ -213,7 +218,7 @@ export default function FundList({
                     return;
                 }
 
-                setUserEmail(userInfo.email);
+                setUserId(userInfo.id);
                 setShowFavoriteList?.(true);
             } catch (error) {
                 console.error('Error preparing favorite list:', error);
@@ -227,10 +232,10 @@ export default function FundList({
         } else if (tab === 'monitoring') {
             try {
                 const userInfo = getLocalStorageWithExpiry('userInfo') as unknown as {
-                    email: string;
+                    id: string;
                 };
 
-                if (!userInfo?.email) {
+                if (!userInfo?.id) {
                     Modal.error({
                         title: '请先登录',
                         content: '查看监控列表需要先登录账号',
@@ -242,7 +247,7 @@ export default function FundList({
                     return;
                 }
 
-                setUserEmail(userInfo.email);
+                setUserId(userInfo.id);
                 setShowMonitorList?.(true);
             } catch (error) {
                 console.error('Error preparing monitoring list:', error);
@@ -329,19 +334,19 @@ export default function FundList({
     };
 
     const render = () => {
-        if (showFavoriteList && userEmail) {
+        if (showFavoriteList && userId) {
             return (
                 <FavoriteFundList
-                    email={userEmail}
+                    userId={userId}
                     refreshFavoriteList={refreshFavoriteList}
                     visible={showFavoriteList}
                 />
             );
         }
-        if (showMonitorList && userEmail) {
+        if (showMonitorList && userId) {
             return (
                 <MonitorFundList
-                    email={userEmail}
+                    userId={userId}
                     refreshMonitorList={refreshMonitorList}
                     visible={showMonitorList}
                 />

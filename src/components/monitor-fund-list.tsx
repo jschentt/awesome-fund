@@ -3,15 +3,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Star } from 'lucide-react';
 import { Button, Input, Tooltip, Modal, message, Pagination } from 'antd';
 import dayjs from 'dayjs';
-
-// 导入FundItem接口
 import { FundItem } from './fund-list';
 
 interface MonitorFundListProps {
-    email: string;
     onFundClick?: (fundCode: string) => void;
     refreshMonitorList?: () => void;
     visible?: boolean;
+    userId: string;
 }
 
 // 监控基金API返回的数据结构
@@ -53,7 +51,7 @@ interface MonitorFundResponse {
 }
 
 export default function MonitorFundList({
-    email,
+    userId,
     onFundClick,
     refreshMonitorList,
     visible = false,
@@ -68,6 +66,7 @@ export default function MonitorFundList({
     const [pageSize] = useState(10);
     const [totalFunds, setTotalFunds] = useState(0);
     const hasLoaded = useRef(true);
+
     // 映射API返回数据到FundItem接口
     const mapApiDataToFundItem = useCallback(
         (apiData: MonitorFundResponse['data'][0]): FundItem => {
@@ -101,12 +100,17 @@ export default function MonitorFundList({
     // 加载监控基金列表
     const loadMonitorFunds = useCallback(
         async (page: number = 1) => {
-            if (!email) return;
+            if (!userId) return;
 
             setLoading(true);
             try {
                 const res = await fetch(
-                    `/api/funds/monitor/list?email=${encodeURIComponent(email)}&page=${page}&pageSize=${pageSize}`,
+                    `/api/funds/monitor/list?page=${page}&pageSize=${pageSize}`,
+                    {
+                        headers: {
+                            'X-User-Id': userId,
+                        },
+                    },
                 );
 
                 if (res.ok) {
@@ -144,13 +148,13 @@ export default function MonitorFundList({
                 setLoading(false);
             }
         },
-        [email, pageSize, mapApiDataToFundItem],
+        [pageSize, mapApiDataToFundItem],
     );
 
     // 组件挂载时和email变化时加载数据
     useEffect(() => {
         // 只有当visible为true且数据尚未加载过时才加载
-        if (visible && email) {
+        if (visible && userId) {
             if (hasLoaded.current) {
                 loadMonitorFunds(1);
                 setCurrentPage(1);
@@ -161,7 +165,7 @@ export default function MonitorFundList({
         if (!visible) {
             hasLoaded.current = true;
         }
-    }, [visible, email]);
+    }, [visible, userId]);
 
     // 处理分页变化
     const handlePageChange = (page: number) => {
@@ -197,8 +201,9 @@ export default function MonitorFundList({
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
+                'X-User-Id': userId,
             },
-            body: JSON.stringify({ fundCode: fund.code, email }),
+            body: JSON.stringify({ fundCode: fund.code }),
         });
 
         // 检查响应状态
@@ -217,7 +222,7 @@ export default function MonitorFundList({
 
     // 确认从监控中移除
     const handleConfirmRemoveFromMonitor = async () => {
-        if (!selectedFund || !email) return;
+        if (!selectedFund || !userId) return;
 
         try {
             await handleToggleMonitor(selectedFund);

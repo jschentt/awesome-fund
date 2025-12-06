@@ -90,14 +90,16 @@ export default function Page() {
     const loadFavoriteList = async () => {
         try {
             const userInfo = getLocalStorageWithExpiry('userInfo');
-            if (!userInfo) {
+            if (!userInfo.id) {
                 return;
             }
 
             // 调用API获取收藏基金列表
-            const response = await fetch(
-                `/api/funds/favorite/list?email=${encodeURIComponent(userInfo.email)}`,
-            );
+            const response = await fetch(`/api/funds/favorite/list`, {
+                headers: {
+                    'X-User-Id': userInfo.id,
+                },
+            });
             if (!response.ok) {
                 throw new Error('获取收藏列表失败');
             }
@@ -115,14 +117,16 @@ export default function Page() {
     const loadMonitorList = async () => {
         try {
             const userInfo = getLocalStorageWithExpiry('userInfo');
-            if (!userInfo) {
+            if (!userInfo.id) {
                 return;
             }
 
             // 调用API获取收藏基金列表
-            const response = await fetch(
-                `/api/funds/monitor/list?email=${encodeURIComponent(userInfo.email)}`,
-            );
+            const response = await fetch(`/api/funds/monitor/list`, {
+                headers: {
+                    'X-User-Id': userInfo.id,
+                },
+            });
             if (!response.ok) {
                 throw new Error('获取监控列表失败');
             }

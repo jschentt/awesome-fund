@@ -8,7 +8,7 @@ import dayjs from 'dayjs';
 import { FundItem } from './fund-list';
 
 interface FavoriteFundListProps {
-    email: string;
+    userId: string;
     onFundClick?: (fundCode: string) => void;
     refreshFavoriteList?: () => void;
     visible?: boolean;
@@ -52,7 +52,7 @@ interface FavoriteFundResponse {
 }
 
 export default function FavoriteFundList({
-    email,
+    userId,
     onFundClick,
     refreshFavoriteList,
     visible = false,
@@ -101,12 +101,17 @@ export default function FavoriteFundList({
     // 加载收藏基金列表
     const loadFavoriteFunds = useCallback(
         async (page: number = 1) => {
-            if (!email) return;
+            if (!userId) return;
 
             setLoading(true);
             try {
                 const res = await fetch(
-                    `/api/funds/favorite/list?email=${encodeURIComponent(email)}&page=${page}&pageSize=${pageSize}`,
+                    `/api/funds/favorite/list?page=${page}&pageSize=${pageSize}`,
+                    {
+                        headers: {
+                            'X-User-ID': userId,
+                        },
+                    },
                 );
 
                 if (res.ok) {
@@ -144,13 +149,13 @@ export default function FavoriteFundList({
                 setLoading(false);
             }
         },
-        [email, pageSize, mapApiDataToFundItem],
+        [userId, pageSize, mapApiDataToFundItem],
     );
 
-    // 组件挂载时和email变化时加载数据
+    // 组件挂载时和userId变化时加载数据
     useEffect(() => {
         // 只有当visible为true且数据尚未加载过时才加载
-        if (visible && email) {
+        if (visible && userId) {
             if (hasLoaded.current) {
                 loadFavoriteFunds(1);
                 setCurrentPage(1);
@@ -161,7 +166,7 @@ export default function FavoriteFundList({
         if (!visible) {
             hasLoaded.current = true;
         }
-    }, [visible, email]);
+    }, [visible, userId]);
 
     // 处理分页变化
     const handlePageChange = (page: number) => {
@@ -197,8 +202,9 @@ export default function FavoriteFundList({
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
+                'X-User-ID': userId,
             },
-            body: JSON.stringify({ fundCode: fund.code, email }),
+            body: JSON.stringify({ fundCode: fund.code }),
         });
 
         // 检查响应状态
@@ -217,7 +223,7 @@ export default function FavoriteFundList({
 
     // 确认从收藏中移除
     const handleConfirmRemoveFromFavorite = async () => {
-        if (!selectedFund || !email) return;
+        if (!selectedFund || !userId) return;
 
         try {
             await handleToggleFavorite(selectedFund);
