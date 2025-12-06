@@ -55,6 +55,9 @@ export default function Page() {
     const [showFavoriteList, setShowFavoriteList] = useState(false);
     const [monitorFunds, setMonitorFunds] = useState<ExtendedFundItem[]>([]);
     const [showMonitorList, setShowMonitorList] = useState(false);
+    const [favoriteCount, setFavoriteCount] = useState(0);
+    const [monitorCount, setMonitorCount] = useState(0);
+
     const [pagination, setPagination] = useState({
         page: 1,
         limit: 10,
@@ -109,6 +112,7 @@ export default function Page() {
                 data?.data?.map((item: { data: ExtendedFundItem }) => item.data) || [];
 
             setFavoriteFunds(favoriteFunds);
+            setFavoriteCount(favoriteFunds.length);
         } catch (error) {
             console.error('获取收藏列表失败:', error);
         }
@@ -121,7 +125,7 @@ export default function Page() {
                 return;
             }
 
-            // 调用API获取收藏基金列表
+            // 调用API获取监控基金列表
             const response = await fetch(`/api/funds/monitor/list`, {
                 headers: {
                     'X-User-Id': userInfo.id,
@@ -136,6 +140,7 @@ export default function Page() {
                 data?.data?.map((item: { data: ExtendedFundItem }) => item.data) || [];
 
             setMonitorFunds(monitorFunds);
+            setMonitorCount(monitorFunds.length);
         } catch (error) {
             console.error('获取监控列表失败:', error);
         }
@@ -219,6 +224,8 @@ export default function Page() {
                     setShowMonitorList={setShowMonitorList}
                     refreshMonitorList={loadMonitorList}
                     isLoading={isLoading}
+                    favoriteCount={favoriteCount}
+                    monitorCount={monitorCount}
                 />
 
                 {/* 分页控件 - 当显示收藏列表时隐藏 */}

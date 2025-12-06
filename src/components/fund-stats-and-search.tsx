@@ -8,8 +8,8 @@ import { Button, Space } from 'antd';
 interface FundStatsAndSearchProps {
     activeTab: 'all' | 'monitoring' | 'favorite';
     total: number | undefined;
-    monitoringFunds: number;
-    favoriteFunds: number;
+    monitorCount: number;
+    favoriteCount: number;
     showFavoriteList: boolean;
     showMonitorList: boolean;
     onTabChange: (tab: 'all' | 'monitoring' | 'favorite') => void;
@@ -22,8 +22,8 @@ interface FundStatsAndSearchProps {
 export default function FundStatsAndSearch({
     activeTab,
     total,
-    monitoringFunds,
-    favoriteFunds,
+    monitorCount,
+    favoriteCount,
     showFavoriteList,
     showMonitorList,
     onTabChange,
@@ -65,7 +65,7 @@ export default function FundStatsAndSearch({
                             <span
                                 className={`px-2 py-0.5 rounded-full text-xs font-medium ${activeTab === 'monitoring' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
                             >
-                                {monitoringFunds}
+                                {monitorCount}
                             </span>
                         </Button>
                         <Button
@@ -78,7 +78,7 @@ export default function FundStatsAndSearch({
                             <span
                                 className={`px-2 py-0.5 rounded-full text-xs font-medium ${activeTab === 'favorite' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
                             >
-                                {favoriteFunds}
+                                {favoriteCount}
                             </span>
                         </Button>
                     </Space.Compact>

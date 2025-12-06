@@ -46,6 +46,8 @@ interface FundListProps {
     setShowMonitorList?: (show: boolean) => void;
     refreshMonitorList?: () => void;
     isLoading: boolean;
+    favoriteCount?: number;
+    monitorCount?: number;
 }
 
 export default function FundList({
@@ -58,6 +60,8 @@ export default function FundList({
     setShowMonitorList,
     refreshMonitorList,
     isLoading,
+    favoriteCount = 0,
+    monitorCount = 0,
 }: FundListProps) {
     const [funds, setFunds] = useState<FundItem[]>([]);
     const [sortOrder, setSortOrder] = useState<'desc' | 'asc' | 'none'>('none');
@@ -319,8 +323,8 @@ export default function FundList({
         setSelectedMethods((prev) => ({ ...prev, [method]: !prev[method] }));
     };
 
-    const monitoringFunds = funds.filter((f) => f.isMonitoring).length;
-    const favoriteFunds = funds.filter((f) => f.isFavorite).length;
+    // const monitoringFunds = funds.filter((f) => f.isMonitoring).length;
+    // const favoriteFunds = funds.filter((f) => f.isFavorite).length;
 
     const toggleFundActions = (code: string) => {
         if (showFundActions === code) {
@@ -384,8 +388,8 @@ export default function FundList({
                 <FundStatsAndSearch
                     activeTab={activeTab}
                     total={total}
-                    monitoringFunds={monitoringFunds}
-                    favoriteFunds={favoriteFunds}
+                    monitorCount={monitorCount}
+                    favoriteCount={favoriteCount}
                     showFavoriteList={showFavoriteList}
                     showMonitorList={showMonitorList}
                     onTabChange={handleTabChange}
