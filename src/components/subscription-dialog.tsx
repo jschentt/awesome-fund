@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { Modal, Button, Card, Badge, Radio, Divider, Tag } from 'antd';
 import { Crown, Check, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { getLocalStorageWithExpiry } from '@/lib/utils';
 
-export type SubscriptionType = 'free' | 'monthly' | 'yearly';
+export type SubscriptionType = 'free' | 'month' | 'year';
 
 export interface SubscriptionPlan {
     name: string;
@@ -22,13 +23,13 @@ export const subscriptionPlans: Record<SubscriptionType, SubscriptionPlan> = {
         period: '永久',
         features: ['最多监控3只基金', '基本涨跌提醒', '每日更新一次'],
     },
-    monthly: {
+    month: {
         name: '月度会员',
         price: 9.9,
         period: '月',
         features: ['无限基金监控', '实时涨跌提醒', '每日更新多次', '优先技术支持'],
     },
-    yearly: {
+    year: {
         name: '年度会员',
         price: 99,
         period: '年',
@@ -52,7 +53,7 @@ export function SubscriptionDialog({
     currentMonitorCount,
     onSubscribe,
 }: SubscriptionDialogProps) {
-    const [selectedPlan, setSelectedPlan] = useState<SubscriptionType>('monthly');
+    const [selectedPlan, setSelectedPlan] = useState<SubscriptionType>('month');
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('alipay');
     const [step, setStep] = useState<'plan' | 'payment'>('plan');
 
@@ -68,24 +69,57 @@ export function SubscriptionDialog({
         setStep('plan');
     };
 
-    const handlePay = () => {
-        // 模拟支付流程
-        toast.success('支付成功！订阅已生效');
-        onSubscribe(selectedPlan);
-        onOpenChange(false);
-        // 重置状态
-        setTimeout(() => {
-            setStep('plan');
-            setSelectedPlan('monthly');
-            setPaymentMethod('alipay');
-        }, 300);
+    const handlePay = async () => {
+        try {
+            const userInfo = getLocalStorageWithExpiry('userInfo');
+            if (!userInfo) {
+                return;
+            }
+
+            const userId = userInfo.id;
+
+            const params = {
+                userId,
+                subscribType: selectedPlan,
+                paymentMethod,
+            };
+
+            const res = await fetch('/api/payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(params),
+            });
+
+            if (!res.ok) {
+                throw new Error('支付失败');
+            }
+            const data = await res.json();
+            const payUrl = data?.data?.payUrl;
+            if (!payUrl) {
+                throw new Error('支付失败');
+            } else {
+                window.open(payUrl, '_blank');
+                onOpenChange(false);
+                // 重置状态
+                setTimeout(() => {
+                    setStep('plan');
+                    setSelectedPlan('month');
+                    setPaymentMethod('alipay');
+                }, 300);
+            }
+        } catch (error) {
+            console.error('支付失败:', error);
+            toast.error('支付失败，请稍后重试');
+        }
     };
 
     const handleClose = () => {
         onOpenChange(false);
         setTimeout(() => {
             setStep('plan');
-            setSelectedPlan('monthly');
+            setSelectedPlan('month');
             setPaymentMethod('alipay');
         }, 300);
     };
@@ -108,7 +142,7 @@ export function SubscriptionDialog({
                     <div>
                         <div className="flex items-center gap-2 mb-1">
                             <h3 className="text-gray-900 whitespace-nowrap">{plan.name}</h3>
-                            {type === 'yearly' && (
+                            {type === 'year' && (
                                 <Tag className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0">
                                     最划算
                                 </Tag>
@@ -130,7 +164,7 @@ export function SubscriptionDialog({
                     )}
                 </div>
 
-                {type === 'yearly' && plan.discount && (
+                {type === 'year' && plan.discount && (
                     <Tag className="mb-3 text-orange-600 border-orange-200 bg-orange-50">
                         {plan.discount}
                     </Tag>
@@ -174,8 +208,8 @@ export function SubscriptionDialog({
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-4 mb-6">
                             {renderPlanCard('free')}
-                            {renderPlanCard('monthly')}
-                            {renderPlanCard('yearly')}
+                            {renderPlanCard('month')}
+                            {renderPlanCard('year')}
                         </div>
 
                         <div className="flex gap-3 pt-2">

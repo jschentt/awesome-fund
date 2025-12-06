@@ -64,7 +64,7 @@ export default function FundList({
     const [notificationModalOpen, setNotificationModalOpen] = useState(false);
     const [favoriteModalOpen, setFavoriteModalOpen] = useState(false);
     const [selectedFund, setSelectedFund] = useState<FundItem | null>(null);
-    const [selectedMethods, setSelectedMethods] = useState({ dingtalk: false, wechat: false });
+    const [selectedMethods, setSelectedMethods] = useState({ dingtalk: true, wechat: false });
     const [showFundActions, setShowFundActions] = useState<string | null>(null);
     const [userEmail, setUserEmail] = useState<string | null>(null);
     const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState(false);
@@ -275,7 +275,7 @@ export default function FundList({
 
     const handleSettingsClick = (fund: FundItem) => {
         setSelectedFund(fund);
-        setSelectedMethods({ dingtalk: false, wechat: false });
+        setSelectedMethods({ dingtalk: true, wechat: false });
 
         const monitoringCount = funds.filter((f) => f.isMonitoring).length;
         if (monitoringCount >= 3 && !fund.isMonitoring) {
@@ -323,7 +323,7 @@ export default function FundList({
         }
     };
 
-    const handleSubscribe = (type: 'free' | 'monthly' | 'yearly') => {
+    const handleSubscribe = (type: 'free' | 'month' | 'year') => {
         console.log('订阅成功:', type);
         setNotificationModalOpen(true);
     };

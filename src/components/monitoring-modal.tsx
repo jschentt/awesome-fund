@@ -88,7 +88,7 @@ export default function MonitoringModal({
                                     </div>
                                 </div>
 
-                                <div
+                                {/* <div
                                     className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${selectedMethods.wechat ? 'border-green-200 bg-green-50' : 'border-gray-200 hover:bg-gray-50'}`}
                                     onClick={() => onMethodChange('wechat')}
                                 >
@@ -122,7 +122,7 @@ export default function MonitoringModal({
                                             <Check className="w-3 h-3 text-white" />
                                         )}
                                     </div>
-                                </div>
+                                </div> */}
                             </div>
 
                             {(selectedMethods.dingtalk || selectedMethods.wechat) === false && (
