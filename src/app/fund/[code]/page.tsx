@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { Table, Spin, notification } from 'antd';
+import { getLocalStorageWithExpiry } from '@/lib/utils';
 // 移除了echart相关的导入
 
 // 修改NetWorthDataItem类型为二维数组类型
@@ -81,40 +82,71 @@ export default function FundDetailPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
-    useEffect(() => {
-        async function fetchFundDetail() {
-            try {
-                const response = await fetch(`/api/funds/${fundCode}`);
-
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        throw new Error('基金不存在');
-                    }
-                    throw new Error('获取基金详情失败');
-                }
-
-                const apiResponse: ApiResponse = await response.json();
-
-                // 检查API响应状态
-                if (apiResponse.code !== 0 || !apiResponse.data?.data) {
-                    throw new Error(apiResponse.message || '获取基金数据失败');
-                }
-
-                // 添加本地状态字段
-                const fundDataWithLocalState = {
-                    ...apiResponse.data.data,
-                    isFavorite: false,
-                    isMonitoring: false,
-                };
-
-                setFund(fundDataWithLocalState);
-            } catch (err) {
-                setError(err instanceof Error ? err.message : '获取基金详情失败');
-            } finally {
-                setLoading(false);
+    // 确保在异步函数中使用await
+    async function fetchFundStatus() {
+        try {
+            const userInfo = getLocalStorageWithExpiry('userInfo');
+            if (!userInfo) {
+                return;
             }
-        }
+            const response = await fetch(`/api/funds/detail?code=${fundCode}`, {
+                method: 'GET',
+                // GET 传参，将 fundCode 拼接在 URL 查询字符串中
+                headers: {
+                    'X-User-Id': userInfo.id,
+                },
+            });
 
+            if (!response.ok) {
+                throw new Error(`API调用失败: ${response.statusText}`);
+            }
+            const apiResponse = await response.json();
+            const { isFavorite, isMonitoring } = apiResponse?.data || {};
+            return { isFavorite, isMonitoring };
+        } catch (err) {
+            notification.error({
+                message: '获取基金详情失败',
+                description: err instanceof Error ? err.message : '获取基金详情失败',
+            });
+        }
+    }
+
+    async function fetchFundDetail() {
+        try {
+            const response = await fetch(`/api/funds/${fundCode}`);
+
+            if (!response.ok) {
+                if (response.status === 404) {
+                    throw new Error('基金不存在');
+                }
+                throw new Error('获取基金详情失败');
+            }
+
+            const apiResponse: ApiResponse = await response.json();
+
+            // 检查API响应状态
+            if (apiResponse.code !== 0 || !apiResponse.data?.data) {
+                throw new Error(apiResponse.message || '获取基金数据失败');
+            }
+
+            const { isFavorite, isMonitoring } = (await fetchFundStatus()) || {};
+
+            // 添加本地状态字段
+            const fundDataWithLocalState = {
+                ...apiResponse.data.data,
+                isFavorite: isFavorite || false,
+                isMonitoring: isMonitoring || false,
+            };
+
+            setFund(fundDataWithLocalState);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : '获取基金详情失败');
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    useEffect(() => {
         fetchFundDetail();
     }, [fundCode]);
 
