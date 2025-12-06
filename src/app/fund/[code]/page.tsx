@@ -154,21 +154,89 @@ export default function FundDetailPage() {
         router.back();
     };
 
-    const toggleFavorite = () => {
-        if (fund) {
-            // 确保fund不为null时的安全更新
+    const toggleFavorite = async () => {
+        if (!fund) return;
+
+        const userInfo = getLocalStorageWithExpiry('userInfo');
+        if (!userInfo) {
+            notification.error({ message: '请先登录' });
+            return;
+        }
+
+        const endpoint = `/api/funds/favorite`;
+        const method = fund.isFavorite ? 'DELETE' : 'POST';
+
+        try {
+            // 调用API
+            const response = await fetch(endpoint, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-User-ID': userInfo.id,
+                },
+                body: JSON.stringify({ fundCode: fund.code }),
+            });
+
+            // 检查响应状态
+            if (!response.ok) {
+                throw new Error(`API调用失败: ${response.statusText}`);
+            }
+
+            // 更新本地状态
             setFund((prevFund) =>
                 prevFund ? { ...prevFund, isFavorite: !prevFund.isFavorite } : null,
             );
+
+            notification.success({ message: fund.isFavorite ? '已从收藏中移除' : '已添加到收藏' });
+        } catch (err) {
+            notification.error({
+                message: fund.isFavorite ? '取消收藏失败' : '添加收藏失败',
+                description: err instanceof Error ? err.message : '未知错误',
+            });
         }
     };
 
-    const toggleMonitoring = () => {
-        if (fund) {
-            // 确保fund不为null时的安全更新
+    const toggleMonitoring = async () => {
+        if (!fund) return;
+
+        const userInfo = getLocalStorageWithExpiry('userInfo');
+        if (!userInfo) {
+            notification.error({ message: '请先登录' });
+            return;
+        }
+
+        const endpoint = `/api/funds/monitor`;
+        const method = fund.isMonitoring ? 'DELETE' : 'POST';
+
+        try {
+            // 调用API
+            const response = await fetch(endpoint, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-User-ID': userInfo.id,
+                },
+                body: JSON.stringify({ fundCode: fund.code }),
+            });
+
+            // 检查响应状态
+            if (!response.ok) {
+                throw new Error(`API调用失败: ${response.statusText}`);
+            }
+
+            // 更新本地状态
             setFund((prevFund) =>
                 prevFund ? { ...prevFund, isMonitoring: !prevFund.isMonitoring } : null,
             );
+
+            notification.success({
+                message: fund.isMonitoring ? '已从监控中移除' : '已添加到监控',
+            });
+        } catch (err) {
+            notification.error({
+                message: fund.isMonitoring ? '取消监控失败' : '添加监控失败',
+                description: err instanceof Error ? err.message : '未知错误',
+            });
         }
     };
 
