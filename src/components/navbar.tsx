@@ -61,7 +61,10 @@ export default function Navbar() {
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
             <div className="container mx-auto px-4 flex h-16 items-center justify-between">
-                <div className="flex items-center gap-2"></div>
+                <div className="flex items-center gap-2">
+                    {/* 左侧 Logo 区域 */}
+                    <span className="text-lg font-bold text-gray-800">小基守望</span>
+                </div>
                 <div className="flex items-center gap-4">
                     {cachedEmail || user ? (
                         <>
