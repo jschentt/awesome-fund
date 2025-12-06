@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react';
 import {
     ArrowLeft,
-    BarChart3,
-    PieChart,
     Users,
     AlertCircle,
     Star,
@@ -143,7 +141,11 @@ export default function FundDetailPage() {
     };
 
     if (loading) {
-        return <Spin size="large" className="flex justify-center mt-10" />;
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <Spin size="default" />
+            </div>
+        );
     }
 
     if (error || !fund) {
@@ -447,7 +449,7 @@ export default function FundDetailPage() {
                                                 {item.label}
                                             </p>
                                             <p
-                                                className={`text-xl font-semibold mt-1 ${item.value > 0 ? 'text-green-600' : item.value < 0 ? 'text-red-600' : 'text-gray-600'}`}
+                                                className={`text-xl font-semibold mt-1 ${item.value > 0 ? 'text-red-600' : item.value < 0 ? 'text-green-600' : 'text-gray-600'}`}
                                                 data-oid="7cb.f0d"
                                             >
                                                 {formatPercent(item.value)}
@@ -590,7 +592,7 @@ export default function FundDetailPage() {
                                 <div>
                                     <span className="text-sm text-gray-500">预期涨幅：</span>
                                     <span
-                                        className={`font-medium ${fund.expectGrowth > 0 ? 'text-green-600' : 'text-red-600'}`}
+                                        className={`font-medium ${fund.expectGrowth > 0 ? 'text-red-600' : 'text-green-600'}`}
                                     >
                                         {formatPercent(fund.expectGrowth)}
                                     </span>
