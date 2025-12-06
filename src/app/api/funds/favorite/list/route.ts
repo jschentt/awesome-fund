@@ -4,6 +4,9 @@ import axios from 'axios';
 import https from 'https';
 import { fetchOAuth2Token } from '@/lib/api';
 
+// 标记为动态路由，因为使用了 request.headers
+export const dynamic = 'force-dynamic';
+
 // 定义请求和响应接口
 export interface FavoriteListRequest {
     email: string;
