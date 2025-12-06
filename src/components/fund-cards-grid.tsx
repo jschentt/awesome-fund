@@ -126,7 +126,9 @@ export default function FundCardsGrid({
                                                         onToggleFundActions(fund.code);
                                                     }}
                                                 >
-                                                    <Bell className="w-4 h-4 text-blue-600" />
+                                                    <Bell
+                                                        className={`w-4 h-4 ${fund.isMonitoring ? 'text-blue-600' : 'text-gray-500'}`}
+                                                    />
                                                     <span className="text-sm">
                                                         {fund.isMonitoring
                                                             ? '取消监控'

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Star } from 'lucide-react';
+import { Search, Bell } from 'lucide-react';
 import { Button, Input, Tooltip, Modal, message, Pagination } from 'antd';
 import dayjs from 'dayjs';
 import { FundItem } from './fund-list';
@@ -252,7 +252,7 @@ export default function MonitorFundList({
     return (
         <div className="w-full">
             {/* 搜索和筛选区域 */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center mb-4 space-y-2 sm:space-y-0">
+            <div className="flex flex-col sm:flex-row items-Bellt sm:items-center mb-4 space-y-2 sm:space-y-0">
                 <div className="relative w-full sm:w-64">
                     <Input
                         placeholder="搜索基金名称或代码"
@@ -308,16 +308,11 @@ export default function MonitorFundList({
                         >
                             <div className="p-5">
                                 {/* 基金头部信息 */}
-                                <div className="flex justify-between items-start w-full mb-4">
+                                <div className="flex justify-between items-Bellt w-full mb-4">
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center space-x-2 mb-1">
                                             <span className="text-base font-semibold text-gray-900">
                                                 {fund.code}
-                                            </span>
-                                            <span
-                                                className={`px-2 py-0.5 rounded-full text-xs font-medium ${fund.status === '打开' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
-                                            >
-                                                {fund.status}
                                             </span>
                                         </div>
                                         <div className="flex items-center space-x-2">
@@ -332,7 +327,7 @@ export default function MonitorFundList({
                                         </div>
                                     </div>
                                     <Tooltip title="已监控">
-                                        <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                                        <Bell className="w-4 h-4 text-blue-600" />
                                     </Tooltip>
                                 </div>
 
@@ -429,7 +424,7 @@ export default function MonitorFundList({
                                             setSelectedFund(fund);
                                         }}
                                     >
-                                        <Star className="w-4 h-4 mr-1" />
+                                        <Bell className="w-4 h-4 mr-1" />
                                         取消监控
                                     </Button>
                                 </div>
@@ -473,7 +468,7 @@ export default function MonitorFundList({
                         >
                             <div>
                                 <h3 className="flex items-center space-x-2 text-xl font-semibold text-gray-900 mb-4">
-                                    <Star className="w-5 h-5 text-yellow-500" />
+                                    <Bell className="w-5 h-5 text-yellow-500" />
                                     <span>取消监控</span>
                                 </h3>
                             </div>

@@ -315,11 +315,6 @@ export default function FavoriteFundList({
                                             <span className="text-base font-semibold text-gray-900">
                                                 {fund.code}
                                             </span>
-                                            <span
-                                                className={`px-2 py-0.5 rounded-full text-xs font-medium ${fund.status === '打开' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
-                                            >
-                                                {fund.status}
-                                            </span>
                                         </div>
                                         <div className="flex items-center space-x-2">
                                             <h3 className="text-sm font-medium text-gray-900 line-clamp-2">
