@@ -167,15 +167,6 @@ export default function Page() {
         isMonitoring: monitorFunds.some((mon) => mon.id === fund.id),
     }));
 
-    // 加载状态
-    if (isLoading) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <Spin size="large" className="flex justify-center mt-10" />
-            </div>
-        );
-    }
-
     // 错误状态
     if (error || !funds) {
         return (
@@ -227,6 +218,7 @@ export default function Page() {
                     showMonitorList={showMonitorList}
                     setShowMonitorList={setShowMonitorList}
                     refreshMonitorList={loadMonitorList}
+                    isLoading={isLoading}
                 />
 
                 {/* 分页控件 - 当显示收藏列表时隐藏 */}

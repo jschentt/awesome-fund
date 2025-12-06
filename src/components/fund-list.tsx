@@ -45,6 +45,7 @@ interface FundListProps {
     showMonitorList: boolean;
     setShowMonitorList?: (show: boolean) => void;
     refreshMonitorList?: () => void;
+    isLoading: boolean;
 }
 
 export default function FundList({
@@ -56,6 +57,7 @@ export default function FundList({
     showMonitorList,
     setShowMonitorList,
     refreshMonitorList,
+    isLoading,
 }: FundListProps) {
     const [funds, setFunds] = useState<FundItem[]>([]);
     const [sortOrder, setSortOrder] = useState<'desc' | 'asc' | 'none'>('none');
@@ -352,6 +354,14 @@ export default function FundList({
                 />
             );
         }
+
+        if (isLoading) {
+            return (
+                <div className="flex justify-center items-center py-10">
+                    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-600"></div>
+                </div>
+            );
+        }
         return (
             <>
                 <FundCardsGrid
@@ -363,7 +373,6 @@ export default function FundList({
                     setFavoriteModalOpen={setFavoriteModalOpen}
                     setSelectedFund={setSelectedFund}
                 />
-
                 <FundEmptyState showFunds={currentFunds.length > 0} />
             </>
         );
