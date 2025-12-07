@@ -29,12 +29,12 @@ async function sendEmail(email: string, code: string, name: string) {
         console.debug(accessToken, 'accessToken');
 
         // 准备邮件内容模板
-        const htmlTemplate = `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.5;color:#333"><h2 style="color:#0052d9">量码智源</h2><p>尊敬的 ${name}，</p><p>您正在注册/登录量码智源，请在10分钟内输入下方验证码完成验证：</p><p style="font-size:24px;font-weight:bold;color:#ff5030;margin:16px 0">${code}</p><p>如非本人操作，请忽略此邮件。</p><hr style="border:none;border-top:1px solid #e5e5e5;margin-top:32px"><p style="font-size:12px;color:#999">本邮件由系统自动发送，请勿直接回复。</p></div>`;
+        const htmlTemplate = `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.5;color:#333"><h2 style="color:#0052d9">小基守望</h2><p>尊敬的 ${name}，</p><p>您正在注册/登录小基守望，请在10分钟内输入下方验证码完成验证：</p><p style="font-size:24px;font-weight:bold;color:#ff5030;margin:16px 0">${code}</p><p>如非本人操作，请忽略此邮件。</p><hr style="border:none;border-top:1px solid #e5e5e5;margin-top:32px"><p style="font-size:12px;color:#999">本邮件由系统自动发送，请勿直接回复。</p></div>`;
 
-        const textTemplate = `量码智源
+        const textTemplate = `小基守望
 
 尊敬的${name}，
-您正在注册/登录量码智源，请在10分钟内输入下方验证码完成验证：
+您正在注册/登录小基守望，请在10分钟内输入下方验证码完成验证：
 ${code}
 
 如非本人操作，请忽略此邮件。
@@ -48,10 +48,10 @@ ${code}
                     name: name,
                 },
             ],
-            subject: '量码智源 | 邮箱验证码 - 10分钟内有效',
+            subject: '小基守望 | 邮箱验证码 - 10分钟内有效',
             html: htmlTemplate,
             text: textTemplate,
-            fromName: '量码智源',
+            fromName: '小基守望',
         };
 
         // 发送邮件请求

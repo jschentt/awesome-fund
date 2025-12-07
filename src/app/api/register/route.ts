@@ -109,17 +109,40 @@ export async function POST(request: Request) {
         const passwordHash = await hashPassword(password);
 
         // 5. 直接向users表插入数据
-        const currentTime = new Date();
         const { data: newUser, error: createUserError } = await supabase
             .from('users')
-            .insert([
-                {
-                    email,
-                    password_hash: passwordHash,
-                    status: 1, // 默认状态为激活
-                },
-            ])
-            .select();
+            .insert({
+                email,
+                password_hash: passwordHash,
+                status: 1, // 默认状态为激活
+            })
+            .select()
+            .single();
+
+        // 6. 从 dingtalk_webhook 表中查出第一条 is_used = 0 的数据
+        const { data: webhookData } = await supabase
+            .from('dingtalk_webhook')
+            .select('*')
+            .eq('is_used', 0)
+            .order('id', { ascending: true })
+            .limit(1)
+            .single();
+
+        if (webhookData && newUser) {
+            // 7. 标记 webhook 为已使用
+            const { error: updateWebhookError } = await supabase
+                .from('dingtalk_webhook')
+                .update({ user_id: newUser.id, chat_name: newUser.email })
+                .eq('id', webhookData.id);
+
+            if (updateWebhookError) {
+                console.error('更新 webhook 状态失败:', updateWebhookError);
+                return NextResponse.json(
+                    { error: '注册失败，请稍后重试: ' + updateWebhookError.message },
+                    { status: 500 },
+                );
+            }
+        }
 
         if (createUserError) {
             console.error('创建用户失败:', createUserError);
@@ -128,8 +151,6 @@ export async function POST(request: Request) {
                 { status: 500 },
             );
         }
-
-        console.log(`用户注册成功: ${email}`);
 
         return NextResponse.json({ message: '注册成功' }, { status: 201 });
     } catch (error) {
