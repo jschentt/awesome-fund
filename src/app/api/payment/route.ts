@@ -7,6 +7,7 @@ import qs from 'qs';
  * @description: 创建7支付订单
  */
 interface CreateSevenPayOrderParams {
+    userId: string;
     orderNo: string;
     name: string;
     payAmount: number;
@@ -21,8 +22,8 @@ const createSevenPayOrder = async (params: CreateSevenPayOrderParams) => {
         return_url: process.env.WEB_SITE, // 可选。用户支付成功后，我们会让用户浏览器自动跳转到这个网址
         name: params.name, // 商品名称	（商品名称不超过100字）
         type: params.paymentMethod,
-        // money: params.payAmount, // 商品金额（单位：元，最大2位小数）
-        money: 0.01,
+        // 兼容管理员
+        money: params.userId === '0bd34682-3671-431d-a879-21362a078b82' ? '0.01' : params.payAmount, // 商品金额（单位：元，最大2位小数）
         sign_type: 'MD5',
     } as Record<string, any>;
 
@@ -85,6 +86,7 @@ export async function POST(request: Request) {
         }
 
         const ret = await createSevenPayOrder({
+            userId: postData.user_id,
             orderNo: postData.order_no,
             name: extraData.name,
             payAmount: postData.pay_amount,
