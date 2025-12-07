@@ -21,7 +21,8 @@ const createSevenPayOrder = async (params: CreateSevenPayOrderParams) => {
         return_url: process.env.WEB_SITE, // 可选。用户支付成功后，我们会让用户浏览器自动跳转到这个网址
         name: params.name, // 商品名称	（商品名称不超过100字）
         type: params.paymentMethod,
-        money: params.payAmount, // 商品金额（单位：元，最大2位小数）
+        // money: params.payAmount, // 商品金额（单位：元，最大2位小数）
+        money: 0.01,
         sign_type: 'MD5',
     } as Record<string, any>;
 
@@ -59,7 +60,7 @@ export async function POST(request: Request) {
         };
 
         const postData = {
-            order_id: createOrderNum(),
+            order_no: createOrderNum(),
             user_id: userId,
             plan_id: plan.id,
             pay_amount: subscribePrice,
@@ -75,8 +76,16 @@ export async function POST(request: Request) {
             status: 1,
         };
 
+        // 插入订单数据到 user_member_order 表
+        const { error: insertError } = await supabase.from('user_member_order').insert([postData]);
+
+        if (insertError) {
+            console.error('插入订单失败:', insertError);
+            return NextResponse.json({ error: '创建订单失败' }, { status: 500 });
+        }
+
         const ret = await createSevenPayOrder({
-            orderNo: postData.order_id,
+            orderNo: postData.order_no,
             name: extraData.name,
             payAmount: postData.pay_amount,
             paymentMethod: postData.pay_method,

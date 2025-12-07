@@ -56,6 +56,7 @@ export function SubscriptionDialog({
     const [selectedPlan, setSelectedPlan] = useState<SubscriptionType>('month');
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('alipay');
     const [step, setStep] = useState<'plan' | 'payment'>('plan');
+    const [payLoading, setPayLoading] = useState(false);
 
     const handleContinue = () => {
         if (selectedPlan === 'free') {
@@ -70,6 +71,7 @@ export function SubscriptionDialog({
     };
 
     const handlePay = async () => {
+        setPayLoading(true);
         try {
             const userInfo = getLocalStorageWithExpiry('userInfo');
             if (!userInfo) {
@@ -112,6 +114,8 @@ export function SubscriptionDialog({
         } catch (error) {
             console.error('支付失败:', error);
             toast.error('支付失败，请稍后重试');
+        } finally {
+            setPayLoading(false);
         }
     };
 
@@ -345,6 +349,7 @@ export function SubscriptionDialog({
                                 style={{
                                     background: 'linear-gradient(to right, #1890ff, #096dd9)',
                                 }}
+                                loading={payLoading}
                             >
                                 立即支付 ¥{subscriptionPlans[selectedPlan].price}
                             </Button>
