@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, use } from 'react';
 import { User } from '@supabase/supabase-js';
 import { getLocalStorageWithExpiry } from '@/lib/utils';
 
@@ -23,9 +23,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [error, setError] = useState<string | null>(null);
 
+    // 添加窗口焦点事件，确保页面重新获得焦点时也能更新用户信息
     useEffect(() => {
-        const userInfo = getLocalStorageWithExpiry('userInfo');
-        setUser(userInfo || null);
+        const handleFocus = () => {
+            const userInfo = getLocalStorageWithExpiry('userInfo');
+            console.log('窗口获得焦点，检查用户信息:', userInfo);
+            setUser(userInfo || null);
+        };
+
+        // 立即执行一次，确保首次加载时同步状态
+        handleFocus();
+
+        // 监听浏览器标签页切换、页面可见性变化以及 pageshow，确保任何回到页面的动作都能同步缓存
+        const onVisibilityOrFocus = () => {
+            if (!document.hidden) handleFocus();
+        };
+        window.addEventListener('focus', handleFocus);
+        window.addEventListener('pageshow', handleFocus);
+        document.addEventListener('visibilitychange', onVisibilityOrFocus);
+
+        // 同时轮询 localStorage，若其它标签页修改了 userInfo，也能实时同步
+        const storagePoll = setInterval(() => {
+            const latest = getLocalStorageWithExpiry('userInfo');
+            if (JSON.stringify(latest) !== JSON.stringify(user)) {
+                setUser(latest || null);
+            }
+        }, 1000);
+
+        return () => {
+            window.removeEventListener('focus', handleFocus);
+            window.removeEventListener('pageshow', handleFocus);
+            document.removeEventListener('visibilitychange', onVisibilityOrFocus);
+            clearInterval(storagePoll);
+        };
+        return () => window.removeEventListener('focus', handleFocus);
     }, []);
 
     const [vipInfo, setVipInfo] = useState<AuthContextType['vipInfo']>({
@@ -34,11 +65,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     const getVipInfo = async () => {
+        // 确保user存在时才调用API
+        if (!user?.id) return;
+
         try {
             const res = await fetch('/api/vip', {
                 method: 'GET',
                 headers: {
-                    'X-User-Id': user?.id || '',
+                    'X-User-Id': user.id,
                 },
             });
             const data = await res.json();
@@ -49,8 +83,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     useEffect(() => {
-        user && getVipInfo();
-    }, [user]);
+        // 确保user存在时才调用API
+        user?.id && getVipInfo();
+    }, [user?.id]);
 
     // 退出登录函数
     const logout = async () => {

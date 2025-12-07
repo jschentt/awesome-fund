@@ -5,7 +5,6 @@ import { useRequest } from 'ahooks';
 import Navbar from '@/components/navbar';
 import FundList, { FundItem } from '@/components/fund-list';
 import Pagination from '@/components/Pagination';
-import { Spin } from 'antd';
 import { getLocalStorageWithExpiry } from '@/lib/utils';
 
 // 定义 API 返回数据的接口
