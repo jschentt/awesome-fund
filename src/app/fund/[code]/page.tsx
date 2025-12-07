@@ -14,6 +14,8 @@ import {
 import { useParams, useRouter } from 'next/navigation';
 import { Table, Spin, notification } from 'antd';
 import { getLocalStorageWithExpiry } from '@/lib/utils';
+import { useAuth } from '@/app/providers/auth-provider';
+import { SubscriptionDialog } from '@/components/subscription-dialog';
 // 移除了echart相关的导入
 
 // 修改NetWorthDataItem类型为二维数组类型
@@ -81,19 +83,42 @@ export default function FundDetailPage() {
     );
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
+    // 添加会员信息和订阅对话框状态
+    const { user, vipInfo } = useAuth();
+    const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState(false);
+    const [monitoringCount, setMonitoringCount] = useState(0);
+
+    // 获取用户监控的基金数量
+    async function fetchMonitoringCount() {
+        try {
+            if (!user?.id) return;
+
+            const response = await fetch(`/api/funds/monitor/list`, {
+                method: 'GET',
+                headers: {
+                    'X-User-Id': user.id,
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setMonitoringCount(data.data.length || 0);
+            }
+        } catch (error) {
+            console.error('获取监控基金数量失败:', error);
+        }
+    }
 
     // 确保在异步函数中使用await
     async function fetchFundStatus() {
         try {
-            const userInfo = getLocalStorageWithExpiry('userInfo');
-            if (!userInfo) {
+            if (!user?.id) {
                 return;
             }
             const response = await fetch(`/api/funds/detail?code=${fundCode}`, {
                 method: 'GET',
-                // GET 传参，将 fundCode 拼接在 URL 查询字符串中
                 headers: {
-                    'X-User-Id': userInfo.id,
+                    'X-User-Id': user.id,
                 },
             });
 
@@ -148,7 +173,8 @@ export default function FundDetailPage() {
 
     useEffect(() => {
         fetchFundDetail();
-    }, [fundCode]);
+        fetchMonitoringCount();
+    }, [fundCode, user?.id]);
 
     const handleBack = () => {
         router.back();
@@ -196,25 +222,68 @@ export default function FundDetailPage() {
         }
     };
 
+    // 订阅按钮点击处理
+    const handleSubscribe = () => {
+        setSubscriptionDialogOpen(false);
+        // 这里可以添加订阅成功后的逻辑
+    };
+
     const toggleMonitoring = async () => {
         if (!fund) return;
 
-        const userInfo = getLocalStorageWithExpiry('userInfo');
-        if (!userInfo) {
+        if (!user?.id) {
             notification.error({ message: '请先登录' });
             return;
         }
 
-        const endpoint = `/api/funds/monitor`;
-        const method = fund.isMonitoring ? 'DELETE' : 'POST';
+        // 检查是否是取消监控操作
+        if (fund.isMonitoring) {
+            try {
+                const response = await fetch(`/api/funds/monitor`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-ID': user.id,
+                    },
+                    body: JSON.stringify({ fundCode: fund.code }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API调用失败: ${response.statusText}`);
+                }
+
+                // 更新本地状态
+                setFund((prevFund) =>
+                    prevFund ? { ...prevFund, isMonitoring: !prevFund.isMonitoring } : null,
+                );
+
+                // 更新监控基金数量
+                setMonitoringCount((prev) => Math.max(0, prev - 1));
+
+                notification.success({ message: '已从监控中移除' });
+            } catch (err) {
+                notification.error({
+                    message: '取消监控失败',
+                    description: err instanceof Error ? err.message : '未知错误',
+                });
+            }
+            return;
+        }
+
+        // 检查是否是添加监控操作
+        // 非会员只能添加3个基金
+        if (monitoringCount >= 3 && !['year', 'month'].includes(vipInfo?.plan_code || '')) {
+            setSubscriptionDialogOpen(true);
+            return;
+        }
 
         try {
-            // 调用API
-            const response = await fetch(endpoint, {
-                method,
+            // 调用API添加监控
+            const response = await fetch(`/api/funds/monitor`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-User-ID': userInfo.id,
+                    'X-User-ID': user.id,
                 },
                 body: JSON.stringify({ fundCode: fund.code }),
             });
@@ -229,12 +298,13 @@ export default function FundDetailPage() {
                 prevFund ? { ...prevFund, isMonitoring: !prevFund.isMonitoring } : null,
             );
 
-            notification.success({
-                message: fund.isMonitoring ? '已从监控中移除' : '已添加到监控',
-            });
+            // 更新监控基金数量
+            setMonitoringCount((prev) => prev + 1);
+
+            notification.success({ message: '已添加到监控' });
         } catch (err) {
             notification.error({
-                message: fund.isMonitoring ? '取消监控失败' : '添加监控失败',
+                message: '添加监控失败',
                 description: err instanceof Error ? err.message : '未知错误',
             });
         }
@@ -730,6 +800,14 @@ export default function FundDetailPage() {
                         </div>
                     </div>
                 </section>
+
+                {/* 订阅对话框 */}
+                <SubscriptionDialog
+                    open={subscriptionDialogOpen}
+                    onOpenChange={setSubscriptionDialogOpen}
+                    currentMonitorCount={monitoringCount}
+                    onSubscribe={handleSubscribe}
+                />
             </main>
         </div>
     );

@@ -84,6 +84,7 @@ export function SubscriptionDialog({
                 userId,
                 subscribType: selectedPlan,
                 paymentMethod,
+                returnUrl: window.location.href,
             };
 
             const res = await fetch('/api/payment', {

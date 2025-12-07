@@ -80,6 +80,9 @@ export default function Page() {
         debounceWait: 500, // 关键参数
         refreshDeps: [pagination.page, pagination.limit], // 显式监听page和limit变化
         ready: !!apiUrl, // 空 url 时不发请求
+        onSuccess: () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        },
     });
 
     // 当page或limit变化时，显式重新请求数据

@@ -29,7 +29,7 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: '订单不存在' }, { status: 404 });
     }
 
-    if (order.userId !== '0bd34682-3671-431d-a879-21362a078b82') {
+    if (order.user_id !== '0bd34682-3671-431d-a879-21362a078b82') {
         if (Number(money) !== order.pay_amount) {
             return NextResponse.json({ error: '支付金额错误' }, { status: 400 });
         }

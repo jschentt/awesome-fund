@@ -10,6 +10,7 @@ interface CreateSevenPayOrderParams {
     userId: string;
     orderNo: string;
     name: string;
+    returnUrl: string;
     payAmount: number;
     paymentMethod: 'wechat' | 'alipay';
 }
@@ -19,7 +20,7 @@ const createSevenPayOrder = async (params: CreateSevenPayOrderParams) => {
         pid: process.env.SEVEN_PAY_APPID, // 商户ID
         out_trade_no: params.orderNo, // 商户订单号
         notify_url: process.env.SEVEN_PAY_NOTIFY_URL, // 异步通知地址
-        return_url: process.env.WEB_SITE, // 可选。用户支付成功后，我们会让用户浏览器自动跳转到这个网址
+        return_url: params.returnUrl || process.env.WEB_SITE, // 可选。用户支付成功后，我们会让用户浏览器自动跳转到这个网址
         name: params.name, // 商品名称	（商品名称不超过100字）
         type: params.paymentMethod,
         // 兼容管理员
@@ -35,7 +36,7 @@ const createSevenPayOrder = async (params: CreateSevenPayOrderParams) => {
 
 export async function POST(request: Request) {
     try {
-        const { userId, subscribType, paymentMethod } = await request.json();
+        const { userId, subscribType, paymentMethod, returnUrl } = await request.json();
         // 从 member_plan 表获取价格与 ID
         const { data: plan, error: planError } = await supabase
             .from('member_plan')
@@ -91,6 +92,7 @@ export async function POST(request: Request) {
             name: extraData.name,
             payAmount: postData.pay_amount,
             paymentMethod: postData.pay_method,
+            returnUrl,
         });
 
         return NextResponse.json({ message: '登录成功', data: { payUrl: ret } }, { status: 200 });
