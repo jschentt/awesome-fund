@@ -56,6 +56,12 @@ export default function Page() {
     const [showMonitorList, setShowMonitorList] = useState(false);
     const [favoriteCount, setFavoriteCount] = useState(0);
     const [monitorCount, setMonitorCount] = useState(0);
+    const [data, setData] = useState<ApiResponse>({
+        data: [],
+        total: 0,
+        page: 1,
+        limit: 10,
+    });
 
     const [pagination, setPagination] = useState({
         page: 1,
@@ -71,7 +77,6 @@ export default function Page() {
 
     // ✅ 防抖 500 ms，请求真正发出
     const {
-        data,
         error,
         loading: isLoading,
         run: refreshFunds,
@@ -80,17 +85,37 @@ export default function Page() {
         debounceWait: 500, // 关键参数
         refreshDeps: [pagination.page, pagination.limit], // 显式监听page和limit变化
         ready: !!apiUrl, // 空 url 时不发请求
-        onSuccess: () => {
+        onSuccess: (data) => {
+            setData(data);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         },
     });
+
+    useEffect(() => {
+        // 每30秒轮询一次接口
+        const interval = setInterval(async () => {
+            try {
+                const res = await fetch(apiUrl);
+                if (!res.ok) {
+                    throw new Error('轮询请求失败');
+                }
+                const data = await res.json();
+                setData(data);
+            } catch (err) {
+                console.error('轮询更新基金数据失败:', err);
+            }
+        }, 30 * 1000);
+
+        // 清理定时器
+        return () => clearInterval(interval);
+    }, [apiUrl]);
 
     // 当page或limit变化时，显式重新请求数据
     useEffect(() => {
         // 直接在effect内部构建最新的apiUrl，确保使用最新的page和limit值
         const currentApiUrl = `/api/funds?page=${pagination.page}&limit=${pagination.limit}`;
         refreshFunds(currentApiUrl);
-    }, [pagination.page, pagination.limit, refreshFunds]);
+    }, [pagination.page, pagination.limit]);
 
     const loadFavoriteList = async () => {
         try {

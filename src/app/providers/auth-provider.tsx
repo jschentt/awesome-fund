@@ -56,7 +56,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             document.removeEventListener('visibilitychange', onVisibilityOrFocus);
             clearInterval(storagePoll);
         };
-        return () => window.removeEventListener('focus', handleFocus);
     }, []);
 
     const [vipInfo, setVipInfo] = useState<AuthContextType['vipInfo']>({
