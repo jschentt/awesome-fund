@@ -1,43 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/app/providers/auth-provider';
 import Link from 'next/link';
 import { Spin } from 'antd';
 
 export default function Navbar() {
-    const { user, loading, logout } = useAuth();
+    const { user, vipInfo, logout } = useAuth();
     const [logoutLoading, setLogoutLoading] = useState(false);
-    const [cachedEmail, setCachedEmail] = useState<string | null>(null);
-
-    // 获取本地存储的值（检查是否过期）
-    const getLocalStorageWithExpiry = (key: string): string | null => {
-        const itemStr = localStorage.getItem(key);
-        if (!itemStr) {
-            return null;
-        }
-
-        const item = JSON.parse(itemStr);
-        const now = new Date();
-
-        if (now.getTime() > item.expiry) {
-            localStorage.removeItem(key);
-            return null;
-        }
-
-        return item.value;
-    };
-
-    // 组件挂载时获取缓存的邮箱
-    useEffect(() => {
-        const userInfo = getLocalStorageWithExpiry('userInfo') as unknown as {
-            email: string;
-        };
-        console.debug('userInfo:', userInfo);
-        if (userInfo) {
-            setCachedEmail(userInfo.email);
-        }
-    }, []);
 
     const handleLogout = async () => {
         setLogoutLoading(true);
@@ -50,14 +20,6 @@ export default function Navbar() {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-16">
-                <Spin tip="加载中" size="small" />
-            </div>
-        );
-    }
-
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
             <div className="container mx-auto px-4 flex h-16 items-center justify-between">
@@ -66,11 +28,42 @@ export default function Navbar() {
                     <span className="text-lg font-bold text-gray-800">小基守望</span>
                 </div>
                 <div className="flex items-center gap-4">
-                    {cachedEmail || user ? (
+                    {user?.email ? (
                         <>
-                            <span className="text-sm font-medium">
-                                欢迎, {cachedEmail || user?.email}
-                            </span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium">欢迎, {user?.email}</span>
+                                {/* 会员等级标记 */}
+                                {(() => {
+                                    if (!user) {
+                                        return null;
+                                    }
+
+                                    const planCode = vipInfo?.plan_code;
+
+                                    if (planCode === 'year') {
+                                        return (
+                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                <span className="w-2 h-2 rounded-full bg-yellow-500 mr-1 animate-pulse"></span>
+                                                年度会员
+                                            </span>
+                                        );
+                                    } else if (planCode === 'month') {
+                                        return (
+                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                <span className="w-2 h-2 rounded-full bg-blue-500 mr-1 animate-pulse"></span>
+                                                月度会员
+                                            </span>
+                                        );
+                                    } else {
+                                        return (
+                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                <span className="w-2 h-2 rounded-full bg-green-500 mr-1 animate-pulse"></span>
+                                                免费会员
+                                            </span>
+                                        );
+                                    }
+                                })()}
+                            </div>
                             <button
                                 onClick={handleLogout}
                                 disabled={logoutLoading}

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
 import { message, Modal } from 'antd';
 import FavoriteFundList from './favorite-fund-list';
 import { SubscriptionDialog } from './subscription-dialog';
@@ -10,8 +9,8 @@ import FundCardsGrid from './fund-cards-grid';
 import FundEmptyState from './fund-empty-state';
 import MonitoringModal from './monitoring-modal';
 import AddFavoriteModal from './add-favorite-modal';
-import { getLocalStorageWithExpiry } from '@/lib/utils';
 import MonitorFundList from './monitor-fund-list';
+import { useAuth } from '@/app/providers/auth-provider';
 
 export interface FundItem {
     id?: string;
@@ -74,11 +73,20 @@ export default function FundList({
     const [showFundActions, setShowFundActions] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);
     const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState(false);
-    const userInfo = getLocalStorageWithExpiry('userInfo');
+    const { user, vipInfo } = useAuth();
+
+    // 从 URL 参数中获取 activeTab 并设置
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const tabFromUrl = params.get('tab') as 'all' | 'monitoring' | 'favorite';
+        if (tabFromUrl && ['all', 'monitoring', 'favorite'].includes(tabFromUrl)) {
+            setActiveTab(tabFromUrl);
+        }
+    }, []);
 
     useEffect(() => {
-        setUserId(userInfo?.id || null);
-    }, [userInfo]);
+        setUserId(user?.id || null);
+    }, [user]);
 
     useEffect(() => {
         setFunds(
@@ -208,11 +216,7 @@ export default function FundList({
 
         if (tab === 'favorite') {
             try {
-                const userInfo = getLocalStorageWithExpiry('userInfo') as unknown as {
-                    id: string;
-                };
-
-                if (!userInfo?.id) {
+                if (!user?.id) {
                     Modal.error({
                         title: '请先登录',
                         content: '查看收藏列表需要先登录账号',
@@ -224,7 +228,7 @@ export default function FundList({
                     return;
                 }
 
-                setUserId(userInfo.id);
+                setUserId(user.id);
                 setShowFavoriteList?.(true);
             } catch (error) {
                 console.error('Error preparing favorite list:', error);
@@ -237,11 +241,7 @@ export default function FundList({
             }
         } else if (tab === 'monitoring') {
             try {
-                const userInfo = getLocalStorageWithExpiry('userInfo') as unknown as {
-                    id: string;
-                };
-
-                if (!userInfo?.id) {
+                if (!user?.id) {
                     Modal.error({
                         title: '请先登录',
                         content: '查看监控列表需要先登录账号',
@@ -253,7 +253,7 @@ export default function FundList({
                     return;
                 }
 
-                setUserId(userInfo.id);
+                setUserId(user.id);
                 setShowMonitorList?.(true);
             } catch (error) {
                 console.error('Error preparing monitoring list:', error);
@@ -289,7 +289,12 @@ export default function FundList({
         setSelectedMethods({ dingtalk: true, wechat: false });
 
         const monitoringCount = funds.filter((f) => f.isMonitoring).length;
-        if (monitoringCount >= 3 && !fund.isMonitoring) {
+
+        if (
+            monitoringCount >= 3 &&
+            !fund.isMonitoring &&
+            !['year', 'month'].includes(vipInfo.plan_code)
+        ) {
             setSubscriptionDialogOpen(true);
         } else {
             const isAddMonitoring = !fund.isMonitoring;
@@ -322,9 +327,6 @@ export default function FundList({
     const handleMethodChange = (method: 'dingtalk' | 'wechat') => {
         setSelectedMethods((prev) => ({ ...prev, [method]: !prev[method] }));
     };
-
-    // const monitoringFunds = funds.filter((f) => f.isMonitoring).length;
-    // const favoriteFunds = funds.filter((f) => f.isFavorite).length;
 
     const toggleFundActions = (code: string) => {
         if (showFundActions === code) {

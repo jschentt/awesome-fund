@@ -36,7 +36,7 @@ const AuthPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     // 使用认证上下文和路由
-    const { user, session, logout } = useAuth();
+    const { user, logout } = useAuth();
     const router = useRouter();
 
     // 表单验证状态
@@ -275,7 +275,7 @@ const AuthPage: React.FC = () => {
         <div className="flex min-h-screen items-center justify-center p-4 bg-gray-50">
             <div className="bg-white rounded-lg shadow-md p-8 w-full max-w-md">
                 {/* 已登录用户信息展示 */}
-                {user && session ? (
+                {user ? (
                     <div className="text-center space-y-4">
                         <h2 className="text-2xl font-bold text-gray-800">欢迎回来</h2>
                         <p className="text-gray-600">

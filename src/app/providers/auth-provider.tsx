@@ -1,16 +1,18 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase } from '@/lib/supabase';
-import { Session, User } from '@supabase/supabase-js';
+import { User } from '@supabase/supabase-js';
+import { getLocalStorageWithExpiry } from '@/lib/utils';
 
 // 定义认证上下文类型
 interface AuthContextType {
     user: User | null;
-    session: Session | null;
-    loading: boolean;
     error: string | null;
     logout: () => Promise<void>;
+    vipInfo: {
+        plan_code: string;
+        plan_name: string;
+    };
 }
 
 // 创建认证上下文
@@ -19,44 +21,42 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // 认证Provider组件
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
-    const [session, setSession] = useState<Session | null>(null);
-    const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // 初始化时检查用户会话
     useEffect(() => {
-        const checkSession = async () => {
-            try {
-                const {
-                    data: { session },
-                } = await supabase.auth.getSession();
-                setSession(session);
-                setUser(session?.user || null);
-            } catch (err) {
-                setError(err instanceof Error ? err.message : '获取用户会话失败');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        checkSession();
-
-        // 监听认证状态变化
-        const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session);
-            setUser(session?.user || null);
-        });
-
-        // 清理监听器
-        return () => authListener.subscription.unsubscribe();
+        const userInfo = getLocalStorageWithExpiry('userInfo');
+        setUser(userInfo || null);
     }, []);
+
+    const [vipInfo, setVipInfo] = useState<AuthContextType['vipInfo']>({
+        plan_code: '',
+        plan_name: '',
+    });
+
+    const getVipInfo = async () => {
+        try {
+            const res = await fetch('/api/vip', {
+                method: 'GET',
+                headers: {
+                    'X-User-Id': user?.id || '',
+                },
+            });
+            const data = await res.json();
+            setVipInfo(data.data);
+        } catch (error) {
+            console.error('获取会员信息失败:', error);
+        }
+    };
+
+    useEffect(() => {
+        user && getVipInfo();
+    }, [user]);
 
     // 退出登录函数
     const logout = async () => {
         try {
             // 先清除本地状态，确保UI立即更新
             setUser(null);
-            setSession(null);
 
             // 清除localStorage中所有缓存信息
             console.log('正在清除localStorage缓存...');
@@ -87,7 +87,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             // 即使发生错误，仍然尝试清除本地状态、localStorage缓存并重定向
             setUser(null);
-            setSession(null);
             try {
                 localStorage.clear();
             } catch (storageErr) {
@@ -102,8 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const value = {
         user,
-        session,
-        loading,
+        vipInfo,
         error,
         logout,
     };
