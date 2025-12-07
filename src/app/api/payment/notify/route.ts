@@ -29,9 +29,9 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: '订单不存在' }, { status: 404 });
     }
 
-    if (Number(money) !== order.pay_amount) {
-        return NextResponse.json({ error: '支付金额错误' }, { status: 400 });
-    }
+    // if (Number(money) !== order.pay_amount) {
+    //     return NextResponse.json({ error: '支付金额错误' }, { status: 400 });
+    // }
 
     // 根据订单中的 plan_id 查询 member_plan 表获取 plan_code
     const { data: plan, error: planError } = await supabase
