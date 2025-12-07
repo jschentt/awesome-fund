@@ -177,7 +177,7 @@ export default function FundDetailPage() {
     }, [fundCode, user?.id]);
 
     const handleBack = () => {
-        router.back();
+        router.push('/');
     };
 
     const toggleFavorite = async () => {
