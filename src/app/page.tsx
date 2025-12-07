@@ -91,19 +91,25 @@ export default function Page() {
         },
     });
 
+    const loadAllFunds = async () => {
+        try {
+            const res = await fetch(apiUrl);
+            if (!res.ok) {
+                throw new Error('获取基金请求失败');
+            }
+            const data = await res.json();
+            setData(data);
+        } catch (err) {
+            console.error('获取基金数据失败:', err);
+        }
+    };
+
     useEffect(() => {
         // 每30秒轮询一次接口
-        const interval = setInterval(async () => {
-            try {
-                const res = await fetch(apiUrl);
-                if (!res.ok) {
-                    throw new Error('轮询请求失败');
-                }
-                const data = await res.json();
-                setData(data);
-            } catch (err) {
-                console.error('轮询更新基金数据失败:', err);
-            }
+        const interval = setInterval(() => {
+            loadAllFunds();
+            loadFavoriteList();
+            loadMonitorList();
         }, 30 * 1000);
 
         // 清理定时器

@@ -27,8 +27,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         const handleFocus = () => {
             const userInfo = getLocalStorageWithExpiry('userInfo');
-            console.log('窗口获得焦点，检查用户信息:', userInfo);
             setUser(userInfo || null);
+            if (userInfo?.id) {
+                getVipInfo();
+            }
         };
 
         // 立即执行一次，确保首次加载时同步状态
@@ -64,14 +66,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     const getVipInfo = async () => {
-        // 确保user存在时才调用API
-        if (!user?.id) return;
+        const userInfo = getLocalStorageWithExpiry('userInfo');
+
+        if (!userInfo?.id) return;
 
         try {
             const res = await fetch('/api/vip', {
                 method: 'GET',
                 headers: {
-                    'X-User-Id': user.id,
+                    'X-User-Id': userInfo.id,
                 },
             });
             const data = await res.json();
@@ -82,9 +85,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     useEffect(() => {
-        // 确保user存在时才调用API
-        user?.id && getVipInfo();
-    }, [user?.id]);
+        // 每30秒轮询一次VIP信息，确保user存在时才调用API
+        const interval = setInterval(() => {
+            getVipInfo();
+        }, 30 * 1000);
+
+        return () => clearInterval(interval);
+    }, []);
 
     // 退出登录函数
     const logout = async () => {

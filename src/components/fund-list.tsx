@@ -293,7 +293,7 @@ export default function FundList({
         if (
             monitoringCount >= 3 &&
             !fund.isMonitoring &&
-            !['year', 'month'].includes(vipInfo.plan_code)
+            !['year', 'month'].includes(vipInfo?.plan_code)
         ) {
             setSubscriptionDialogOpen(true);
         } else {
