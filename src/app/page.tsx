@@ -126,7 +126,7 @@ export default function Page() {
     const loadFavoriteList = async () => {
         try {
             const userInfo = getLocalStorageWithExpiry('userInfo');
-            if (!userInfo.id) {
+            if (!userInfo || !userInfo.id) {
                 return;
             }
 
@@ -154,7 +154,7 @@ export default function Page() {
     const loadMonitorList = async () => {
         try {
             const userInfo = getLocalStorageWithExpiry('userInfo');
-            if (!userInfo.id) {
+            if (!userInfo || !userInfo.id) {
                 return;
             }
 

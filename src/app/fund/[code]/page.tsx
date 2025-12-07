@@ -154,13 +154,24 @@ export default function FundDetailPage() {
                 throw new Error(apiResponse.message || '获取基金数据失败');
             }
 
-            const { isFavorite, isMonitoring } = (await fetchFundStatus()) || {};
+            // 初始化本地状态字段
+            let isFavorite = false;
+            let isMonitoring = false;
+
+            // 如果用户已登录，获取监控和收藏状态
+            if (user?.id) {
+                const statusResponse = await fetchFundStatus();
+                if (statusResponse) {
+                    isFavorite = statusResponse.isFavorite || false;
+                    isMonitoring = statusResponse.isMonitoring || false;
+                }
+            }
 
             // 添加本地状态字段
             const fundDataWithLocalState = {
                 ...apiResponse.data.data,
-                isFavorite: isFavorite || false,
-                isMonitoring: isMonitoring || false,
+                isFavorite,
+                isMonitoring,
             };
 
             setFund(fundDataWithLocalState);
