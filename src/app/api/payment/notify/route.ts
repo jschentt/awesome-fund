@@ -68,5 +68,60 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: '更新订单状态失败' }, { status: 500 });
     }
 
+    // 从 dingtalk_webhook 查询 is_vip=true 且 is_used=0 的数据
+    const { data: vipWebhook, error: vipError } = await supabase
+        .from('dingtalk_webhook')
+        .select('*')
+        .eq('is_vip', true)
+        .eq('is_used', 0)
+        .maybeSingle();
+
+    if (vipError || !vipWebhook) {
+        console.error('未找到可用的 VIP webhook 配置:', vipError);
+        return NextResponse.json({ error: '系统异常，请联系管理员' }, { status: 500 });
+    }
+
+    if (vipWebhook.id) {
+        // 查询 dingtalk_webhook_user 是否存在符合条件的数据
+        const { data: webhookUser, error: webhookError } = await supabase
+            .from('dingtalk_webhook_user')
+            .select('*')
+            .eq('user_id', order.user_id)
+            .neq('webhook_id', 1)
+            .maybeSingle(); // 使用 maybeSingle 避免无数据时报错
+
+        if (webhookError) {
+            console.error('查询 webhook 用户失败:', webhookError);
+            return NextResponse.json({ error: '查询 webhook 用户失败' }, { status: 500 });
+        }
+
+        if (webhookUser) {
+            // 存在数据，将 status 置成 1
+            const { error: updateStatusError } = await supabase
+                .from('dingtalk_webhook_user')
+                .update({ status: 1 })
+                .eq('id', webhookUser.id);
+
+            if (updateStatusError) {
+                console.error('更新 webhook 用户状态失败:', updateStatusError);
+                return NextResponse.json({ error: '更新 webhook 用户状态失败' }, { status: 500 });
+            }
+        } else {
+            // 不存在数据，插入新记录
+            const { error: insertError } = await supabase.from('dingtalk_webhook_user').insert([
+                {
+                    user_id: order.user_id,
+                    webhook_id: vipWebhook.id,
+                    status: 1,
+                },
+            ]);
+
+            if (insertError) {
+                console.error('插入 webhook 用户失败:', insertError);
+                return NextResponse.json({ error: '插入 webhook 用户失败' }, { status: 500 });
+            }
+        }
+    }
+
     return new NextResponse('success', { status: 200 });
 }
