@@ -337,7 +337,9 @@ export default function MonitorFundList({
             >
                 <div className="flex flex-col items-center text-center">
                     <p className="text-gray-600 mb-4">
-                        扫码加入我们的钉钉群组，获取实时监控提醒和基金分析
+                        {userId === 'free'
+                            ? '扫码加入免费钉钉群组，获取基础监控提醒'
+                            : '扫码加入VIP钉钉群组，获取实时监控提醒、专业基金分析与独家策略'}
                     </p>
                     <div className="w-48 h-48 bg-gray-100 rounded-md flex items-center justify-center mb-3 overflow-hidden">
                         {/* 使用 Next.js Image 组件加载二维码图片 */}
@@ -359,10 +361,6 @@ export default function MonitorFundList({
                             }}
                         />
                     </div>
-                    <p className="text-sm text-gray-500">
-                        提示：请将钉钉群组二维码图片命名为 <strong>dingtalk-group-qr.png</strong>{' '}
-                        并放在 <strong>public/images/</strong> 目录下
-                    </p>
                 </div>
             </Drawer>
 
