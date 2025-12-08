@@ -341,9 +341,25 @@ export default function MonitorFundList({
             >
                 <div className="flex flex-col items-center text-center">
                     <p className="text-gray-700 mb-4 text-sm leading-relaxed">
-                        {['year', 'month'].includes(vipInfo?.plan_code)
-                            ? '扫码加入VIP钉钉群组，获取实时监控提醒、专业基金分析与独家策略'
-                            : '扫码加入免费钉钉群组，获取基础监控提醒'}
+                        {vipInfo?.plan_code === 'year' ? (
+                            <span>
+                                当前您为<span className="font-bold text-yellow-600">年度</span>
+                                会员， 扫码加入<span className="font-bold text-blue-600">VIP</span>
+                                钉钉群组，获取实时监控提醒、专业基金分析与独家策略
+                            </span>
+                        ) : vipInfo?.plan_code === 'month' ? (
+                            <span>
+                                当前您为<span className="font-bold text-blue-600">月度</span>会员，
+                                扫码加入<span className="font-bold text-blue-600">VIP</span>
+                                钉钉群组，获取实时监控提醒、专业基金分析与独家策略
+                            </span>
+                        ) : (
+                            <span>
+                                当前您为<span className="font-bold text-green-600">免费</span>会员，
+                                扫码加入<span className="font-bold text-green-600">免费</span>
+                                钉钉群组，获取基础监控提醒
+                            </span>
+                        )}
                     </p>
                     <div className="w-48 h-48 bg-gray-50 rounded-md flex items-center justify-center mb-4 overflow-hidden border border-gray-100">
                         {/* 使用 Next.js Image 组件加载二维码图片 */}
@@ -366,6 +382,49 @@ export default function MonitorFundList({
                                 }}
                             />
                         )}
+                    </div>
+
+                    {/* 会员权益对比 */}
+                    <div className="w-full space-y-3">
+                        <div className="border border-gray-200 rounded-lg p-3">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm font-semibold text-gray-800">免费版</span>
+                            </div>
+                            <ul className="text-xs text-gray-600 space-y-1">
+                                <li>• 最多监控3只基金</li>
+                                <li>• 基本涨跌提醒</li>
+                                <li>• 每日更新一次</li>
+                            </ul>
+                        </div>
+
+                        <div className="border border-blue-200 rounded-lg p-3 bg-blue-50">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm font-semibold text-blue-800">
+                                    月度会员
+                                </span>
+                            </div>
+                            <ul className="text-xs text-blue-700 space-y-1">
+                                <li>• 无限基金监控</li>
+                                <li>• 实时涨跌提醒</li>
+                                <li>• 每日更新多次</li>
+                                <li>• 优先技术支持</li>
+                            </ul>
+                        </div>
+
+                        <div className="border border-yellow-200 rounded-lg p-3 bg-yellow-50">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm font-semibold text-yellow-800">
+                                    年度会员
+                                </span>
+                            </div>
+                            <ul className="text-xs text-yellow-700 space-y-1">
+                                <li>• 无限基金监控</li>
+                                <li>• 实时涨跌提醒</li>
+                                <li>• 每日更新多次</li>
+                                <li>• 优先技术支持</li>
+                                <li>• 专属客服</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </Drawer>
