@@ -79,12 +79,31 @@ export async function GET(request: Request) {
             );
         }
 
+        // 关联dingtalk_webhook_user和dingtalk_webhook表，条件：dingtalk_webhook_user.webhook_id = dingtalk_webhook.id
+        // 过滤条件：dingtalk_webhook_user.user_id = userId 且 status = 1 且 webhook_id ≠ 1
+        const { data: webhookUser, error: webhookError } = await supabase
+            .from('dingtalk_webhook_user')
+            .select(
+                `
+                *,
+                dingtalk_webhook!inner (
+                    qr_code_url,
+                    webhook_url
+                )
+            `,
+            )
+            .eq('user_id', userId)
+            .eq('status', 1)
+            .neq('webhook_id', 1)
+            .single();
+
         return NextResponse.json<ApiResponse>(
             {
                 message: '查询用户会员订单成功',
                 data: {
                     plan_code: planData.plan_code,
                     plan_name: planData.plan_name,
+                    qr_code_url: webhookUser?.dingtalk_webhook?.qr_code_url || null,
                 },
             },
             { status: 200 },

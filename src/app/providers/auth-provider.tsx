@@ -70,6 +70,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (!userInfo?.id) return;
 
+        // 防抖：若上一次请求仍在进行中则直接返回
+        if ((getVipInfo as any).__loading) return;
+
+        (getVipInfo as any).__loading = true;
+
         try {
             const res = await fetch('/api/vip', {
                 method: 'GET',
@@ -81,6 +86,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setVipInfo(data.data);
         } catch (error) {
             console.error('获取会员信息失败:', error);
+        } finally {
+            (getVipInfo as any).__loading = false;
         }
     };
 
