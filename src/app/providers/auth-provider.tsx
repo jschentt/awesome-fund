@@ -12,6 +12,7 @@ interface AuthContextType {
     vipInfo: {
         plan_code: string;
         plan_name: string;
+        qr_code_url: string;
     };
 }
 
@@ -63,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [vipInfo, setVipInfo] = useState<AuthContextType['vipInfo']>({
         plan_code: '',
         plan_name: '',
+        qr_code_url: '',
     });
 
     const getVipInfo = async () => {

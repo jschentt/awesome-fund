@@ -5,6 +5,7 @@ import { Button, Input, Tooltip, Modal, message, Pagination, Drawer } from 'antd
 import dayjs from 'dayjs';
 import Image from 'next/image';
 import { FundItem } from './fund-list';
+import { useAuth } from '@/app/providers/auth-provider';
 
 interface MonitorFundListProps {
     onFundClick?: (fundCode: string) => void;
@@ -67,6 +68,7 @@ export default function MonitorFundList({
     const [pageSize] = useState(10);
     const [totalFunds, setTotalFunds] = useState(0);
     const hasLoaded = useRef(true);
+    const { vipInfo } = useAuth();
 
     // 映射API返回数据到FundItem接口
     const mapApiDataToFundItem = useCallback(
@@ -337,14 +339,14 @@ export default function MonitorFundList({
             >
                 <div className="flex flex-col items-center text-center">
                     <p className="text-gray-600 mb-4">
-                        {userId === 'free'
-                            ? '扫码加入免费钉钉群组，获取基础监控提醒'
-                            : '扫码加入VIP钉钉群组，获取实时监控提醒、专业基金分析与独家策略'}
+                        {['year', 'month'].includes(vipInfo.plan_code)
+                            ? '扫码加入VIP钉钉群组，获取实时监控提醒、专业基金分析与独家策略'
+                            : '扫码加入免费钉钉群组，获取基础监控提醒'}
                     </p>
                     <div className="w-48 h-48 bg-gray-100 rounded-md flex items-center justify-center mb-3 overflow-hidden">
                         {/* 使用 Next.js Image 组件加载二维码图片 */}
                         <Image
-                            src="/images/dingtalk-group-qr.png"
+                            src={vipInfo.qr_code_url}
                             alt="钉钉群组二维码"
                             width={192}
                             height={192}

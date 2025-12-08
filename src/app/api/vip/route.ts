@@ -103,7 +103,7 @@ export async function GET(request: Request) {
                 data: {
                     plan_code: planData.plan_code,
                     plan_name: planData.plan_name,
-                    qr_code_url: webhookUser?.dingtalk_webhook?.qr_code_url || null,
+                    qr_code_url: webhookUser?.dingtalk_webhook?.qr_code_url,
                 },
             },
             { status: 200 },
