@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, use } from 'react';
 import { User } from '@supabase/supabase-js';
 import { getLocalStorageWithExpiry } from '@/lib/utils';
+import { usePathname } from 'next/navigation';
 
 // 定义认证上下文类型
 interface AuthContextType {
@@ -19,24 +20,21 @@ interface AuthContextType {
 // 创建认证上下文
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// 认证Provider组件
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const pathname = usePathname(); // 引入当前路径
+
+    const handleFocus = () => {
+        const userInfo = getLocalStorageWithExpiry('userInfo');
+        setUser(userInfo || null);
+        if (userInfo?.id) {
+            getVipInfo();
+        }
+    };
 
     // 添加窗口焦点事件，确保页面重新获得焦点时也能更新用户信息
     useEffect(() => {
-        const handleFocus = () => {
-            const userInfo = getLocalStorageWithExpiry('userInfo');
-            setUser(userInfo || null);
-            if (userInfo?.id) {
-                getVipInfo();
-            }
-        };
-
-        // 立即执行一次，确保首次加载时同步状态
-        handleFocus();
-
         // 监听浏览器标签页切换、页面可见性变化以及 pageshow，确保任何回到页面的动作都能同步缓存
         const onVisibilityOrFocus = () => {
             if (!document.hidden) handleFocus();
@@ -60,6 +58,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             clearInterval(storagePoll);
         };
     }, []);
+
+    useEffect(() => {
+        if (pathname) {
+            handleFocus();
+        }
+    }, [pathname]);
 
     const [vipInfo, setVipInfo] = useState<AuthContextType['vipInfo']>({
         plan_code: '',
