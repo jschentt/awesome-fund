@@ -252,8 +252,8 @@ export default function MonitorFundList({
         return dayjs(dateString).format('YYYY-MM-DD');
     };
 
-    // 钉钉群组二维码抽屉状态
-    const [drawerVisible, setDrawerVisible] = useState(false);
+    // 鼠标悬停显示二维码状态
+    const [showQrCode, setShowQrCode] = useState(false);
 
     // 按钮拖拽功能
     const buttonRef = useRef<HTMLDivElement>(null);
@@ -308,7 +308,7 @@ export default function MonitorFundList({
 
     return (
         <div className="w-full">
-            {/* 右侧可拖拽的展开按钮 */}
+            {/* 右侧可拖拽的钉钉群组按钮 */}
             <div
                 ref={buttonRef}
                 className="fixed right-4 top-50 z-50 cursor-move"
@@ -319,53 +319,56 @@ export default function MonitorFundList({
                     type="primary"
                     size="large"
                     icon={<QrCode />}
-                    onClick={(e) => {
-                        e.stopPropagation(); // 防止触发拖拽
-                        setDrawerVisible(true);
-                    }}
-                    className="shadow-lg rounded-full px-6"
+                    className="shadow-lg rounded-full px-6 absolute right-0"
+                    onClick={() => setShowQrCode(true)}
                 >
                     钉钉群组
                 </Button>
             </div>
 
-            {/* 钉钉群组二维码抽屉 */}
+            {/* 侧边弹窗 Drawer */}
             <Drawer
-                title="加入钉钉群组"
+                title="钉钉群组二维码"
                 placement="right"
-                onClose={() => setDrawerVisible(false)}
-                open={drawerVisible}
-                width={300}
+                width={320}
+                open={showQrCode}
+                onClose={() => setShowQrCode(false)}
+                footer={
+                    <div className="text-center text-xs text-gray-400">
+                        扫码加入钉钉群组，获取监控提醒
+                    </div>
+                }
             >
                 <div className="flex flex-col items-center text-center">
-                    <p className="text-gray-600 mb-4">
-                        {['year', 'month'].includes(vipInfo.plan_code)
+                    <p className="text-gray-700 mb-4 text-sm leading-relaxed">
+                        {['year', 'month'].includes(vipInfo?.plan_code)
                             ? '扫码加入VIP钉钉群组，获取实时监控提醒、专业基金分析与独家策略'
                             : '扫码加入免费钉钉群组，获取基础监控提醒'}
                     </p>
-                    <div className="w-48 h-48 bg-gray-100 rounded-md flex items-center justify-center mb-3 overflow-hidden">
+                    <div className="w-48 h-48 bg-gray-50 rounded-md flex items-center justify-center mb-4 overflow-hidden border border-gray-100">
                         {/* 使用 Next.js Image 组件加载二维码图片 */}
-                        <Image
-                            src={vipInfo.qr_code_url}
-                            alt="钉钉群组二维码"
-                            width={192}
-                            height={192}
-                            className="object-contain"
-                            // 如果图片不存在，会显示默认的占位符
-                            onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                                // 使用原生 DOM 方法创建和添加元素
-                                const placeholderDiv = document.createElement('div');
-                                placeholderDiv.className = 'text-gray-500';
-                                placeholderDiv.textContent = '请上传钉钉群组二维码图片';
-                                target.parentElement?.appendChild(placeholderDiv);
-                            }}
-                        />
+                        {vipInfo?.qr_code_url && (
+                            <Image
+                                src={vipInfo?.qr_code_url}
+                                alt="钉钉群组二维码"
+                                width={192}
+                                height={192}
+                                className="object-contain p-2"
+                                // 如果图片不存在，会显示默认的占位符
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    // 使用原生 DOM 方法创建和添加元素
+                                    const placeholderDiv = document.createElement('div');
+                                    placeholderDiv.className = 'text-gray-500 text-sm';
+                                    placeholderDiv.textContent = '请上传钉钉群组二维码图片';
+                                    target.parentElement?.appendChild(placeholderDiv);
+                                }}
+                            />
+                        )}
                     </div>
                 </div>
             </Drawer>
-
             {/* 搜索和筛选区域 */}
             <div className="flex flex-col sm:flex-row items-Bellt sm:items-center mb-4 space-y-2 sm:space-y-0">
                 <div className="relative w-full sm:w-64">
