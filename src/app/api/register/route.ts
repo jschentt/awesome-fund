@@ -123,22 +123,29 @@ export async function POST(request: Request) {
         const { data: webhookData } = await supabase
             .from('dingtalk_webhook')
             .select('*')
-            .eq('is_used', 0)
+            .eq('enable', 1)
+            .eq('is_vip', false)
             .order('id', { ascending: true })
             .limit(1)
             .single();
 
         if (webhookData && newUser) {
             // 7. 标记 webhook 为已使用
-            const { error: updateWebhookError } = await supabase
-                .from('dingtalk_webhook')
-                .update({ user_id: newUser.id, chat_name: newUser.email })
-                .eq('id', webhookData.id);
+            // 5. 直接向users表插入数据
+            const { data: webhookUser, error: createWebhookUserError } = await supabase
+                .from('dingtalk_webhook_user')
+                .insert({
+                    webhook_id: webhookData.id,
+                    user_id: newUser.id,
+                    status: 1, // 默认状态为激活
+                })
+                .select()
+                .single();
 
-            if (updateWebhookError) {
-                console.error('更新 webhook 状态失败:', updateWebhookError);
+            if (createWebhookUserError) {
+                console.error('创建 webhook 用户关联失败:', createWebhookUserError);
                 return NextResponse.json(
-                    { error: '注册失败，请稍后重试: ' + updateWebhookError.message },
+                    { error: '注册失败，请稍后重试: ' + createWebhookUserError.message },
                     { status: 500 },
                 );
             }
