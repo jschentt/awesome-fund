@@ -344,13 +344,15 @@ export default function MonitorFundList({
                         {vipInfo?.plan_code === 'year' ? (
                             <span>
                                 当前您为<span className="font-bold text-yellow-600">年度</span>
-                                会员， 扫码加入<span className="font-bold text-blue-600">VIP</span>
+                                会员， 扫码加入专属一对一
+                                <span className="font-bold text-blue-600">VIP</span>
                                 钉钉群组，获取实时监控提醒、专业基金分析与独家策略
                             </span>
                         ) : vipInfo?.plan_code === 'month' ? (
                             <span>
                                 当前您为<span className="font-bold text-blue-600">月度</span>会员，
-                                扫码加入<span className="font-bold text-blue-600">VIP</span>
+                                扫码加入专属一对一
+                                <span className="font-bold text-blue-600">VIP</span>
                                 钉钉群组，获取实时监控提醒、专业基金分析与独家策略
                             </span>
                         ) : (
@@ -389,6 +391,7 @@ export default function MonitorFundList({
                         <div className="border border-gray-200 rounded-lg p-3">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-sm font-semibold text-gray-800">免费版</span>
+                                <span className="text-xs text-gray-500">永久</span>
                             </div>
                             <ul className="text-xs text-gray-600 space-y-1">
                                 <li>• 最多监控3只基金</li>
@@ -402,6 +405,7 @@ export default function MonitorFundList({
                                 <span className="text-sm font-semibold text-blue-800">
                                     月度会员
                                 </span>
+                                <span className="text-xs text-blue-700">¥9.9/月</span>
                             </div>
                             <ul className="text-xs text-blue-700 space-y-1">
                                 <li>• 无限基金监控</li>
@@ -416,6 +420,7 @@ export default function MonitorFundList({
                                 <span className="text-sm font-semibold text-yellow-800">
                                     年度会员
                                 </span>
+                                <span className="text-xs text-yellow-700">¥99/年</span>
                             </div>
                             <ul className="text-xs text-yellow-700 space-y-1">
                                 <li>• 无限基金监控</li>
@@ -424,6 +429,9 @@ export default function MonitorFundList({
                                 <li>• 优先技术支持</li>
                                 <li>• 专属客服</li>
                             </ul>
+                            <div className="mt-2 text-xs text-yellow-600 font-medium">
+                                立省19.8元
+                            </div>
                         </div>
                     </div>
                 </div>
