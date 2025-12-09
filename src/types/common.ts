@@ -40,6 +40,7 @@ export interface MonitorRuleRequest {
     riseThreshold?: number;
     netWorthThreshold?: number;
     pushTime?: string;
+    ruleId?: number;
 }
 
 /**

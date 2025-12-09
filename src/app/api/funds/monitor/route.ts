@@ -122,6 +122,30 @@ export async function DELETE(request: Request) {
             );
         }
 
+        // 先查询是否存在规则
+        const { data: rules } = await supabase
+            .from('fund_monitor_rules')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('fund_code', fundCode);
+
+        // 如果有规则，再执行删除
+        if (rules && rules.length > 0) {
+            const { error: ruleDeleteError } = await supabase
+                .from('fund_monitor_rules')
+                .delete()
+                .eq('user_id', userId)
+                .eq('fund_code', fundCode);
+
+            if (ruleDeleteError) {
+                console.error('删除监控规则失败:', ruleDeleteError);
+                return NextResponse.json<ApiResponse>(
+                    { message: '删除监控规则失败，请稍后重试' },
+                    { status: 500 },
+                );
+            }
+        }
+
         return NextResponse.json<ApiResponse>({ message: '取消监控成功' }, { status: 200 });
     } catch (error) {
         console.error('取消监控接口异常:', error);

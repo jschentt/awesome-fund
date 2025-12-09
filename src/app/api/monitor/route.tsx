@@ -118,3 +118,107 @@ export async function GET(request: Request) {
         );
     }
 }
+
+/**
+ * 更新监控基金规则的API接口
+ * 注意：接口显式验证用户身份，确保用户只能操作自己的数据
+ */
+export async function PUT(request: Request) {
+    try {
+        const {
+            userId,
+            fundCode,
+            riseThreshold,
+            netWorthThreshold,
+            pushTime,
+            ruleId,
+        }: Partial<MonitorRuleRequest> = await request.json();
+
+        console.debug(
+            {
+                userId,
+                fundCode,
+                riseThreshold,
+                netWorthThreshold,
+                pushTime,
+                ruleId,
+            },
+            'PUT request',
+        );
+
+        // 验证必要参数
+        if (!fundCode) {
+            return NextResponse.json<ApiResponse>(
+                { message: '缺少必要参数：fundCode' },
+                { status: 400 },
+            );
+        }
+
+        if (!userId) {
+            return NextResponse.json<ApiResponse>({ message: '用户不存在' }, { status: 400 });
+        }
+
+        // 检查基金是否在监控列表中
+        const { data: monitorFund } = await supabase
+            .from('user_monitor_fund')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('fund_code', fundCode)
+            .single();
+
+        if (!monitorFund) {
+            return NextResponse.json<ApiResponse>(
+                { message: '基金不在监控列表中' },
+                { status: 400 },
+            );
+        }
+
+        // 准备更新数据
+        const updateData = {
+            fund_code: fundCode,
+            rise_threshold: riseThreshold,
+            net_worth_threshold: netWorthThreshold,
+            push_time: pushTime,
+        };
+
+        console.debug(updateData, 'updateData');
+
+        // 更新监控规则
+        // 根据 ruleId 是否存在决定 update 或 insert
+        if (ruleId) {
+            // 如果提供了 ruleId，则按 id 更新
+            const { error } = await supabase
+                .from('fund_monitor_rules')
+                .update(updateData)
+                .eq('id', ruleId)
+                .eq('user_id', userId);
+
+            if (error) {
+                console.error('更新监控规则失败:', error);
+                return NextResponse.json<ApiResponse>(
+                    { message: '更新监控规则失败，请稍后重试' },
+                    { status: 500 },
+                );
+            }
+        } else {
+            // 未提供 ruleId，则插入新规则
+            const { error } = await supabase.from('fund_monitor_rules').insert({
+                user_id: userId,
+                ...updateData,
+            });
+
+            if (error) {
+                console.error('创建监控规则失败:', error);
+                return NextResponse.json<ApiResponse>(
+                    { message: '创建监控规则失败，请稍后重试' },
+                    { status: 500 },
+                );
+            }
+        }
+
+        return NextResponse.json<ApiResponse>({ message: '更新监控规则成功' }, { status: 200 });
+    } catch (error) {
+        console.error('更新监控规则接口异常:', error);
+        return NextResponse.json<ApiResponse>({ message: '服务器内部错误' }, { status: 500 });
+    }
+}

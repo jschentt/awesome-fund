@@ -26,6 +26,7 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
 }) => {
     const [form] = Form.useForm();
     const { user, vipInfo } = useAuth();
+    const [detailInfo, setDetailInfo] = useState<MonitorRuleRequest>();
     const [saveLoading, setSaveLoading] = useState(false);
     // 阻止事件冒泡，防止点击模态框内容关闭模态框
     const handleModalContentClick = (e: React.MouseEvent) => {
@@ -34,15 +35,50 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
 
     const { name: fundName, code: fundCode } = fundInfo;
 
+    // 根据 fundCode 查询已有监控规则并回填表单
+    useEffect(() => {
+        if (!fundCode || !open || !user?.id) return;
+        const fetchMonitorRule = async () => {
+            try {
+                const res = await fetch(`/api/monitor?fundCode=${fundCode}`, {
+                    headers: {
+                        'X-User-Id': user?.id || '',
+                    },
+                });
+                if (!res.ok) return;
+                const data = await res.json();
+                console.debug(data, 'data');
+                if (data && data.data) {
+                    form.setFieldsValue({
+                        riseThreshold: data.data.rise_threshold,
+                        netWorthThreshold: data.data.net_worth_threshold,
+                        pushTime: data.data.push_time ? dayjs(data.data.push_time, 'HH:mm') : null,
+                    });
+                    setDetailInfo({
+                        ...data.data,
+                        ruleId: data.data.id,
+                    });
+                }
+            } catch (err) {
+                console.error('获取监控规则失败:', err);
+            }
+        };
+        fetchMonitorRule();
+    }, [fundCode, user?.id, open]);
+
     const onSave = async (data: MonitorRuleRequest) => {
         setSaveLoading(true);
+        console.debug(detailInfo, 'detailInfo');
         try {
             const response = await fetch('/api/monitor', {
-                method: 'POST',
+                method: detailInfo?.ruleId ? 'PUT' : 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(data),
+                body: JSON.stringify({
+                    ...data,
+                    ruleId: detailInfo?.ruleId,
+                }),
             });
 
             if (response.ok) {
@@ -156,17 +192,16 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                                         },
                                     ]}
                                 >
-                                    <div className="flex space-x-2">
-                                        <InputNumber
-                                            placeholder="上涨阈值"
-                                            className="flex-1"
-                                            min={-Infinity}
-                                            max={Infinity}
-                                            step={0.01}
-                                            precision={2}
-                                        />
-                                        <span className="flex items-center text-gray-500">%</span>
-                                    </div>
+                                    <InputNumber
+                                        placeholder="上涨阈值"
+                                        className="flex-1"
+                                        min={-Infinity}
+                                        max={Infinity}
+                                        step={0.01}
+                                        precision={2}
+                                        suffix="%"
+                                        style={{ width: '100%' }}
+                                    />
                                 </Form.Item>
 
                                 <Form.Item
