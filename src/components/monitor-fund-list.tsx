@@ -708,10 +708,6 @@ export default function MonitorFundList({
                     open={settingsModalOpen}
                     onClose={() => setSettingsModalOpen(false)}
                     fundName={selectedFund.name}
-                    onSave={() => {
-                        // 这里可以添加保存设置的实际逻辑
-                        message.success('监控设置已保存');
-                    }}
                 />
             )}
         </div>

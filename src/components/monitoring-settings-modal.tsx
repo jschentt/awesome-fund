@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button, message, DatePicker, InputNumber, Form } from 'antd';
+import { Button, message, DatePicker, InputNumber, Form, Modal } from 'antd';
 import Image from 'next/image';
 import { useAuth } from '@/app/providers/auth-provider';
 import { Settings } from 'lucide-react';
@@ -10,7 +10,6 @@ interface MonitoringSettingsModalProps {
     open: boolean;
     onClose: () => void;
     fundName: string;
-    onSave: () => void;
 }
 
 /**
@@ -21,12 +20,54 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
     open,
     onClose,
     fundName,
-    onSave,
 }) => {
+    const [form] = Form.useForm();
     const { vipInfo } = useAuth();
     // 阻止事件冒泡，防止点击模态框内容关闭模态框
     const handleModalContentClick = (e: React.MouseEvent) => {
         e.stopPropagation();
+    };
+
+    const onSave = async () => {
+        try {
+            const values = await form.validateFields();
+            // 校验至少要设置一条规则
+            const hasValue = Object.values(values).some(
+                (v) => v !== undefined && v !== null && v !== '',
+            );
+            if (!hasValue) {
+                message.warning('请至少设置一条监控规则');
+                return;
+            }
+
+            // 如果 pushTime 为空，给出提示
+            if (!values.pushTime) {
+                Modal.confirm({
+                    title: '定时推送未设置',
+                    content: '定时推送没有设置，钉钉群组将不会接收消息，是否继续保存？',
+                    okText: '是',
+                    cancelText: '否',
+                    onOk: () => {
+                        // 用户选择“是”，继续保存
+                        console.log(values);
+                        message.success('监控设置已保存');
+                        onClose();
+                    },
+                    onCancel: () => {
+                        // 用户选择“否”，不保存
+                        message.info('已取消保存');
+                    },
+                });
+                return;
+            }
+
+            console.log(values);
+            // 这里可以添加保存设置的实际逻辑
+            message.success('监控设置已保存');
+            onClose();
+        } catch (error) {
+            message.error('请填写正确的监控设置');
+        }
     };
 
     return (
@@ -54,7 +95,7 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                         </div>
                         <div className="py-4">
                             <p className="text-gray-600 mb-4">{fundName} 监控设置</p>
-                            <Form layout="vertical" className="space-y-4">
+                            <Form layout="vertical" className="space-y-4" form={form}>
                                 <Form.Item
                                     name="riseThreshold"
                                     label="涨跌幅提醒阈值"
@@ -211,9 +252,7 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                             <Button
                                 className="bg-blue-500 hover:bg-blue-600 text-white"
                                 onClick={() => {
-                                    message.success('监控设置已保存');
                                     onSave();
-                                    onClose();
                                 }}
                             >
                                 保存设置
