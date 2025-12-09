@@ -167,38 +167,38 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                         initial={{ scale: 0.9, y: 20 }}
                         animate={{ scale: 1, y: 0 }}
                         exit={{ scale: 0.9, y: 20 }}
-                        className="bg-white rounded-lg shadow-xl p-6 sm:max-w-md w-full"
+                        className="bg-white rounded-lg shadow-xl py-6 sm:max-w-md w-full"
                         onClick={handleModalContentClick}
                     >
-                        <div>
+                        <div className="px-6">
                             <h3 className="flex items-center space-x-2 text-xl font-semibold text-gray-900 mb-4">
                                 <Settings className="w-5 h-5 text-blue-500" />
                                 <span>监控设置</span>
                             </h3>
                         </div>
-                        <div className="py-4">
+                        <div className="py-4 max-h-[calc(100vh-150px)] overflow-y-auto overflow-x-hidden px-6 scrollbar-thin scrollbar-thumb-[#f0f0f0] scrollbar-track-transparent">
                             <p className="text-gray-600 mb-4">{fundName} 监控设置</p>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                                <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                                    <p className="text-sm text-gray-500 mb-1">预估涨幅</p>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4">
+                                <div className="bg-blue-50 p-2 rounded-md border border-blue-100">
+                                    <p className="text-xs text-gray-500 mb-0.5">预估涨幅</p>
                                     <p
-                                        className={`text-xl font-semibold ${fundInfo.expectGrowth && fundInfo.expectGrowth < 0 ? 'text-green-500' : 'text-red-500'}`}
+                                        className={`text-lg font-semibold ${fundInfo.expectGrowth && fundInfo.expectGrowth < 0 ? 'text-green-500' : 'text-red-500'}`}
                                     >
                                         {fundInfo.expectGrowth ? `${fundInfo.expectGrowth}%` : '-'}
                                     </p>
                                 </div>
-                                <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-                                    <p className="text-sm text-gray-500 mb-1">预估净值</p>
-                                    <p className="text-xl font-semibold text-gray-800">
+                                <div className="bg-green-50 p-2 rounded-md border border-green-100">
+                                    <p className="text-xs text-gray-500 mb-0.5">预估净值</p>
+                                    <p className="text-lg font-semibold text-gray-800">
                                         {fundInfo.expectWorth
                                             ? fundInfo.expectWorth.toFixed(4)
                                             : '-'}
                                     </p>
                                 </div>
-                                <div className="bg-purple-50 p-4 rounded-lg border border-purple-100">
-                                    <p className="text-sm text-gray-500 mb-1">预估净值新增</p>
+                                <div className="bg-purple-50 p-2 rounded-md border border-purple-100">
+                                    <p className="text-xs text-gray-500 mb-0.5">预估净值新增</p>
                                     <p
-                                        className={`text-xl font-semibold ${fundInfo.estimatedChange && fundInfo.estimatedChange < 0 ? 'text-green-500' : 'text-red-500'}`}
+                                        className={`text-lg font-semibold ${fundInfo.estimatedChange && fundInfo.estimatedChange < 0 ? 'text-green-500' : 'text-red-500'}`}
                                     >
                                         {fundInfo.estimatedChange
                                             ? fundInfo.estimatedChange.toFixed(4)
@@ -352,7 +352,7 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                                 )}
                             </Form>
                         </div>
-                        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
+                        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100 px-6">
                             <Button
                                 className="bg-gray-100 text-gray-700 hover:bg-gray-200 border-none"
                                 onClick={onClose}
