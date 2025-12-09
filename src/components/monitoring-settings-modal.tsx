@@ -69,9 +69,10 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                                         <InputNumber
                                             placeholder="上涨阈值"
                                             className="flex-1"
-                                            min={0}
-                                            max={100}
-                                            step={0.1}
+                                            min={-Infinity}
+                                            max={Infinity}
+                                            step={0.01}
+                                            precision={2}
                                         />
                                         <span className="flex items-center text-gray-500">%</span>
                                     </div>
