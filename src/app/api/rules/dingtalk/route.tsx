@@ -131,7 +131,7 @@ export async function POST(req: Request) {
         text += `<font size=2>用户邮箱: ${email}</font><br>`;
         text += `<font size=2>基金代码: ${fundCode}</font><br>`;
         text += `<font size=2>基金名称: ${fundName || fundDetail.name}</font><br><br>`;
-        text += `<font size=2>基金实时监控信息:</font><br>`;
+        text += `<font size=2>基金实时信息:</font><br>`;
         text += `<font size=2>当前净值: ${netWorth.toFixed(4)}</font><br>`;
         text += `<font size=2>累计净值: ${totalNetWorth.toFixed(4)}</font><br>`;
         text += `<font size=2>日涨跌幅: ${actualDayGrowth >= 0 ? '+' : ''}${actualDayGrowth.toFixed(2)}%</font><br>`;
@@ -162,7 +162,7 @@ export async function POST(req: Request) {
         return NextResponse.json(
             {
                 status: 'success',
-                message: '基金监控设置已保存并发送钉钉通知',
+                message: '基金监控设置已发送钉钉通知',
                 data: {
                     userId,
                     fundCode,
