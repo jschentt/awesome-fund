@@ -2,15 +2,16 @@
 
 import { AuthProvider } from './auth-provider';
 import { ConfigProvider } from 'antd';
+import zhCN from 'antd/locale/zh_CN';
 
 interface ClientProvidersProps {
-  children: React.ReactNode;
+    children: React.ReactNode;
 }
 
 export default function ClientProviders({ children }: ClientProvidersProps) {
-  return (
-    <ConfigProvider>
-      <AuthProvider>{children}</AuthProvider>
-    </ConfigProvider>
-  );
+    return (
+        <ConfigProvider locale={zhCN}>
+            <AuthProvider>{children}</AuthProvider>
+        </ConfigProvider>
+    );
 }

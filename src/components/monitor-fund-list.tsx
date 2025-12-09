@@ -707,7 +707,7 @@ export default function MonitorFundList({
                 <MonitoringSettingsModal
                     open={settingsModalOpen}
                     onClose={() => setSettingsModalOpen(false)}
-                    fundName={selectedFund.name}
+                    fundInfo={selectedFund}
                 />
             )}
         </div>

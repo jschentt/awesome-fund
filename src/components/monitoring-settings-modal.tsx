@@ -1,15 +1,18 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button, message, DatePicker, InputNumber, Form, Modal } from 'antd';
 import Image from 'next/image';
+import dayjs from 'dayjs';
 import { useAuth } from '@/app/providers/auth-provider';
 import { Settings } from 'lucide-react';
+import { FundItem } from './fund-list';
+import { MonitorRuleRequest } from '@/types/common';
 
 // 定义组件属性接口
 interface MonitoringSettingsModalProps {
     open: boolean;
     onClose: () => void;
-    fundName: string;
+    fundInfo: FundItem;
 }
 
 /**
@@ -19,18 +22,49 @@ interface MonitoringSettingsModalProps {
 const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
     open,
     onClose,
-    fundName,
+    fundInfo,
 }) => {
     const [form] = Form.useForm();
-    const { vipInfo } = useAuth();
+    const { user, vipInfo } = useAuth();
+    const [saveLoading, setSaveLoading] = useState(false);
     // 阻止事件冒泡，防止点击模态框内容关闭模态框
     const handleModalContentClick = (e: React.MouseEvent) => {
         e.stopPropagation();
     };
 
-    const onSave = async () => {
+    const { name: fundName, code: fundCode } = fundInfo;
+
+    const onSave = async (data: MonitorRuleRequest) => {
+        setSaveLoading(true);
+        try {
+            const response = await fetch('/api/monitor', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                message.success(result.message || '监控设置已保存');
+                onClose();
+            } else {
+                const result = await response.json();
+                message.error(result.message || '保存失败');
+            }
+        } catch (error) {
+            console.error('保存监控设置失败:', error);
+            message.error('保存监控设置失败，请稍后重试');
+        } finally {
+            setSaveLoading(false);
+        }
+    };
+
+    const handleSave = async () => {
         try {
             const values = await form.validateFields();
+            console.debug(values, 'values');
             // 校验至少要设置一条规则
             const hasValue = Object.values(values).some(
                 (v) => v !== undefined && v !== null && v !== '',
@@ -40,6 +74,21 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                 return;
             }
 
+            if (!user?.id) {
+                message.error('用户ID不能为空');
+                return;
+            }
+
+            // 准备请求数据
+            const requestData = {
+                userId: user.id,
+                fundCode,
+                ruleName: `【${fundName}】监控规则`,
+                riseThreshold: values.riseThreshold,
+                netWorthThreshold: values.netWorthThreshold,
+                pushTime: dayjs(values.pushTime).format('HH:mm'),
+            };
+
             // 如果 pushTime 为空，给出提示
             if (!values.pushTime) {
                 Modal.confirm({
@@ -47,11 +96,9 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                     content: '定时推送没有设置，钉钉群组将不会接收消息，是否继续保存？',
                     okText: '是',
                     cancelText: '否',
-                    onOk: () => {
+                    onOk: async () => {
                         // 用户选择“是”，继续保存
-                        console.log(values);
-                        message.success('监控设置已保存');
-                        onClose();
+                        await onSave(requestData);
                     },
                     onCancel: () => {
                         // 用户选择“否”，不保存
@@ -61,14 +108,17 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                 return;
             }
 
-            console.log(values);
-            // 这里可以添加保存设置的实际逻辑
-            message.success('监控设置已保存');
-            onClose();
+            await onSave(requestData);
         } catch (error) {
             message.error('请填写正确的监控设置');
         }
     };
+
+    useEffect(() => {
+        if (!open) {
+            form.resetFields();
+        }
+    }, [open]);
 
     return (
         <AnimatePresence>
@@ -155,10 +205,10 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                                         placeholder="选择时间"
                                         className="w-full"
                                     />
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        每日该时间推送基金监控报告
-                                    </p>
                                 </Form.Item>
+                                <p className="text-xs text-gray-500 relative top-[-8px] mb-3">
+                                    每日该时间推送基金监控报告
+                                </p>
                                 {/* 立即推送按钮 */}
                                 <div className="pt-2">
                                     <Button
@@ -252,8 +302,9 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                             <Button
                                 className="bg-blue-500 hover:bg-blue-600 text-white"
                                 onClick={() => {
-                                    onSave();
+                                    handleSave();
                                 }}
+                                loading={saveLoading}
                             >
                                 保存设置
                             </Button>
