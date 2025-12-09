@@ -113,8 +113,8 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                                 </div>
                                 {/* 推送二维码区域 */}
                                 {vipInfo?.qr_code_url && (
-                                    <div className="pt-2">
-                                        <p className="text-gray-700 mb-4 text-sm leading-relaxed">
+                                    <div className="pt-2 flex flex-col items-center">
+                                        <p className="text-gray-700 mb-4 text-sm leading-relaxed text-center">
                                             {vipInfo?.plan_code === 'year' ? (
                                                 <span>
                                                     当前您为
