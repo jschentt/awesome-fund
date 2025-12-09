@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button, message, DatePicker, InputNumber } from 'antd';
+import { Button, message, DatePicker, InputNumber, Form } from 'antd';
 import Image from 'next/image';
 import { useAuth } from '@/app/providers/auth-provider';
 import { Settings } from 'lucide-react';
@@ -54,11 +54,17 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                         </div>
                         <div className="py-4">
                             <p className="text-gray-600 mb-4">{fundName} 监控设置</p>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        涨跌幅提醒阈值
-                                    </label>
+                            <Form layout="vertical" className="space-y-4">
+                                <Form.Item
+                                    name="riseThreshold"
+                                    label="涨跌幅提醒阈值"
+                                    rules={[
+                                        {
+                                            required: false,
+                                            message: '请输入涨跌幅提醒阈值',
+                                        },
+                                    ]}
+                                >
                                     <div className="flex space-x-2">
                                         <InputNumber
                                             placeholder="上涨阈值"
@@ -69,40 +75,50 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                                         />
                                         <span className="flex items-center text-gray-500">%</span>
                                     </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        净值提醒阈值
-                                    </label>
-                                    <div className="flex space-x-2">
-                                        <InputNumber
-                                            placeholder="目标净值"
-                                            className="flex-1"
-                                            min={0}
-                                            step={0.0001}
-                                            precision={4}
-                                        />
-                                    </div>
-                                </div>
+                                </Form.Item>
+
+                                <Form.Item
+                                    name="netWorthThreshold"
+                                    label="净值提醒阈值"
+                                    rules={[
+                                        {
+                                            required: false,
+                                            message: '请输入净值提醒阈值',
+                                        },
+                                    ]}
+                                >
+                                    <InputNumber
+                                        placeholder="目标净值"
+                                        className="w-full"
+                                        min={0}
+                                        step={0.0001}
+                                        precision={4}
+                                    />
+                                </Form.Item>
+
                                 {/* 定时推送配置 */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        定时推送配置
-                                    </label>
-                                    <div className="flex space-x-2">
-                                        <DatePicker
-                                            picker="time"
-                                            format="HH:mm"
-                                            placeholder="选择时间"
-                                            className="flex-1"
-                                        />
-                                    </div>
+                                <Form.Item
+                                    name="pushTime"
+                                    label="定时推送配置"
+                                    rules={[
+                                        {
+                                            required: false,
+                                            message: '请选择定时推送时间',
+                                        },
+                                    ]}
+                                >
+                                    <DatePicker
+                                        picker="time"
+                                        format="HH:mm"
+                                        placeholder="选择时间"
+                                        className="w-full"
+                                    />
                                     <p className="text-xs text-gray-500 mt-1">
                                         每日该时间推送基金监控报告
                                     </p>
-                                </div>
+                                </Form.Item>
                                 {/* 立即推送按钮 */}
-                                <div>
+                                <div className="pt-2">
                                     <Button
                                         type="primary"
                                         className="w-full"
@@ -111,9 +127,10 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                                         立即推送监控报告
                                     </Button>
                                 </div>
+
                                 {/* 推送二维码区域 */}
                                 {vipInfo?.qr_code_url && (
-                                    <div className="pt-2 flex flex-col items-center">
+                                    <div className="pt-6 flex flex-col items-center">
                                         <p className="text-gray-700 mb-4 text-sm leading-relaxed text-center">
                                             {vipInfo?.plan_code === 'year' ? (
                                                 <span>
@@ -166,7 +183,6 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                                                     onError={(e) => {
                                                         const target = e.target as HTMLImageElement;
                                                         target.style.display = 'none';
-                                                        // 使用原生 DOM 方法创建和添加元素
                                                         const placeholderDiv =
                                                             document.createElement('div');
                                                         placeholderDiv.className =
@@ -182,7 +198,7 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                                         </div>
                                     </div>
                                 )}
-                            </div>
+                            </Form>
                         </div>
                         <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
                             <Button
