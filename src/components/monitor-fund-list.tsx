@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Bell, QrCode } from 'lucide-react';
+import { Search, Bell, QrCode, Settings } from 'lucide-react';
 import { Button, Input, Tooltip, Modal, message, Pagination, Drawer } from 'antd';
 import dayjs from 'dayjs';
 import Image from 'next/image';
@@ -64,6 +64,7 @@ export default function MonitorFundList({
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedFund, setSelectedFund] = useState<FundItem | null>(null);
     const [monitorModalOpen, setMonitorModalOpen] = useState(false);
+    const [settingsModalOpen, setSettingsModalOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(10);
     const [totalFunds, setTotalFunds] = useState(0);
@@ -602,6 +603,18 @@ export default function MonitorFundList({
                                 <div className="flex justify-end space-x-2 mt-3">
                                     <Button
                                         size="small"
+                                        className="border border-blue-200 text-blue-600 hover:bg-blue-50"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSettingsModalOpen(true);
+                                            setSelectedFund(fund);
+                                        }}
+                                    >
+                                        <Settings className="w-4 h-4 mr-1" />
+                                        设置
+                                    </Button>
+                                    <Button
+                                        size="small"
                                         className="border border-red-200 text-red-600 hover:bg-red-50"
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -681,6 +694,88 @@ export default function MonitorFundList({
                                     }}
                                 >
                                     确认移除
+                                </Button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* 监控设置模态框 */}
+            <AnimatePresence>
+                {settingsModalOpen && selectedFund && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+                        onClick={() => setSettingsModalOpen(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            className="bg-white rounded-lg shadow-xl p-6 sm:max-w-md w-full"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div>
+                                <h3 className="flex items-center space-x-2 text-xl font-semibold text-gray-900 mb-4">
+                                    <Settings className="w-5 h-5 text-blue-500" />
+                                    <span>监控设置</span>
+                                </h3>
+                            </div>
+                            <div className="py-4">
+                                <p className="text-gray-600 mb-4">{selectedFund.name} 监控设置</p>
+                                {/* 这里可以添加具体的设置选项，比如涨跌幅提醒阈值等 */}
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            涨跌幅提醒阈值
+                                        </label>
+                                        <div className="flex space-x-2">
+                                            <Input
+                                                type="number"
+                                                placeholder="上涨阈值"
+                                                className="flex-1"
+                                            />
+                                            <span className="flex items-center text-gray-500">
+                                                %
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            净值提醒阈值
+                                        </label>
+                                        <div className="flex space-x-2">
+                                            <Input
+                                                type="number"
+                                                placeholder="目标净值"
+                                                className="flex-1"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
+                                <Button
+                                    className="bg-gray-100 text-gray-700 hover:bg-gray-200 border-none"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSettingsModalOpen(false);
+                                    }}
+                                >
+                                    取消
+                                </Button>
+                                <Button
+                                    className="bg-blue-500 hover:bg-blue-600 text-white"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        message.success('监控设置已保存');
+                                        setSettingsModalOpen(false);
+                                    }}
+                                >
+                                    保存设置
                                 </Button>
                             </div>
                         </motion.div>
