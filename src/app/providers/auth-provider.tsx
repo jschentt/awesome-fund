@@ -14,6 +14,7 @@ interface AuthContextType {
         plan_code: string;
         plan_name: string;
         qr_code_url: string;
+        webhook_id: number;
     };
 }
 
@@ -69,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         plan_code: '',
         plan_name: '',
         qr_code_url: '',
+        webhook_id: 0,
     });
 
     const getVipInfo = async () => {

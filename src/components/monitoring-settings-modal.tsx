@@ -28,6 +28,7 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
     const { user, vipInfo } = useAuth();
     const [detailInfo, setDetailInfo] = useState<MonitorRuleRequest>();
     const [saveLoading, setSaveLoading] = useState(false);
+    const [pushLoading, setPushLoading] = useState(false);
     // 阻止事件冒泡，防止点击模态框内容关闭模态框
     const handleModalContentClick = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -144,6 +145,41 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
             await onSave(requestData);
         } catch (error) {
             message.error('请填写正确的监控设置');
+        }
+    };
+
+    const handleWebhookPush = async () => {
+        setPushLoading(true);
+        message.info('正在推送监控报告...');
+        const { riseThreshold, netWorthThreshold, pushTime } = form.getFieldsValue();
+        const params = {
+            webhookId: vipInfo?.webhook_id,
+            userId: user?.id,
+            email: user?.email,
+            fundCode,
+            fundName,
+            riseThreshold,
+            netWorthThreshold,
+            pushTime,
+        };
+        try {
+            const res = await fetch('/api/rules/dingtalk', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(params),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                message.success(data.message || '推送成功');
+            } else {
+                message.error(data.message || '推送失败');
+            }
+        } catch (error) {
+            message.error('推送失败，请稍后重试');
+        } finally {
+            setPushLoading(false);
         }
     };
 
@@ -274,7 +310,8 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                                     <Button
                                         type="primary"
                                         className="w-full"
-                                        onClick={() => message.info('正在推送监控报告...')}
+                                        onClick={() => handleWebhookPush()}
+                                        loading={pushLoading}
                                     >
                                         立即推送监控报告
                                     </Button>

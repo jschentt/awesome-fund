@@ -84,7 +84,12 @@ export async function fetchOAuth2Token(
  * @param text 消息内容（Markdown格式）
  * @returns 推送响应
  */
-export async function pushDingTalkMessage(accessToken: string, title: string, text: string) {
+export async function pushDingTalkMessage(
+    accessToken: string,
+    title: string,
+    text: string,
+    webhookUrl?: string,
+) {
     try {
         console.log('推送钉钉消息:', title);
 
@@ -93,6 +98,7 @@ export async function pushDingTalkMessage(accessToken: string, title: string, te
             {
                 title,
                 text,
+                webhookUrl,
             },
             {
                 headers: {

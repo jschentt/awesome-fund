@@ -88,7 +88,8 @@ export async function GET(request: Request) {
                 *,
                 dingtalk_webhook!inner (
                     qr_code_url,
-                    webhook_url
+                    webhook_url,
+                    id
                 )
             `,
             )
@@ -104,6 +105,7 @@ export async function GET(request: Request) {
                     plan_code: planData.plan_code,
                     plan_name: planData.plan_name,
                     qr_code_url: webhookUser?.dingtalk_webhook?.qr_code_url,
+                    webhook_id: webhookUser?.dingtalk_webhook?.id,
                 },
             },
             { status: 200 },

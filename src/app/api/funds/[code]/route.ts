@@ -58,7 +58,7 @@ interface FundData {
 }
 
 // 定义API响应类型
-interface ApiResponse {
+export interface ApiResponse {
     code: number;
     message: string;
     data: {
