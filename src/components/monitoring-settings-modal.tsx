@@ -176,7 +176,7 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                                 <span>监控设置</span>
                             </h3>
                         </div>
-                        <div className="py-4 max-h-[calc(100vh-150px)] overflow-y-auto overflow-x-hidden px-6 scrollbar-thin scrollbar-thumb-[#f0f0f0] scrollbar-track-transparent">
+                        <div className="py-4 max-h-[calc(100vh-200px)] overflow-y-auto overflow-x-hidden px-6 scrollbar-thin scrollbar-thumb-[#f0f0f0] scrollbar-track-transparent">
                             <p className="text-gray-600 mb-4">{fundName} 监控设置</p>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4">
                                 <div className="bg-blue-50 p-2 rounded-md border border-blue-100">

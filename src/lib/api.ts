@@ -76,3 +76,40 @@ export async function fetchOAuth2Token(
         throw error;
     }
 }
+
+/**
+ * 推送钉钉消息的方法
+ * @param accessToken OAuth2访问令牌
+ * @param title 消息标题
+ * @param text 消息内容（Markdown格式）
+ * @returns 推送响应
+ */
+export async function pushDingTalkMessage(accessToken: string, title: string, text: string) {
+    try {
+        console.log('推送钉钉消息:', title);
+
+        const response = await axios.post(
+            'https://maiqishare.xyz/open-api/dingtalk/markdown',
+            {
+                title,
+                text,
+            },
+            {
+                headers: {
+                    accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${accessToken}`,
+                },
+                httpsAgent: new https.Agent({
+                    rejectUnauthorized: false, // 忽略SSL证书验证，仅在开发环境使用
+                }),
+            },
+        );
+
+        console.log('钉钉消息推送结果:', response.data);
+        return response;
+    } catch (error) {
+        // console.error('推送钉钉消息失败:', error);
+        throw error;
+    }
+}
