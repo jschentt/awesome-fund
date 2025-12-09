@@ -40,14 +40,13 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
         if (!fundCode || !open || !user?.id) return;
         const fetchMonitorRule = async () => {
             try {
-                const res = await fetch(`/api/monitor?fundCode=${fundCode}`, {
+                const res = await fetch(`/api/rules?fundCode=${fundCode}`, {
                     headers: {
                         'X-User-Id': user?.id || '',
                     },
                 });
                 if (!res.ok) return;
                 const data = await res.json();
-                console.debug(data, 'data');
                 if (data && data.data) {
                     form.setFieldsValue({
                         riseThreshold: data.data.rise_threshold,
@@ -68,9 +67,8 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
 
     const onSave = async (data: MonitorRuleRequest) => {
         setSaveLoading(true);
-        console.debug(detailInfo, 'detailInfo');
         try {
-            const response = await fetch('/api/monitor', {
+            const response = await fetch('/api/rules', {
                 method: detailInfo?.ruleId ? 'PUT' : 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -100,7 +98,6 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
     const handleSave = async () => {
         try {
             const values = await form.validateFields();
-            console.debug(values, 'values');
             // 校验至少要设置一条规则
             const hasValue = Object.values(values).some(
                 (v) => v !== undefined && v !== null && v !== '',
@@ -181,6 +178,34 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                         </div>
                         <div className="py-4">
                             <p className="text-gray-600 mb-4">{fundName} 监控设置</p>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                                    <p className="text-sm text-gray-500 mb-1">预估涨幅</p>
+                                    <p
+                                        className={`text-xl font-semibold ${fundInfo.expectGrowth && fundInfo.expectGrowth < 0 ? 'text-green-500' : 'text-red-500'}`}
+                                    >
+                                        {fundInfo.expectGrowth ? `${fundInfo.expectGrowth}%` : '-'}
+                                    </p>
+                                </div>
+                                <div className="bg-green-50 p-4 rounded-lg border border-green-100">
+                                    <p className="text-sm text-gray-500 mb-1">预估净值</p>
+                                    <p className="text-xl font-semibold text-gray-800">
+                                        {fundInfo.expectWorth
+                                            ? fundInfo.expectWorth.toFixed(4)
+                                            : '-'}
+                                    </p>
+                                </div>
+                                <div className="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                                    <p className="text-sm text-gray-500 mb-1">预估净值新增</p>
+                                    <p
+                                        className={`text-xl font-semibold ${fundInfo.estimatedChange && fundInfo.estimatedChange < 0 ? 'text-green-500' : 'text-red-500'}`}
+                                    >
+                                        {fundInfo.estimatedChange
+                                            ? fundInfo.estimatedChange.toFixed(4)
+                                            : '-'}
+                                    </p>
+                                </div>
+                            </div>
                             <Form layout="vertical" className="space-y-4" form={form}>
                                 <Form.Item
                                     name="riseThreshold"

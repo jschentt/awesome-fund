@@ -134,18 +134,6 @@ export async function PUT(request: Request) {
             ruleId,
         }: Partial<MonitorRuleRequest> = await request.json();
 
-        console.debug(
-            {
-                userId,
-                fundCode,
-                riseThreshold,
-                netWorthThreshold,
-                pushTime,
-                ruleId,
-            },
-            'PUT request',
-        );
-
         // 验证必要参数
         if (!fundCode) {
             return NextResponse.json<ApiResponse>(
@@ -180,8 +168,6 @@ export async function PUT(request: Request) {
             net_worth_threshold: netWorthThreshold,
             push_time: pushTime,
         };
-
-        console.debug(updateData, 'updateData');
 
         // 更新监控规则
         // 根据 ruleId 是否存在决定 update 或 insert
