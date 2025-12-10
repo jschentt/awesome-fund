@@ -134,6 +134,7 @@ export async function PUT(request: Request) {
             netWorthThreshold,
             pushTime,
             ruleId,
+            webhookId,
         }: Partial<MonitorRuleRequest> = await request.json();
 
         // 验证必要参数
@@ -167,6 +168,7 @@ export async function PUT(request: Request) {
         const updateData = {
             email,
             fund_code: fundCode,
+            webhook_id: webhookId,
             fund_name: fundName,
             rise_threshold: riseThreshold,
             net_worth_threshold: netWorthThreshold,

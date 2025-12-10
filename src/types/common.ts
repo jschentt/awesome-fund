@@ -43,6 +43,7 @@ export interface MonitorRuleRequest {
     ruleId?: number;
     email?: string;
     fundName?: string;
+    webhookId?: number;
 }
 
 /**

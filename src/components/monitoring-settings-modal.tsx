@@ -116,6 +116,7 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
             // 准备请求数据
             const requestData = {
                 userId: user?.id,
+                webhookId: vipInfo?.webhook_id,
                 fundCode,
                 fundName,
                 email: user?.email,
