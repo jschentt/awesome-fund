@@ -75,6 +75,7 @@ export interface FundEntity {
     currentBuyRate: number;
     establishDate: string;
     description: string;
+    totalCount?: number; // 总基金数量（仅在列表查询时使用）
 }
 
 /**

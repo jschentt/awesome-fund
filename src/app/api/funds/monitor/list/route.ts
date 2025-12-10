@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { getFundV2Detail } from '@/lib/api';
+import { getFundV2Detail } from '@/lib/fund';
 
 // 标记为动态路由，因为使用了 request.headers
 export const dynamic = 'force-dynamic';
@@ -67,9 +67,9 @@ export async function GET(request: Request) {
                 const monitorRecord = monitorFunds.find((f) => f.fund_code === fundCode);
 
                 return {
-                    data: fundDetail,
+                    data: fundDetail || ({} as FundDetail),
                     monitor_time: monitorRecord?.created_at || new Date().toISOString(),
-                };
+                } as any;
             } catch (error) {
                 console.error(`获取基金${fundCode}详情失败:`, error);
                 // 如果某个基金详情获取失败，返回基本信息
