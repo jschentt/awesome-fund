@@ -47,6 +47,37 @@ export interface MonitorRuleRequest {
 }
 
 /**
+ * 基金实体类型
+ */
+export interface FundEntity {
+    id: string;
+    code: string;
+    name: string;
+    shortName: string;
+    type: string;
+    netWorth: number;
+    expectWorth: number;
+    totalNetWorth: number;
+    expectGrowth: number;
+    actualDayGrowth: number;
+    estimatedChange: number;
+    netWorthDate: string;
+    expectWorthDate: string;
+    weeklyGrowth: number;
+    monthlyGrowth: number;
+    threeMonthsGrowth: number;
+    sixMonthsGrowth: number;
+    annualGrowth: number;
+    manager: string;
+    fundScale: string;
+    minBuyAmount: number;
+    originalBuyRate: number;
+    currentBuyRate: number;
+    establishDate: string;
+    description: string;
+}
+
+/**
  * API响应类型
  */
 export interface ApiResponse<T = any> {
