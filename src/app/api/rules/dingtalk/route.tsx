@@ -126,33 +126,59 @@ export async function POST(req: Request) {
             }
         };
 
-        // 构建Markdown格式的消息内容（字体调小）
-        let text = `<font size=2>**基金监控消息通知**</font><br>`;
-        text += `<font size=2>用户邮箱: ${email}</font><br>`;
-        text += `<font size=2>基金代码: ${fundCode}</font><br>`;
-        text += `<font size=2>基金名称: ${fundName || fundDetail.name}</font><br><br>`;
-        text += `<font size=2>基金实时信息:</font><br>`;
-        text += `<font size=2>当前净值: ${netWorth.toFixed(4)}</font><br>`;
-        text += `<font size=2>累计净值: ${totalNetWorth.toFixed(4)}</font><br>`;
-        text += `<font size=2>日涨跌幅: ${actualDayGrowth >= 0 ? '+' : ''}${actualDayGrowth.toFixed(2)}%</font><br>`;
-        text += `<font size=2>净值更新时间: ${netWorthDate}</font><br><br>`;
-        text += `<font size=2 style="background-color:#f2f2f2">基金规则设置信息:</font><br>`;
-        text += `<font size=2 style="background-color:#f2f2f2">涨跌幅提醒阈值: ${riseThreshold !== undefined ? `${riseThreshold}%` : '未设置'}</font><br>`;
-        text += `<font size=2 style="background-color:#f2f2f2">净值提醒阈值: ${netWorthThreshold !== undefined ? netWorthThreshold.toFixed(4) : '未设置'}</font><br>`;
-        text += `<font size=2 style="background-color:#f2f2f2">定时推送时间: ${formatPushTime(pushTime)}</font><br>`;
-        text += `<font size=2>触发时间: ${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}</font>`;
+        // 构建Markdown格式的消息内容
+        let text = `## 基金监控消息通知
+
+`;
+        text += `- **用户邮箱:** ${email}
+`;
+        text += `- **基金代码:** ${fundCode}
+`;
+        text += `- **基金名称:** ${fundName || fundDetail.name}
+
+`;
+        text += `### 基金实时信息
+
+`;
+        text += `- 当前净值: ${netWorth.toFixed(4)}
+`;
+        text += `- 累计净值: ${totalNetWorth.toFixed(4)}
+`;
+        text += `- 日涨跌幅: ${actualDayGrowth >= 0 ? '+' : ''}${actualDayGrowth.toFixed(2)}%
+`;
+        text += `- 净值更新时间: ${netWorthDate}
+
+`;
+        text += `### 基金规则设置信息
+
+`;
+        text += `- 涨跌幅提醒阈值: ${riseThreshold !== undefined ? `${riseThreshold}%` : '未设置'}
+`;
+        text += `- 净值提醒阈值: ${netWorthThreshold !== undefined ? netWorthThreshold.toFixed(4) : '未设置'}
+`;
+        text += `- 定时推送时间: ${formatPushTime(pushTime)}
+
+`;
+        text += `**触发时间:** ${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}
+
+`;
 
         // 添加阈值触发提醒
         if (isThresholdTriggered) {
-            text += `<br><br><font size=2 color="red"> ⚠️ 阈值触发提醒</font><br>`;
+            text += `> **⚠️ 阈值触发提醒**
+
+`;
             if (comparisonResults.netWorth.triggered) {
-                text += `<font size=2>净值已达到或超过设置阈值: ${netWorth.toFixed(4)} ≥ ${netWorthThreshold!.toFixed(4)}</font><br>`;
+                text += `> - 净值已达到或超过设置阈值: ${netWorth.toFixed(4)} ≥ ${netWorthThreshold!.toFixed(4)}
+`;
             }
             if (comparisonResults.rise.triggered) {
-                text += `<font size=2>涨跌幅已达到或超过设置阈值: ${Math.abs(actualDayGrowth).toFixed(2)}% ≥ ${riseThreshold}%</font><br>`;
+                text += `> - 涨跌幅已达到或超过设置阈值: ${Math.abs(actualDayGrowth).toFixed(2)}% ≥ ${riseThreshold}%
+`;
             }
         } else {
-            text += `<br><br><font size=2 color="red"> ⚠️ 未达到阈值触发条件</font>`;
+            text += `> **⚠️ 未达到阈值触发条件**
+`;
         }
 
         // 发送钉钉消息
