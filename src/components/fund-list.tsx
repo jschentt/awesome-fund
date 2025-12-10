@@ -228,7 +228,7 @@ export default function FundList({
                     return;
                 }
 
-                setUserId(user.id);
+                setUserId(user?.id);
                 setShowFavoriteList?.(true);
             } catch (error) {
                 console.error('Error preparing favorite list:', error);
@@ -253,7 +253,7 @@ export default function FundList({
                     return;
                 }
 
-                setUserId(user.id);
+                setUserId(user?.id);
                 setShowMonitorList?.(true);
             } catch (error) {
                 console.error('Error preparing monitoring list:', error);

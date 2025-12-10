@@ -34,7 +34,7 @@ export async function POST(request: Request) {
         // 插入监控规则
         const { error } = await supabase.from('fund_monitor_rules').insert([
             {
-                user_id: user.id,
+                user_id: user?.id,
                 rule_name: ruleName,
                 fund_code: fundCode,
                 rise_threshold: riseThreshold,
@@ -127,7 +127,9 @@ export async function PUT(request: Request) {
     try {
         const {
             userId,
+            email,
             fundCode,
+            fundName,
             riseThreshold,
             netWorthThreshold,
             pushTime,
@@ -163,7 +165,9 @@ export async function PUT(request: Request) {
 
         // 准备更新数据
         const updateData = {
+            email,
             fund_code: fundCode,
+            fund_name: fundName,
             rise_threshold: riseThreshold,
             net_worth_threshold: netWorthThreshold,
             push_time: pushTime,

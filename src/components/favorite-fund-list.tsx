@@ -73,7 +73,7 @@ export default function FavoriteFundList({
         (apiData: FavoriteFundResponse['data'][0]): FundItem => {
             const fund = apiData.data;
             return {
-                id: fund.id,
+                id: fund?.id,
                 code: fund.code,
                 name: fund.name,
                 shortName: fund.shortName,

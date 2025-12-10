@@ -78,7 +78,7 @@ export function SubscriptionDialog({
                 return;
             }
 
-            const userId = userInfo.id;
+            const userId = userInfo?.id;
 
             const params = {
                 userId,

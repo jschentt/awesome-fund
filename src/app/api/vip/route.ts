@@ -79,7 +79,7 @@ export async function GET(request: Request) {
             );
         }
 
-        // 关联dingtalk_webhook_user和dingtalk_webhook表，条件：dingtalk_webhook_user.webhook_id = dingtalk_webhook.id
+        // 关联dingtalk_webhook_user和dingtalk_webhook表，条件：dingtalk_webhook_user.webhook_id = dingtalk_webhook?.id
         // 过滤条件：dingtalk_webhook_user.user_id = userId 且 status = 1 且 webhook_id ≠ 1
         const { data: webhookUser, error: webhookError } = await supabase
             .from('dingtalk_webhook_user')

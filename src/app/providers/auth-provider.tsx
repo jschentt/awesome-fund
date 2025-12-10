@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const res = await fetch('/api/vip', {
                 method: 'GET',
                 headers: {
-                    'X-User-Id': userInfo.id,
+                    'X-User-Id': userInfo?.id,
                 },
             });
             const data = await res.json();

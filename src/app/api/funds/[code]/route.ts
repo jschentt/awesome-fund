@@ -110,7 +110,7 @@ function transformFundData(apiData: ApiResponse['data']['data']): any {
         message: 'success',
         data: {
             data: {
-                id: apiData.id || apiData.code,
+                id: apiData?.id || apiData.code,
                 code: apiData.code,
                 name: apiData.name,
                 shortName: apiData.shortName || apiData.name.substring(0, 8) + '...',

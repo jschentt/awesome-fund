@@ -56,7 +56,7 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                     });
                     setDetailInfo({
                         ...data.data,
-                        ruleId: data.data.id,
+                        ruleId: data.data?.id,
                     });
                 }
             } catch (err) {
@@ -115,8 +115,10 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
 
             // 准备请求数据
             const requestData = {
-                userId: user.id,
+                userId: user?.id,
                 fundCode,
+                fundName,
+                email: user?.email,
                 ruleName: `【${fundName}】监控规则`,
                 riseThreshold: values.riseThreshold,
                 netWorthThreshold: values.netWorthThreshold,

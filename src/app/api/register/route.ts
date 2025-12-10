@@ -53,7 +53,7 @@ export async function POST(request: Request) {
             console.log(`找到验证码记录数: ${allCodes?.length || 0}`);
             allCodes?.forEach((code) => {
                 console.log(
-                    `验证码ID: ${code.id}, 代码: ${code.code}, 类型: ${code.type}, 是否已使用: ${code.used}, 过期时间: ${code.expire_at}`,
+                    `验证码ID: ${code?.id}, 代码: ${code.code}, 类型: ${code.type}, 是否已使用: ${code.used}, 过期时间: ${code.expire_at}`,
                 );
             });
         }
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
         const { error: updateCodeError } = await supabase
             .from('email_codes')
             .update({ used: true, updated_at: now })
-            .eq('id', validCode.id);
+            .eq('id', validCode?.id);
 
         if (updateCodeError) {
             console.error('更新验证码状态失败:', updateCodeError);
@@ -135,8 +135,8 @@ export async function POST(request: Request) {
             const { data: webhookUser, error: createWebhookUserError } = await supabase
                 .from('dingtalk_webhook_user')
                 .insert({
-                    webhook_id: webhookData.id,
-                    user_id: newUser.id,
+                    webhook_id: webhookData?.id,
+                    user_id: newUser?.id,
                     status: 1, // 默认状态为激活
                 })
                 .select()

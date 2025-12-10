@@ -96,7 +96,7 @@ export default function FundDetailPage() {
             const response = await fetch(`/api/funds/monitor/list`, {
                 method: 'GET',
                 headers: {
-                    'X-User-Id': user.id,
+                    'X-User-Id': user?.id,
                 },
             });
 
@@ -118,7 +118,7 @@ export default function FundDetailPage() {
             const response = await fetch(`/api/funds/detail?code=${fundCode}`, {
                 method: 'GET',
                 headers: {
-                    'X-User-Id': user.id,
+                    'X-User-Id': user?.id,
                 },
             });
 
@@ -209,7 +209,7 @@ export default function FundDetailPage() {
                 method,
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-User-ID': userInfo.id,
+                    'X-User-ID': userInfo?.id,
                 },
                 body: JSON.stringify({ fundCode: fund.code }),
             });
@@ -254,7 +254,7 @@ export default function FundDetailPage() {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-User-ID': user.id,
+                        'X-User-ID': user?.id,
                     },
                     body: JSON.stringify({ fundCode: fund.code }),
                 });
@@ -294,7 +294,7 @@ export default function FundDetailPage() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-User-ID': user.id,
+                    'X-User-ID': user?.id,
                 },
                 body: JSON.stringify({ fundCode: fund.code }),
             });

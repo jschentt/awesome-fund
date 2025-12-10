@@ -126,14 +126,14 @@ export default function Page() {
     const loadFavoriteList = async () => {
         try {
             const userInfo = getLocalStorageWithExpiry('userInfo');
-            if (!userInfo || !userInfo.id) {
+            if (!userInfo || !userInfo?.id) {
                 return;
             }
 
             // 调用API获取收藏基金列表
             const response = await fetch(`/api/funds/favorite/list`, {
                 headers: {
-                    'X-User-Id': userInfo.id,
+                    'X-User-Id': userInfo?.id,
                 },
             });
             if (!response.ok) {
@@ -154,14 +154,14 @@ export default function Page() {
     const loadMonitorList = async () => {
         try {
             const userInfo = getLocalStorageWithExpiry('userInfo');
-            if (!userInfo || !userInfo.id) {
+            if (!userInfo || !userInfo?.id) {
                 return;
             }
 
             // 调用API获取监控基金列表
             const response = await fetch(`/api/funds/monitor/list`, {
                 headers: {
-                    'X-User-Id': userInfo.id,
+                    'X-User-Id': userInfo?.id,
                 },
             });
             if (!response.ok) {
@@ -201,8 +201,8 @@ export default function Page() {
 
     const fundsWithFavorite = funds.map((fund) => ({
         ...fund,
-        isFavorite: favoriteFunds.some((fav) => fav.id === fund.id),
-        isMonitoring: monitorFunds.some((mon) => mon.id === fund.id),
+        isFavorite: favoriteFunds.some((fav) => fav?.id === fund?.id),
+        isMonitoring: monitorFunds.some((mon) => mon?.id === fund?.id),
     }));
 
     // 错误状态

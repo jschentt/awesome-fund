@@ -81,7 +81,7 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: '系统异常，请联系管理员' }, { status: 500 });
     }
 
-    if (vipWebhook.id) {
+    if (vipWebhook?.id) {
         // 查询 dingtalk_webhook_user 是否存在符合条件的数据
         const { data: webhookUser, error: webhookError } = await supabase
             .from('dingtalk_webhook_user')
@@ -100,7 +100,7 @@ export async function GET(request: Request) {
             const { error: updateStatusError } = await supabase
                 .from('dingtalk_webhook_user')
                 .update({ status: 1 })
-                .eq('id', webhookUser.id);
+                .eq('id', webhookUser?.id);
 
             if (updateStatusError) {
                 console.error('更新 webhook 用户状态失败:', updateStatusError);
@@ -111,7 +111,7 @@ export async function GET(request: Request) {
             const { error: insertError } = await supabase.from('dingtalk_webhook_user').insert([
                 {
                     user_id: order.user_id,
-                    webhook_id: vipWebhook.id,
+                    webhook_id: vipWebhook?.id,
                     status: 1,
                 },
             ]);

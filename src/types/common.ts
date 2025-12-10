@@ -41,6 +41,8 @@ export interface MonitorRuleRequest {
     netWorthThreshold?: number;
     pushTime?: string;
     ruleId?: number;
+    email?: string;
+    fundName?: string;
 }
 
 /**

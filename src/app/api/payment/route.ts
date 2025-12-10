@@ -64,7 +64,7 @@ export async function POST(request: Request) {
         const postData = {
             order_no: createOrderNum(),
             user_id: userId,
-            plan_id: plan.id,
+            plan_id: plan?.id,
             pay_amount: subscribePrice,
             pay_method: paymentMethod,
             // '支付状态：0-待支付 1-支付中 2-已支付 3-支付失败'
