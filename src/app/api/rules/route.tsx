@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { MonitorRuleRequest, ApiResponse } from '@/types/common';
+import { createCronTask, deleteCronTask, toCron } from '@/lib/cron';
 
 export async function POST(request: Request) {
     try {
@@ -8,6 +9,8 @@ export async function POST(request: Request) {
         const {
             userId,
             fundCode,
+            fundName,
+            webhookId,
             ruleName,
             riseThreshold,
             netWorthThreshold,
@@ -22,7 +25,7 @@ export async function POST(request: Request) {
         // 查找用户ID
         const { data: user, error: userError } = await supabase
             .from('users')
-            .select('id')
+            .select('id, email')
             .eq('id', userId)
             .single();
 
@@ -31,17 +34,19 @@ export async function POST(request: Request) {
             return NextResponse.json({ message: '用户不存在' }, { status: 404 });
         }
 
-        // 插入监控规则
-        const { error } = await supabase.from('fund_monitor_rules').insert([
-            {
+        // 插入单条监控规则
+        const { data: insertData, error } = await supabase
+            .from('fund_monitor_rules')
+            .insert({
                 user_id: user?.id,
                 rule_name: ruleName,
                 fund_code: fundCode,
                 rise_threshold: riseThreshold,
                 net_worth_threshold: netWorthThreshold,
                 push_time: pushTime,
-            },
-        ]);
+            })
+            .select('id')
+            .single();
 
         if (error) {
             console.error('插入监控规则失败:', error);
@@ -50,6 +55,30 @@ export async function POST(request: Request) {
                 { status: 500 },
             );
         }
+
+        if (error) {
+            console.error('插入监控规则失败:', error);
+            return NextResponse.json(
+                { message: '保存监控规则失败', error: (error as any).message },
+                { status: 500 },
+            );
+        }
+
+        const jobName = `${insertData.id}_${user?.id}_${fundCode}`;
+        const cronExpression = toCron(pushTime || '00:00:00');
+        const ruleId = `${insertData.id}-${user?.id}`;
+
+        // 创建定时任务
+        await createCronTask(jobName, cronExpression, ruleId, {
+            userId: user?.id,
+            email: user?.email,
+            fundCode,
+            fundName,
+            webhookId,
+            riseThreshold,
+            netWorthThreshold,
+            pushTime,
+        });
 
         return NextResponse.json({ message: '监控规则保存成功' }, { status: 200 });
     } catch (error) {
@@ -206,6 +235,26 @@ export async function PUT(request: Request) {
                     { status: 500 },
                 );
             }
+        }
+
+        const jobName = `${ruleId}_${userId}_${fundCode}`;
+        const cronExpression = toCron(pushTime || '00:00:00');
+        const cronRuleId = `${ruleId}-${userId}`;
+
+        // 删除旧的定时任务
+        if (jobName) {
+            await deleteCronTask(jobName);
+            // 创建定时任务
+            await createCronTask(jobName, cronExpression, cronRuleId, {
+                userId,
+                email,
+                fundCode,
+                fundName,
+                webhookId,
+                riseThreshold,
+                netWorthThreshold,
+                pushTime,
+            });
         }
 
         return NextResponse.json<ApiResponse>({ message: '更新监控规则成功' }, { status: 200 });
