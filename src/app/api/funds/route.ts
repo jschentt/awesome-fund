@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getFundList } from '@/lib/fund';
+import { NextRequest } from 'next/server';
+
+// 标记此API路由为动态路由，避免静态渲染错误
+export const dynamic = 'force-dynamic';
 
 // 定义前端需要的数据格式
 interface FormattedFundItem {
@@ -84,12 +88,11 @@ function transformFundData(fundData: any): FormattedFundItem {
     };
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
     try {
         // 解析查询参数，获取分页信息
-        const url = new URL(request.url);
-        const page = parseInt(url.searchParams.get('page') || '1', 10);
-        const limit = parseInt(url.searchParams.get('limit') || '10', 10);
+        const page = parseInt(request.nextUrl.searchParams.get('page') || '1', 10);
+        const limit = parseInt(request.nextUrl.searchParams.get('limit') || '10', 10);
 
         const fundListResponse = await fetchFundList(page, limit);
 
