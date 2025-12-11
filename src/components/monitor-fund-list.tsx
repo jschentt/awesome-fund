@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useMediaQuery } from 'react-responsive';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Bell, QrCode, Settings } from 'lucide-react';
 import { Button, Input, Tooltip, Modal, message, Drawer } from 'antd';
@@ -237,12 +238,25 @@ export default function MonitorFundList({
     const [isDragging, setIsDragging] = useState(false);
     const [offsetY, setOffsetY] = useState(0);
 
+    // 响应式屏幕检测
+    const isMobile = useMediaQuery({ maxWidth: 576 });
+    const isSmallScreen = useMediaQuery({ maxWidth: 768 });
+
     // 鼠标按下事件
     const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
         if (buttonRef.current) {
             setIsDragging(true);
             const rect = buttonRef.current.getBoundingClientRect();
             setOffsetY(e.clientY - rect.top);
+        }
+    };
+
+    // 触摸开始事件
+    const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+        if (buttonRef.current) {
+            setIsDragging(true);
+            const rect = buttonRef.current.getBoundingClientRect();
+            setOffsetY(e.touches[0].clientY - rect.top);
         }
     };
 
@@ -253,6 +267,23 @@ export default function MonitorFundList({
         // 计算新的垂直位置
         const newTop = e.clientY - offsetY;
         // 限制在窗口范围内
+        updateButtonPosition(newTop);
+    };
+
+    // 触摸移动事件
+    const handleTouchMove = (e: TouchEvent) => {
+        if (!isDragging || !buttonRef.current) return;
+
+        // 计算新的垂直位置
+        const newTop = e.touches[0].clientY - offsetY;
+        // 限制在窗口范围内
+        updateButtonPosition(newTop);
+    };
+
+    // 更新按钮位置的通用函数
+    const updateButtonPosition = (newTop: number) => {
+        if (!buttonRef.current) return;
+
         const windowHeight = window.innerHeight;
         const buttonHeight = buttonRef.current.offsetHeight;
         const maxTop = windowHeight - buttonHeight - 16; // 16px 底部边距
@@ -260,14 +291,17 @@ export default function MonitorFundList({
         const clampedTop = Math.max(minTop, Math.min(newTop, maxTop));
 
         // 设置新位置
-        if (buttonRef.current) {
-            buttonRef.current.style.top = `${clampedTop}px`;
-            buttonRef.current.style.bottom = 'auto';
-        }
+        buttonRef.current.style.top = `${clampedTop}px`;
+        buttonRef.current.style.bottom = 'auto';
     };
 
     // 鼠标释放事件
     const handleMouseUp = () => {
+        setIsDragging(false);
+    };
+
+    // 触摸结束事件
+    const handleTouchEnd = () => {
         setIsDragging(false);
     };
 
@@ -276,10 +310,14 @@ export default function MonitorFundList({
         if (isDragging) {
             window.addEventListener('mousemove', handleMouseMove);
             window.addEventListener('mouseup', handleMouseUp);
+            window.addEventListener('touchmove', handleTouchMove, { passive: false });
+            window.addEventListener('touchend', handleTouchEnd);
         }
         return () => {
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('mouseup', handleMouseUp);
+            window.removeEventListener('touchmove', handleTouchMove);
+            window.removeEventListener('touchend', handleTouchEnd);
         };
     }, [isDragging]);
 
@@ -288,26 +326,29 @@ export default function MonitorFundList({
             {/* 右侧可拖拽的钉钉群组按钮 */}
             <div
                 ref={buttonRef}
-                className="fixed right-4 top-50 z-50 cursor-move"
+                className="fixed right-2 sm:right-4 top-[40%] sm:top-50 z-50 cursor-move"
                 onMouseDown={handleMouseDown}
+                onTouchStart={handleTouchStart}
                 style={{ touchAction: 'none' }}
             >
                 <Button
                     type="primary"
-                    size="large"
+                    size={isSmallScreen ? 'default' : 'large'}
                     icon={<QrCode />}
-                    className="shadow-lg rounded-full px-6 absolute right-0"
+                    className="shadow-lg rounded-full px-4 sm:px-6 absolute right-0"
                     onClick={() => setShowQrCode(true)}
                 >
-                    钉钉群组
+                    <span className="hidden sm:inline">钉钉群组</span>
+                    <span className="sm:hidden">群</span>
                 </Button>
             </div>
 
             {/* 侧边弹窗 Drawer */}
             <Drawer
                 title="钉钉群组二维码"
-                placement="right"
-                width={320}
+                placement={isMobile ? 'bottom' : 'right'}
+                width={isMobile ? '100%' : 320}
+                height={isMobile ? '80%' : undefined}
                 open={showQrCode}
                 onClose={() => setShowQrCode(false)}
                 footer={
@@ -316,12 +357,12 @@ export default function MonitorFundList({
                     </div>
                 }
             >
-                <div className="flex flex-col items-center text-center">
-                    <p className="text-gray-700 mb-4 text-sm leading-relaxed">
+                <div className="flex flex-col items-center text-center p-2 sm:p-0">
+                    <p className="text-gray-700 mb-4 text-sm leading-relaxed px-2">
                         {vipInfo?.plan_code === 'year' ? (
                             <span>
                                 当前您为<span className="font-bold text-yellow-600">年度</span>
-                                会员， 扫码加入专属一对一
+                                会员，扫码加入专属一对一
                                 <span className="font-bold text-blue-600">VIP</span>
                                 钉钉群组，获取实时监控提醒、专业基金分析与独家策略
                             </span>
@@ -340,14 +381,14 @@ export default function MonitorFundList({
                             </span>
                         )}
                     </p>
-                    <div className="w-48 h-48 bg-gray-50 rounded-md flex items-center justify-center mb-4 overflow-hidden border border-gray-100">
+                    <div className="w-40 h-40 sm:w-48 sm:h-48 bg-gray-50 rounded-md flex items-center justify-center mb-4 overflow-hidden border border-gray-100">
                         {/* 使用 Next.js Image 组件加载二维码图片 */}
-                        {vipInfo?.qr_code_url && (
+                        {vipInfo?.qr_code_url ? (
                             <Image
                                 src={vipInfo?.qr_code_url}
                                 alt="钉钉群组二维码"
-                                width={192}
-                                height={192}
+                                width={160}
+                                height={160}
                                 className="object-contain p-2"
                                 // 如果图片不存在，会显示默认的占位符
                                 onError={(e) => {
@@ -360,6 +401,8 @@ export default function MonitorFundList({
                                     target.parentElement?.appendChild(placeholderDiv);
                                 }}
                             />
+                        ) : (
+                            <div className="text-gray-500 text-sm">请上传钉钉群组二维码图片</div>
                         )}
                     </div>
 
