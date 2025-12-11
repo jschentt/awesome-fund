@@ -46,6 +46,18 @@ interface ExtendedFundItem {
     updateTime?: string; // 增加缺失的updateTime属性
 }
 
+// 通用去重方法：根据fund.code去重，避免重复添加相同基金
+const mergeFundsWithDeduplication = (
+    existingFunds: ExtendedFundItem[],
+    newFunds: ExtendedFundItem[],
+): ExtendedFundItem[] => {
+    const existingCodes = new Set(existingFunds.map((f) => f.code));
+    const uniqueNewFunds = newFunds.filter(
+        (fund: ExtendedFundItem) => !existingCodes.has(fund.code),
+    );
+    return [...existingFunds, ...uniqueNewFunds];
+};
+
 // 定义 fetcher 函数
 const fetcher = async (url: string): Promise<ApiResponse> => {
     const res = await fetch(url);
@@ -129,7 +141,7 @@ export default function Page() {
                 if (fetchedData.page === 1) {
                     setAllFunds(fetchedData.data);
                 } else {
-                    setAllFunds((prev) => [...prev, ...fetchedData.data]);
+                    setAllFunds((prev) => mergeFundsWithDeduplication(prev, fetchedData.data));
                 }
                 // 计算总页数并检查是否还有更多数据
                 const totalPages = Math.ceil(fetchedData.total / fetchedData.limit);
@@ -218,7 +230,7 @@ export default function Page() {
                 page: nextPage,
             }));
 
-            setAllFunds((prev) => [...prev, ...fetchedData.data]);
+            setAllFunds((prev) => mergeFundsWithDeduplication(prev, fetchedData.data));
 
             // 计算总页数并检查是否还有更多数据
             const totalPages = Math.ceil(fetchedData.total / fetchedData.limit);
