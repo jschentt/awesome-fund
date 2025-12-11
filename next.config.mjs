@@ -3,7 +3,13 @@ import path from 'path';
 const nextConfig = {
     output: 'standalone',
     images: {
-        domains: ['upload-images.jianshu.io'],
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'upload-images.jianshu.io',
+                pathname: '**',
+            },
+        ],
     },
 };
 export default nextConfig;
