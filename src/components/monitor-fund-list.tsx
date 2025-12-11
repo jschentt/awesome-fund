@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Bell, QrCode, Settings } from 'lucide-react';
-import { Button, Input, Tooltip, Modal, message, Pagination, Drawer } from 'antd';
+import { Button, Input, Tooltip, Modal, message, Drawer } from 'antd';
 import dayjs from 'dayjs';
 import Image from 'next/image';
 import { FundItem } from './fund-list';
@@ -66,9 +66,6 @@ export default function MonitorFundList({
     const [selectedFund, setSelectedFund] = useState<FundItem | null>(null);
     const [monitorModalOpen, setMonitorModalOpen] = useState(false);
     const [settingsModalOpen, setSettingsModalOpen] = useState(false);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize] = useState(10);
-    const [totalFunds, setTotalFunds] = useState(0);
     const hasLoaded = useRef(true);
     const { vipInfo } = useAuth();
 
@@ -103,66 +100,51 @@ export default function MonitorFundList({
     );
 
     // 加载监控基金列表
-    const loadMonitorFunds = useCallback(
-        async (page: number = 1) => {
-            if (!userId) return;
+    const loadMonitorFunds = useCallback(async () => {
+        if (!userId) return;
 
-            setLoading(true);
-            try {
-                const res = await fetch(
-                    `/api/funds/monitor/list?page=${page}&pageSize=${pageSize}`,
-                    {
-                        headers: {
-                            'X-User-Id': userId,
-                        },
-                    },
-                );
+        setLoading(true);
+        try {
+            const res = await fetch(`/api/funds/monitor/list`, {
+                headers: {
+                    'X-User-Id': userId,
+                },
+            });
 
-                if (res.ok) {
-                    const data: MonitorFundResponse = await res.json();
+            if (res.ok) {
+                const data: MonitorFundResponse = await res.json();
 
-                    console.log('API返回数据:', data);
+                console.log('API返回数据:', data);
 
-                    if (data.data && Array.isArray(data.data)) {
-                        // 映射数据格式
-                        const mappedFunds = data.data.map(mapApiDataToFundItem);
-                        setFunds(mappedFunds);
-
-                        // 设置总数（如果API返回）
-                        if (data.total) {
-                            setTotalFunds(data.total);
-                        } else {
-                            // 如果API没有返回总数，使用实际数据长度
-                            setTotalFunds(data.data.length);
-                        }
-                    }
-                } else {
-                    console.error('Failed to fetch monitor funds');
-                    Modal.error({
-                        title: '获取监控列表失败',
-                        content: '请稍后重试',
-                    });
+                if (data.data && Array.isArray(data.data)) {
+                    // 映射数据格式
+                    const mappedFunds = data.data.map(mapApiDataToFundItem);
+                    setFunds(mappedFunds);
                 }
-            } catch (error) {
-                console.error('Error fetching monitor funds:', error);
+            } else {
+                console.error('Failed to fetch monitor funds');
                 Modal.error({
                     title: '获取监控列表失败',
-                    content: '网络错误，请检查网络连接后重试',
+                    content: '请稍后重试',
                 });
-            } finally {
-                setLoading(false);
             }
-        },
-        [pageSize, mapApiDataToFundItem],
-    );
+        } catch (error) {
+            console.error('Error fetching monitor funds:', error);
+            Modal.error({
+                title: '获取监控列表失败',
+                content: '网络错误，请检查网络连接后重试',
+            });
+        } finally {
+            setLoading(false);
+        }
+    }, [mapApiDataToFundItem]);
 
     // 组件挂载时和email变化时加载数据
     useEffect(() => {
         // 只有当visible为true且数据尚未加载过时才加载
         if (visible && userId) {
             if (hasLoaded.current) {
-                loadMonitorFunds(1);
-                setCurrentPage(1);
+                loadMonitorFunds();
                 hasLoaded.current = false;
             }
         }
@@ -172,18 +154,11 @@ export default function MonitorFundList({
         }
     }, [visible, userId]);
 
-    // 处理分页变化
-    const handlePageChange = (page: number) => {
-        setCurrentPage(page);
-        loadMonitorFunds(page);
-    };
-
     // 处理搜索
     const handleSearch = () => {
         // 当搜索框清空时，重新加载所有监控数据
         if (!searchQuery.trim()) {
-            loadMonitorFunds(1);
-            setCurrentPage(1);
+            loadMonitorFunds();
             return;
         }
 
@@ -630,21 +605,6 @@ export default function MonitorFundList({
                             </div>
                         </motion.div>
                     ))}
-                </div>
-            )}
-
-            {/* 分页控件 */}
-            {totalFunds > pageSize && (
-                <div className="flex justify-center mt-8">
-                    <Pagination
-                        current={currentPage}
-                        onChange={handlePageChange}
-                        total={totalFunds}
-                        pageSize={pageSize}
-                        showSizeChanger={false}
-                        showQuickJumper
-                        showTotal={(total) => `共 ${total} 条记录`}
-                    />
                 </div>
             )}
 

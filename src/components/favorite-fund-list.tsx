@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Star } from 'lucide-react';
-import { Button, Input, Tooltip, Modal, message, Pagination } from 'antd';
+import { Button, Input, Tooltip, Modal, message } from 'antd';
 import dayjs from 'dayjs';
 
 // 导入FundItem接口
@@ -63,9 +63,6 @@ export default function FavoriteFundList({
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedFund, setSelectedFund] = useState<FundItem | null>(null);
     const [favoriteModalOpen, setFavoriteModalOpen] = useState(false);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize] = useState(10);
-    const [totalFunds, setTotalFunds] = useState(0);
     const hasLoaded = useRef(true);
 
     // 映射API返回数据到FundItem接口
@@ -99,66 +96,51 @@ export default function FavoriteFundList({
     );
 
     // 加载收藏基金列表
-    const loadFavoriteFunds = useCallback(
-        async (page: number = 1) => {
-            if (!userId) return;
+    const loadFavoriteFunds = useCallback(async () => {
+        if (!userId) return;
 
-            setLoading(true);
-            try {
-                const res = await fetch(
-                    `/api/funds/favorite/list?page=${page}&pageSize=${pageSize}`,
-                    {
-                        headers: {
-                            'X-User-ID': userId,
-                        },
-                    },
-                );
+        setLoading(true);
+        try {
+            const res = await fetch(`/api/funds/favorite/list`, {
+                headers: {
+                    'X-User-ID': userId,
+                },
+            });
 
-                if (res.ok) {
-                    const data: FavoriteFundResponse = await res.json();
+            if (res.ok) {
+                const data: FavoriteFundResponse = await res.json();
 
-                    console.log('API返回数据:', data);
+                console.log('API返回数据:', data);
 
-                    if (data.data && Array.isArray(data.data)) {
-                        // 映射数据格式
-                        const mappedFunds = data.data.map(mapApiDataToFundItem);
-                        setFunds(mappedFunds);
-
-                        // 设置总数（如果API返回）
-                        if (data.total) {
-                            setTotalFunds(data.total);
-                        } else {
-                            // 如果API没有返回总数，使用实际数据长度
-                            setTotalFunds(data.data.length);
-                        }
-                    }
-                } else {
-                    console.error('Failed to fetch favorite funds');
-                    Modal.error({
-                        title: '获取收藏列表失败',
-                        content: '请稍后重试',
-                    });
+                if (data.data && Array.isArray(data.data)) {
+                    // 映射数据格式
+                    const mappedFunds = data.data.map(mapApiDataToFundItem);
+                    setFunds(mappedFunds);
                 }
-            } catch (error) {
-                console.error('Error fetching favorite funds:', error);
+            } else {
+                console.error('Failed to fetch favorite funds');
                 Modal.error({
                     title: '获取收藏列表失败',
-                    content: '网络错误，请检查网络连接后重试',
+                    content: '请稍后重试',
                 });
-            } finally {
-                setLoading(false);
             }
-        },
-        [userId, pageSize, mapApiDataToFundItem],
-    );
+        } catch (error) {
+            console.error('Error fetching favorite funds:', error);
+            Modal.error({
+                title: '获取收藏列表失败',
+                content: '网络错误，请检查网络连接后重试',
+            });
+        } finally {
+            setLoading(false);
+        }
+    }, [userId, mapApiDataToFundItem]);
 
     // 组件挂载时和userId变化时加载数据
     useEffect(() => {
         // 只有当visible为true且数据尚未加载过时才加载
         if (visible && userId) {
             if (hasLoaded.current) {
-                loadFavoriteFunds(1);
-                setCurrentPage(1);
+                loadFavoriteFunds();
                 hasLoaded.current = false;
             }
         }
@@ -168,18 +150,11 @@ export default function FavoriteFundList({
         }
     }, [visible, userId]);
 
-    // 处理分页变化
-    const handlePageChange = (page: number) => {
-        setCurrentPage(page);
-        loadFavoriteFunds(page);
-    };
-
     // 处理搜索
     const handleSearch = () => {
         // 当搜索框清空时，重新加载所有收藏数据
         if (!searchQuery.trim()) {
-            loadFavoriteFunds(1);
-            setCurrentPage(1);
+            loadFavoriteFunds();
             return;
         }
 
@@ -432,21 +407,6 @@ export default function FavoriteFundList({
                             </div>
                         </motion.div>
                     ))}
-                </div>
-            )}
-
-            {/* 分页控件 */}
-            {totalFunds > pageSize && (
-                <div className="flex justify-center mt-8">
-                    <Pagination
-                        current={currentPage}
-                        onChange={handlePageChange}
-                        total={totalFunds}
-                        pageSize={pageSize}
-                        showSizeChanger={false}
-                        showQuickJumper
-                        showTotal={(total) => `共 ${total} 条记录`}
-                    />
                 </div>
             )}
 

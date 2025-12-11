@@ -262,7 +262,7 @@ export default function Page() {
                 />
 
                 {/* 分页控件 - 当显示收藏列表时隐藏 */}
-                {!showFavoriteList && (
+                {!showFavoriteList && !showMonitorList && (
                     <div className="mt-6 flex justify-center">
                         <Pagination
                             current={pagination.page}
