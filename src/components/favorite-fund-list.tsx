@@ -228,7 +228,7 @@ export default function FavoriteFundList({
     return (
         <div className="w-full">
             {/* 搜索和筛选区域 */}
-            <div className="flex flex-col sm:flex-row  items-start sm:items-center mb-4 space-y-2 sm:space-y-0">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center mb-4 space-y-2 sm:space-y-0">
                 <div className="relative w-full sm:w-64">
                     <Input
                         placeholder="搜索基金名称或代码"
@@ -239,12 +239,14 @@ export default function FavoriteFundList({
                         className="w-full"
                     />
                 </div>
-                <Button
-                    className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto ml-5"
-                    onClick={handleSearch}
-                >
-                    搜索
-                </Button>
+                <div className="w-full flex justify-center sm:justify-start">
+                    <Button
+                        className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto ml-0 sm:ml-5"
+                        onClick={handleSearch}
+                    >
+                        搜索
+                    </Button>
+                </div>
             </div>
 
             {/* 基金列表 */}

@@ -64,7 +64,7 @@ export default function Navbar() {
                     className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${dot} mr-0.5 sm:mr-1 animate-pulse`}
                 ></span>
                 <span className="hidden sm:inline">{label}</span>
-                <span className="sm:hidden">{shortLabel}</span>
+                <span className="sm:hidden text-sm">{shortLabel}</span>
             </span>
         );
     };
