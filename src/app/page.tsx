@@ -405,7 +405,7 @@ export default function Page() {
                                 showMonitorList={showMonitorList}
                                 setShowMonitorList={setShowMonitorList}
                                 refreshMonitorList={loadMonitorList}
-                                isLoading={isLoading}
+                                isLoading={false}
                                 favoriteCount={favoriteCount}
                                 monitorCount={monitorCount}
                             />
