@@ -16,9 +16,11 @@ const cache = new Map<string, CacheItem>();
 const CACHE_DURATION = 24 * 60 * 60 * 1000;
 
 // HTTPS Agent 配置（忽略SSL证书验证，仅在开发环境使用）
-const httpsAgent = new https.Agent({
-    rejectUnauthorized: false,
-});
+function createHttpsAgent() {
+    return new https.Agent({
+        rejectUnauthorized: false,
+    });
+}
 
 // 基金API URL配置
 const fundApiUrl = 'https://fund.eastmoney.com/js/fundcode_search.js';
@@ -87,7 +89,7 @@ async function fetchFundNetValue(fundCode: string): Promise<{
 } | null> {
     try {
         const response = await axios.get(`${fundNetValueApiUrl}/${fundCode}.js`, {
-            httpsAgent,
+            httpsAgent: createHttpsAgent(),
             responseType: 'text',
         });
         const data = response.data;
@@ -154,9 +156,9 @@ async function fetchFundListFromApi(request: FundListRequest): Promise<FundEntit
             fundDataArray = cachedData as string[][];
         } else {
             const response = await axios.get(fundApiUrl, {
-                httpsAgent,
-                responseType: 'text',
-            });
+            httpsAgent: createHttpsAgent(),
+            responseType: 'text',
+        });
             const data = response.data;
 
             // 解析返回的JavaScript变量定义，提取基金数据
@@ -286,7 +288,7 @@ export async function getFundDetail(fundCode: string): Promise<FundEntity | null
         // 调用基金详情API获取完整数据
         const response = await axios.get(fundDetailApiUrl, {
             params: { code: fundCode },
-            httpsAgent,
+            httpsAgent: createHttpsAgent(),
         });
 
         // 解析API响应数据
@@ -405,9 +407,7 @@ export async function getFundV2Detail(fundCode: string): Promise<FundEntity | nu
         // 调用基金净值API获取数据
         const response = await axios.get(apiUrl, {
             responseType: 'text', // 获取原始文本响应
-            httpsAgent: new https.Agent({
-                rejectUnauthorized: false, // 忽略SSL证书验证，仅在开发环境使用
-            }),
+            httpsAgent: createHttpsAgent(),
         });
 
         // 解析API响应数据（这是一个JSONP格式的数据）
