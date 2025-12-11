@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRequest } from 'ahooks';
 import Navbar from '@/components/navbar';
 import FundList, { FundItem } from '@/components/fund-list';
-import Pagination from '@/components/Pagination';
+import { Pagination } from 'antd';
 import { getLocalStorageWithExpiry } from '@/lib/utils';
 
 // 定义 API 返回数据的接口
@@ -263,14 +263,20 @@ export default function Page() {
 
                 {/* 分页控件 - 当显示收藏列表时隐藏 */}
                 {!showFavoriteList && (
-                    <Pagination
-                        page={pagination.page}
-                        limit={pagination.limit}
-                        total={pagination.total}
-                        totalPages={pagination.totalPages}
-                        onPageChange={handlePageChange}
-                        onLimitChange={handleLimitChangeForComponent}
-                    />
+                    <div className="mt-6 flex justify-center">
+                        <Pagination
+                            current={pagination.page}
+                            pageSize={pagination.limit}
+                            total={pagination.total}
+                            onChange={handlePageChange}
+                            onShowSizeChange={(current, size) =>
+                                handleLimitChangeForComponent(size.toString())
+                            }
+                            showSizeChanger
+                            pageSizeOptions={['10', '20', '50', '100']}
+                            showTotal={(total) => `共 ${total} 条记录`}
+                        />
+                    </div>
                 )}
             </div>
         </div>
