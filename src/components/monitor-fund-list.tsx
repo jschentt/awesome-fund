@@ -333,7 +333,7 @@ export default function MonitorFundList({
             >
                 <Button
                     type="primary"
-                    size={isSmallScreen ? 'default' : 'large'}
+                    size={isSmallScreen ? 'middle' : 'large'}
                     icon={<QrCode />}
                     className="shadow-lg rounded-full px-4 sm:px-6 absolute right-0"
                     onClick={() => setShowQrCode(true)}

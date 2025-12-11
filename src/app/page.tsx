@@ -4,8 +4,13 @@ import { useState, useEffect, useRef } from 'react';
 import { useRequest } from 'ahooks';
 import Navbar from '@/components/navbar';
 import FundList, { FundItem } from '@/components/fund-list';
-import { Pagination } from 'antd';
+import { Pagination, Button } from 'antd';
+import { LoadingOutlined } from '@ant-design/icons';
 import { getLocalStorageWithExpiry } from '@/lib/utils';
+import dynamic from 'next/dynamic';
+
+// 动态导入PullToRefresh组件，禁用服务器端渲染
+const PullToRefresh = dynamic(() => import('react-pull-to-refresh'), { ssr: false });
 
 // 定义 API 返回数据的接口
 interface ApiResponse {
@@ -13,6 +18,7 @@ interface ApiResponse {
     total: number;
     page: number;
     limit: number;
+    totalPages?: number;
 }
 
 // 扩展 FundItem 接口以匹配新的数据结构
@@ -72,6 +78,36 @@ export default function Page() {
 
     const firstLoad = useRef(true);
 
+    // 响应式屏幕检测 - 使用客户端方式确保Next.js兼容
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        // 只在客户端执行
+        if (typeof window !== 'undefined') {
+            const checkScreenSize = () => {
+                setIsMobile(window.innerWidth <= 768);
+            };
+
+            // 初始检测
+            checkScreenSize();
+
+            // 监听窗口大小变化
+            window.addEventListener('resize', checkScreenSize);
+
+            return () => {
+                window.removeEventListener('resize', checkScreenSize);
+            };
+        }
+    }, []);
+
+    // 移动端无限滚动相关状态
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+    const [allFunds, setAllFunds] = useState<ExtendedFundItem[]>([]);
+
+    // 滚动检测ref
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
     // 构建 API URL 带分页参数
     const apiUrl = `/api/funds?page=${pagination.page}&limit=${pagination.limit}`;
 
@@ -85,9 +121,22 @@ export default function Page() {
         debounceWait: 500, // 关键参数
         refreshDeps: [pagination.page, pagination.limit], // 显式监听page和limit变化
         ready: !!apiUrl, // 空 url 时不发请求
-        onSuccess: (data) => {
-            setData(data);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        onSuccess: (fetchedData) => {
+            setData(fetchedData);
+
+            // 移动端处理：累积所有加载的数据
+            if (isMobile) {
+                if (fetchedData.page === 1) {
+                    setAllFunds(fetchedData.data);
+                } else {
+                    setAllFunds((prev) => [...prev, ...fetchedData.data]);
+                }
+                // 计算总页数并检查是否还有更多数据
+                const totalPages = Math.ceil(fetchedData.total / fetchedData.limit);
+                setHasMore(fetchedData.data.length > 0 && fetchedData.page < totalPages);
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         },
     });
 
@@ -123,8 +172,84 @@ export default function Page() {
         refreshFunds(currentApiUrl);
     }, [pagination.page, pagination.limit]);
 
+    // 移动端滚动加载更多
+    useEffect(() => {
+        // 只在客户端和移动端执行
+        if (typeof window !== 'undefined' && isMobile && scrollContainerRef.current) {
+            const handleScroll = () => {
+                const container = scrollContainerRef.current;
+                if (!container) return;
+
+                const { scrollTop, clientHeight, scrollHeight } = container;
+
+                // 当滚动到距离底部100px时加载更多
+                if (scrollHeight - scrollTop - clientHeight < 100 && !isLoadingMore && hasMore) {
+                    loadMoreFunds();
+                }
+            };
+
+            const container = scrollContainerRef.current;
+            container.addEventListener('scroll', handleScroll);
+
+            return () => container.removeEventListener('scroll', handleScroll);
+        }
+    }, [isMobile, isLoadingMore, hasMore]);
+
+    // 加载更多数据
+    const loadMoreFunds = async () => {
+        if (isLoadingMore || !hasMore) return;
+
+        setIsLoadingMore(true);
+
+        try {
+            const nextPage = pagination.page + 1;
+            const currentApiUrl = `/api/funds?page=${nextPage}&limit=${pagination.limit}`;
+
+            const res = await fetch(currentApiUrl);
+            if (!res.ok) {
+                throw new Error('Failed to fetch data');
+            }
+
+            const fetchedData = await res.json();
+
+            // 更新状态
+            setPagination((prev) => ({
+                ...prev,
+                page: nextPage,
+            }));
+
+            setAllFunds((prev) => [...prev, ...fetchedData.data]);
+
+            // 计算总页数并检查是否还有更多数据
+            const totalPages = Math.ceil(fetchedData.total / fetchedData.limit);
+            setHasMore(fetchedData.data.length > 0 && nextPage < totalPages);
+        } catch (err) {
+            console.error('加载更多数据失败:', err);
+        } finally {
+            setIsLoadingMore(false);
+        }
+    };
+
+    // 下拉刷新处理函数
+    const handleRefresh = async () => {
+        // 重置移动端状态
+        setPagination((prev) => ({
+            ...prev,
+            page: 1,
+        }));
+        setAllFunds([]);
+        setHasMore(true);
+
+        // 重新加载数据
+        const currentApiUrl = `/api/funds?page=1&limit=${pagination.limit}`;
+        await refreshFunds(currentApiUrl);
+    };
+
     const loadFavoriteList = async () => {
         try {
+            // 只在客户端执行
+            if (typeof window === 'undefined') return;
+
             const userInfo = getLocalStorageWithExpiry('userInfo');
             if (!userInfo || !userInfo?.id) {
                 return;
@@ -153,6 +278,9 @@ export default function Page() {
 
     const loadMonitorList = async () => {
         try {
+            // 只在客户端执行
+            if (typeof window === 'undefined') return;
+
             const userInfo = getLocalStorageWithExpiry('userInfo');
             if (!userInfo || !userInfo?.id) {
                 return;
@@ -199,7 +327,10 @@ export default function Page() {
         });
     }, [data]);
 
-    const fundsWithFavorite = funds.map((fund) => ({
+    // 根据设备类型选择要显示的基金数据
+    const displayFunds = isMobile ? allFunds : funds;
+
+    const fundsWithFavorite = displayFunds.map((fund) => ({
         ...fund,
         isFavorite: favoriteFunds.some((fav) => fav?.id === fund?.id),
         isMonitoring: monitorFunds.some((mon) => mon?.id === fund?.id),
@@ -246,37 +377,77 @@ export default function Page() {
             <Navbar />
 
             <div className="container mx-auto px-4 py-8">
-                {/* 使用基金列表组件 */}
-                <FundList
-                    total={pagination.total}
-                    initialFunds={fundsWithFavorite as FundItem[]}
-                    showFavoriteList={showFavoriteList}
-                    setShowFavoriteList={setShowFavoriteList}
-                    refreshFavoriteList={loadFavoriteList}
-                    showMonitorList={showMonitorList}
-                    setShowMonitorList={setShowMonitorList}
-                    refreshMonitorList={loadMonitorList}
-                    isLoading={isLoading}
-                    favoriteCount={favoriteCount}
-                    monitorCount={monitorCount}
-                />
+                {/* 移动端使用下拉刷新，桌面端正常显示 */}
+                {isMobile ? (
+                    <PullToRefresh
+                        onRefresh={handleRefresh}
+                        className="h-[calc(100vh-160px)] overflow-auto"
+                    >
+                        <div ref={scrollContainerRef} className="h-full overflow-auto">
+                            <FundList
+                                total={pagination.total}
+                                initialFunds={fundsWithFavorite as FundItem[]}
+                                showFavoriteList={showFavoriteList}
+                                setShowFavoriteList={setShowFavoriteList}
+                                refreshFavoriteList={loadFavoriteList}
+                                showMonitorList={showMonitorList}
+                                setShowMonitorList={setShowMonitorList}
+                                refreshMonitorList={loadMonitorList}
+                                isLoading={isLoading}
+                                favoriteCount={favoriteCount}
+                                monitorCount={monitorCount}
+                            />
 
-                {/* 分页控件 - 当显示收藏列表时隐藏 */}
-                {!showFavoriteList && !showMonitorList && (
-                    <div className="mt-6 flex justify-center">
-                        <Pagination
-                            current={pagination.page}
-                            pageSize={pagination.limit}
+                            {/* 加载更多按钮/状态 */}
+                            {!showFavoriteList && !showMonitorList && (
+                                <div className="mt-4 flex justify-center pb-8">
+                                    {isLoadingMore ? (
+                                        <Button loading icon={<LoadingOutlined />}>
+                                            加载中...
+                                        </Button>
+                                    ) : hasMore ? (
+                                        <Button onClick={loadMoreFunds}>加载更多</Button>
+                                    ) : (
+                                        <div className="text-gray-500 text-sm">已加载全部数据</div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </PullToRefresh>
+                ) : (
+                    <>
+                        <FundList
                             total={pagination.total}
-                            onChange={handlePageChange}
-                            onShowSizeChange={(current, size) =>
-                                handleLimitChangeForComponent(size.toString())
-                            }
-                            showSizeChanger
-                            pageSizeOptions={['10', '20', '50', '100']}
-                            showTotal={(total) => `共 ${total} 条记录`}
+                            initialFunds={fundsWithFavorite as FundItem[]}
+                            showFavoriteList={showFavoriteList}
+                            setShowFavoriteList={setShowFavoriteList}
+                            refreshFavoriteList={loadFavoriteList}
+                            showMonitorList={showMonitorList}
+                            setShowMonitorList={setShowMonitorList}
+                            refreshMonitorList={loadMonitorList}
+                            isLoading={isLoading}
+                            favoriteCount={favoriteCount}
+                            monitorCount={monitorCount}
                         />
-                    </div>
+
+                        {/* 分页控件 - 当显示收藏列表时隐藏 */}
+                        {!showFavoriteList && !showMonitorList && (
+                            <div className="mt-6 flex justify-center">
+                                <Pagination
+                                    current={pagination.page}
+                                    pageSize={pagination.limit}
+                                    total={pagination.total}
+                                    onChange={handlePageChange}
+                                    onShowSizeChange={(current, size) =>
+                                        handleLimitChangeForComponent(size.toString())
+                                    }
+                                    showSizeChanger
+                                    pageSizeOptions={['10', '20', '50', '100']}
+                                    showTotal={(total) => `共 ${total} 条记录`}
+                                />
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         </div>
