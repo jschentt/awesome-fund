@@ -93,7 +93,7 @@ export default function FundStatsAndSearch({
                     transition={{ duration: 0.5, delay: 0.2 }}
                     className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 lg:ml-auto w-full sm:w-auto"
                 >
-                    <div className="relative w-full sm:w-64">
+                    <div className="relative w-full sm:w-80 lg:w-96">
                         <Input
                             placeholder="搜索基金代码或名称..."
                             value={searchTerm}
