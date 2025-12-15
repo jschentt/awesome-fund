@@ -36,10 +36,17 @@ export async function GET(request: Request) {
             return NextResponse.json<ApiResponse>({ message: '用户不存在' }, { status: 400 });
         }
 
-        // 查询用户监控的基金列表
+        // 查询用户监控的基金列表，并左连接 fund_monitor_rules 表
         const { data: monitorFunds, error: monitorQueryError } = await supabase
             .from('user_monitor_fund')
-            .select('fund_code, created_at')
+            .select(
+                `
+                id,
+                fund_code,
+                created_at,
+                fund_monitor_rules!monitor_id(id, rule_name)
+            `,
+            )
             .eq('user_id', userId);
 
         if (monitorQueryError) {
@@ -86,6 +93,13 @@ export async function GET(request: Request) {
 
         // 等待所有基金详情查询完成
         const fundDetails = await Promise.all(fundDetailsPromises);
+
+        console.debug(monitorFunds, 'monitorFunds');
+        fundDetails.forEach((item) => {
+            const fund = item.data || ({} as FundDetail);
+            const monitorRecord = monitorFunds.find((f) => f.fund_code === fund.code);
+            fund.monitorId = monitorRecord?.id;
+        });
 
         // 返回完整的监控列表
         return NextResponse.json<ApiResponse<MonitorFund[]>>(

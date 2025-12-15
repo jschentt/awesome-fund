@@ -44,6 +44,7 @@ export interface MonitorRuleRequest {
     email?: string;
     fundName?: string;
     webhookId?: number;
+    monitorId?: number;
 }
 
 /**

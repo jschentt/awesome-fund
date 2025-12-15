@@ -13,6 +13,8 @@ interface MonitoringSettingsModalProps {
     open: boolean;
     onClose: () => void;
     fundInfo: FundItem;
+    monitorId?: number;
+    refresh?: () => void;
 }
 
 /**
@@ -23,6 +25,8 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
     open,
     onClose,
     fundInfo,
+    monitorId,
+    refresh,
 }) => {
     const [form] = Form.useForm();
     const { user, vipInfo } = useAuth();
@@ -84,6 +88,7 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                 const result = await response.json();
                 message.success(result.message || '监控设置已保存');
                 onClose();
+                refresh?.();
             } else {
                 const result = await response.json();
                 message.error(result.message || '保存失败');
@@ -116,6 +121,7 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
             // 准备请求数据
             const requestData = {
                 userId: user?.id,
+                monitorId,
                 webhookId: vipInfo?.webhook_id,
                 fundCode,
                 fundName,

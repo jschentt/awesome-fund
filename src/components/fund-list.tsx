@@ -33,6 +33,7 @@ export interface FundItem {
     isFavorite: boolean;
     updateTime: string;
     status: string;
+    monitorId?: number;
 }
 
 interface FundListProps {

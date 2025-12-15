@@ -47,6 +47,7 @@ interface MonitorFundResponse {
             currentBuyRate: number;
             establishDate: string;
             description: string;
+            monitorId?: number;
             netWorthData?: [string, string, string, string][];
         };
         monitor_at: string;
@@ -74,6 +75,7 @@ export default function MonitorFundList({
     const mapApiDataToFundItem = useCallback(
         (apiData: MonitorFundResponse['data'][0]): FundItem => {
             const fund = apiData.data;
+            console.debug(fund, 'fund');
             return {
                 id: fund?.id,
                 code: fund.code,
@@ -95,6 +97,7 @@ export default function MonitorFundList({
                 isFavorite: true, // 收藏列表中的基金一定是已收藏的
                 updateTime: fund.netWorthDate || new Date().toISOString(),
                 status: '打开', // 默认状态
+                monitorId: fund.monitorId,
             };
         },
         [],
@@ -710,9 +713,13 @@ export default function MonitorFundList({
             {/* 监控设置模态框 */}
             {selectedFund && (
                 <MonitoringSettingsModal
+                    monitorId={selectedFund.monitorId}
                     open={settingsModalOpen}
                     onClose={() => setSettingsModalOpen(false)}
                     fundInfo={selectedFund}
+                    refresh={() => {
+                        loadMonitorFunds();
+                    }}
                 />
             )}
         </div>

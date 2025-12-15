@@ -8,6 +8,7 @@ export async function POST(request: Request) {
         // 解析请求体
         const {
             userId,
+            monitorId,
             fundCode,
             fundName,
             webhookId,
@@ -18,8 +19,11 @@ export async function POST(request: Request) {
         }: MonitorRuleRequest = await request.json();
 
         // 参数验证
-        if (!fundCode || !userId) {
-            return NextResponse.json({ message: '基金代码和用户ID不能为空' }, { status: 400 });
+        if (!fundCode || !userId || !monitorId) {
+            return NextResponse.json(
+                { message: '基金代码、用户ID和监控ID不能为空' },
+                { status: 400 },
+            );
         }
 
         // 查找用户ID
@@ -38,6 +42,7 @@ export async function POST(request: Request) {
         const { data: insertData, error } = await supabase
             .from('fund_monitor_rules')
             .insert({
+                monitor_id: monitorId,
                 user_id: user?.id,
                 rule_name: ruleName,
                 fund_code: fundCode,
@@ -124,8 +129,8 @@ export async function GET(request: Request) {
             if (error.code === 'PGRST116') {
                 // 没有找到匹配的记录
                 return NextResponse.json<ApiResponse>(
-                    { message: '未找到监控规则' },
-                    { status: 404 },
+                    { message: '未找到监控规则', data: null },
+                    { status: 200 },
                 );
             }
             console.error('查询监控规则失败:', error);
