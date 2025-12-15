@@ -388,14 +388,11 @@ export default function Page() {
             {/* 使用导航栏组件 */}
             <Navbar />
 
-            <div className="container mx-auto px-4 py-8">
-                {/* 移动端使用下拉刷新，桌面端正常显示 */}
-                {isMobile ? (
-                    <PullToRefresh
-                        onRefresh={handleRefresh}
-                        className="h-[calc(100vh-160px)] overflow-auto"
-                    >
-                        <div ref={scrollContainerRef} className="h-full overflow-auto">
+            {/* 移动端使用下拉刷新，桌面端正常显示 */}
+            {isMobile ? (
+                <PullToRefresh onRefresh={handleRefresh} className="w-full">
+                    <div className="container mx-auto px-4 py-8">
+                        <div ref={scrollContainerRef}>
                             <FundList
                                 total={pagination.total}
                                 initialFunds={fundsWithFavorite as FundItem[]}
@@ -425,43 +422,43 @@ export default function Page() {
                                 </div>
                             )}
                         </div>
-                    </PullToRefresh>
-                ) : (
-                    <>
-                        <FundList
-                            total={pagination.total}
-                            initialFunds={fundsWithFavorite as FundItem[]}
-                            showFavoriteList={showFavoriteList}
-                            setShowFavoriteList={setShowFavoriteList}
-                            refreshFavoriteList={loadFavoriteList}
-                            showMonitorList={showMonitorList}
-                            setShowMonitorList={setShowMonitorList}
-                            refreshMonitorList={loadMonitorList}
-                            isLoading={isLoading}
-                            favoriteCount={favoriteCount}
-                            monitorCount={monitorCount}
-                        />
+                    </div>
+                </PullToRefresh>
+            ) : (
+                <div className="container mx-auto px-4 py-8">
+                    <FundList
+                        total={pagination.total}
+                        initialFunds={fundsWithFavorite as FundItem[]}
+                        showFavoriteList={showFavoriteList}
+                        setShowFavoriteList={setShowFavoriteList}
+                        refreshFavoriteList={loadFavoriteList}
+                        showMonitorList={showMonitorList}
+                        setShowMonitorList={setShowMonitorList}
+                        refreshMonitorList={loadMonitorList}
+                        isLoading={isLoading}
+                        favoriteCount={favoriteCount}
+                        monitorCount={monitorCount}
+                    />
 
-                        {/* 分页控件 - 当显示收藏列表时隐藏 */}
-                        {!showFavoriteList && !showMonitorList && (
-                            <div className="mt-6 flex justify-center">
-                                <Pagination
-                                    current={pagination.page}
-                                    pageSize={pagination.limit}
-                                    total={pagination.total}
-                                    onChange={handlePageChange}
-                                    onShowSizeChange={(current, size) =>
-                                        handleLimitChangeForComponent(size.toString())
-                                    }
-                                    showSizeChanger
-                                    pageSizeOptions={['10', '20', '50', '100']}
-                                    showTotal={(total) => `共 ${total} 条记录`}
-                                />
-                            </div>
-                        )}
-                    </>
-                )}
-            </div>
+                    {/* 分页控件 - 当显示收藏列表时隐藏 */}
+                    {!showFavoriteList && !showMonitorList && (
+                        <div className="mt-6 flex justify-center">
+                            <Pagination
+                                current={pagination.page}
+                                pageSize={pagination.limit}
+                                total={pagination.total}
+                                onChange={handlePageChange}
+                                onShowSizeChange={(current, size) =>
+                                    handleLimitChangeForComponent(size.toString())
+                                }
+                                showSizeChanger
+                                pageSizeOptions={['10', '20', '50', '100']}
+                                showTotal={(total) => `共 ${total} 条记录`}
+                            />
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }
