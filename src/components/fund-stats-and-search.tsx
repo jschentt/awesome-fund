@@ -149,94 +149,49 @@ export default function FundStatsAndSearch({
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.15 }}
-                    className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4"
+                    className="flex flex-col items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4"
                 >
-                    {/* 移动端显示 */}
-                    <div className="sm:hidden w-full grid grid-cols-2 gap-3">
-                        <Button
-                            onClick={() => {
-                                // 如果当前不是指数基金筛选状态，则切换到指数基金并取消股票基金
-                                if (!isIndexFundFiltered && onToggleIndexFundFilter) {
-                                    onToggleIndexFundFilter();
-                                    // 如果股票基金当前是选中状态，则取消它
-                                    if (isStockFundFiltered && onToggleStockFundFilter) {
-                                        onToggleStockFundFilter();
-                                    }
-                                } else if (onToggleIndexFundFilter) {
-                                    // 如果当前已经是指数基金筛选状态，则取消筛选（恢复显示所有基金）
-                                    onToggleIndexFundFilter();
-                                }
-                            }}
-                            variant={isIndexFundFiltered ? 'solid' : 'text'}
-                            className={`w-full flex items-center justify-center space-x-2 px-3 py-2 text-sm ${isIndexFundFiltered ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
-                        >
-                            <span className="font-medium">
-                                {isIndexFundFiltered ? '仅显示指数基金' : '显示所有基金'}
-                            </span>
-                        </Button>
-                        <Button
-                            onClick={() => {
-                                // 如果当前不是股票基金筛选状态，则切换到股票基金并取消指数基金
-                                if (!isStockFundFiltered && onToggleStockFundFilter) {
-                                    onToggleStockFundFilter();
-                                    // 如果指数基金当前是选中状态，则取消它
-                                    if (isIndexFundFiltered && onToggleIndexFundFilter) {
+                    {/* 热门搜索提示文案 */}
+                    <div className="w-full mt-2 sm:mt-0">
+                        <span className="text-xs text-gray-500 flex items-center">
+                            <span className="mr-2">热门搜索：</span>
+                            <span
+                                onClick={() => {
+                                    // 如果当前不是指数基金筛选状态，则切换到指数基金并取消股票基金
+                                    if (!isIndexFundFiltered && onToggleIndexFundFilter) {
+                                        onToggleIndexFundFilter();
+                                        // 如果股票基金当前是选中状态，则取消它
+                                        if (isStockFundFiltered && onToggleStockFundFilter) {
+                                            onToggleStockFundFilter();
+                                        }
+                                    } else if (onToggleIndexFundFilter) {
+                                        // 如果当前已经是指数基金筛选状态，则取消筛选（恢复显示所有基金）
                                         onToggleIndexFundFilter();
                                     }
-                                } else if (onToggleStockFundFilter) {
-                                    // 如果当前已经是股票基金筛选状态，则取消筛选（恢复显示所有基金）
-                                    onToggleStockFundFilter();
-                                }
-                            }}
-                            variant={isStockFundFiltered ? 'solid' : 'text'}
-                            className={`w-full flex items-center justify-center space-x-2 px-3 py-2 text-sm ${isStockFundFiltered ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
-                        >
-                            <span className="font-medium">
-                                {isStockFundFiltered ? '仅显示股票基金' : '显示所有基金'}
+                                }}
+                                className={`mr-2 cursor-pointer hover:underline ${isIndexFundFiltered ? 'text-blue-700 font-medium' : 'text-blue-500'}`}
+                            >
+                                指数基金
                             </span>
-                        </Button>
-                    </div>
-
-                    {/* 桌面端显示 */}
-                    <div className="hidden sm:flex space-x-3">
-                        <Button
-                            onClick={() => {
-                                // 如果当前不是指数基金筛选状态，则切换到指数基金并取消股票基金
-                                if (!isIndexFundFiltered && onToggleIndexFundFilter) {
-                                    onToggleIndexFundFilter();
-                                    // 如果股票基金当前是选中状态，则取消它
-                                    if (isStockFundFiltered && onToggleStockFundFilter) {
+                            <span
+                                onClick={() => {
+                                    // 如果当前不是股票基金筛选状态，则切换到股票基金并取消指数基金
+                                    if (!isStockFundFiltered && onToggleStockFundFilter) {
+                                        onToggleStockFundFilter();
+                                        // 如果指数基金当前是选中状态，则取消它
+                                        if (isIndexFundFiltered && onToggleIndexFundFilter) {
+                                            onToggleIndexFundFilter();
+                                        }
+                                    } else if (onToggleStockFundFilter) {
+                                        // 如果当前已经是股票基金筛选状态，则取消筛选（恢复显示所有基金）
                                         onToggleStockFundFilter();
                                     }
-                                } else if (onToggleIndexFundFilter) {
-                                    // 如果当前已经是指数基金筛选状态，则取消筛选（恢复显示所有基金）
-                                    onToggleIndexFundFilter();
-                                }
-                            }}
-                            variant={isIndexFundFiltered ? 'solid' : 'text'}
-                            className={`flex items-center justify-center space-x-2 px-4 py-2 text-sm ${isIndexFundFiltered ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
-                        >
-                            <span className="font-medium">指数基金</span>
-                        </Button>
-                        <Button
-                            onClick={() => {
-                                // 如果当前不是股票基金筛选状态，则切换到股票基金并取消指数基金
-                                if (!isStockFundFiltered && onToggleStockFundFilter) {
-                                    onToggleStockFundFilter();
-                                    // 如果指数基金当前是选中状态，则取消它
-                                    if (isIndexFundFiltered && onToggleIndexFundFilter) {
-                                        onToggleIndexFundFilter();
-                                    }
-                                } else if (onToggleStockFundFilter) {
-                                    // 如果当前已经是股票基金筛选状态，则取消筛选（恢复显示所有基金）
-                                    onToggleStockFundFilter();
-                                }
-                            }}
-                            variant={isStockFundFiltered ? 'solid' : 'text'}
-                            className={`flex items-center justify-center space-x-2 px-4 py-2 text-sm ${isStockFundFiltered ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
-                        >
-                            <span className="font-medium">股票基金</span>
-                        </Button>
+                                }}
+                                className={`cursor-pointer hover:underline ${isStockFundFiltered ? 'text-blue-700 font-medium' : 'text-blue-500'}`}
+                            >
+                                股票基金
+                            </span>
+                        </span>
                     </div>
                 </motion.div>
             )}
