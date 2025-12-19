@@ -70,6 +70,7 @@ export interface FundListRequest {
     limit?: number;
     blackList?: string[];
     whiteList?: string[];
+    keyword?: string;
 }
 
 /**
@@ -144,10 +145,12 @@ async function fetchFundListFromApi(request: FundListRequest): Promise<FundEntit
     // 使用验证后的值
     const validatedPage = Number(request.page || 1);
     const validatedLimit = Number(request.limit || 10);
+    const validatedKeyword = request.keyword || '';
+
     try {
         let fundDataArray: string[][] = [];
         // 缓存键
-        const cacheKey = `fund_list_funds`;
+        const cacheKey = `__fund_list_funds__`;
 
         // 尝试从缓存获取数据
         const cachedData = getCache(cacheKey);
@@ -156,9 +159,9 @@ async function fetchFundListFromApi(request: FundListRequest): Promise<FundEntit
             fundDataArray = cachedData as string[][];
         } else {
             const response = await axios.get(fundApiUrl, {
-            httpsAgent: createHttpsAgent(),
-            responseType: 'text',
-        });
+                httpsAgent: createHttpsAgent(),
+                responseType: 'text',
+            });
             const data = response.data;
 
             // 解析返回的JavaScript变量定义，提取基金数据
@@ -192,6 +195,14 @@ async function fetchFundListFromApi(request: FundListRequest): Promise<FundEntit
                     return description.includes(type);
                 }),
             );
+        }
+
+        if (validatedKeyword) {
+            stockFunds = stockFunds.filter((item) => {
+                // 基金描述 + 基金code
+                const description = `${item[2]} - ${item[3]}`; // 基金描述
+                return description.includes(validatedKeyword) || item[0].includes(validatedKeyword);
+            });
         }
 
         fundDataArray = stockFunds;

@@ -38,13 +38,14 @@ interface FormattedFundItem {
  * @param limit 每页数量
  * @returns 基金列表响应
  */
-async function fetchFundList(page: number = 1, limit: number = 10) {
+async function fetchFundList(page: number = 1, limit: number = 10, keyword?: string) {
     try {
         const response = await getFundList({
             page,
             limit,
             blackList: ['货币', '债券', '纯债', '后端'],
             whiteList: ['联接C', '增强C', '指数C'],
+            keyword,
         });
 
         return response;
@@ -93,8 +94,9 @@ export async function GET(request: NextRequest) {
         // 解析查询参数，获取分页信息
         const page = parseInt(request.nextUrl.searchParams.get('page') || '1', 10);
         const limit = parseInt(request.nextUrl.searchParams.get('limit') || '10', 10);
+        const keyword = request.nextUrl.searchParams.get('keyword');
 
-        const fundListResponse = await fetchFundList(page, limit);
+        const fundListResponse = await fetchFundList(page, limit, keyword);
 
         // 获取基金列表数据
         const fundListData = fundListResponse.data || [];
