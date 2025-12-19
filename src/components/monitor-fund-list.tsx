@@ -714,6 +714,7 @@ export default function MonitorFundList({
             {/* 监控设置模态框 */}
             {selectedFund && (
                 <MonitoringSettingsModal
+                    hasRules={selectedFund.hasRules}
                     monitorId={selectedFund.monitorId}
                     open={settingsModalOpen}
                     onClose={() => setSettingsModalOpen(false)}
