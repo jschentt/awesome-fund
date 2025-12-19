@@ -479,8 +479,11 @@ export default function Page() {
             {/* 移动端使用下拉刷新，桌面端正常显示 */}
             {isMobile ? (
                 <PullToRefresh onRefresh={handleRefresh} className="w-full">
-                    <div className="container mx-auto px-4 py-8">
-                        <div ref={scrollContainerRef}>
+                    <div className="container mx-auto px-4 py-4">
+                        <div
+                            ref={scrollContainerRef}
+                            className="overflow-y-auto max-h-[calc(100vh-100px)]"
+                        >
                             <FundList
                                 total={pagination.total}
                                 initialFunds={fundsWithFavorite as FundItem[]}

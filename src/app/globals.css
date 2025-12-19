@@ -85,4 +85,31 @@
     body {
         @apply bg-background text-foreground;
     }
+    /* 自定义滚动条样式 - 透明 */
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.1);
+    }
+
+    ::-webkit-scrollbar-corner {
+        background: transparent;
+    }
+
+    /* Firefox 滚动条样式 */
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: transparent transparent;
+    }
 }
