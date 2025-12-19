@@ -23,7 +23,8 @@ function createHttpsAgent() {
 }
 
 // 基金API URL配置
-const fundApiUrl = 'https://fund.eastmoney.com/js/fundcode_search.js';
+const fundWithEstimateApiUrl = 'https://maiqishare.xyz/open-api/fund/all/with-estimate';
+// const fundApiUrl = 'https://fund.eastmoney.com/js/fundcode_search.js';
 const fundNetValueApiUrl = 'https://fundgz.1234567.com.cn/js';
 const fundDetailApiUrl = 'https://api.autostock.cn/v1/fund/detail';
 
@@ -137,7 +138,7 @@ async function fetchFundNetValue(fundCode: string): Promise<{
 }
 
 //  探估值文件是否存在
-export function hasEstimate(code) {
+export function hasEstimate(code: string) {
     return new Promise((r) => {
         const opts = {
             host: 'fundgz.1234567.com.cn',
@@ -160,25 +161,25 @@ export function hasEstimate(code) {
  * @param fundDataArray 原始基金数据数组
  * @returns 仅包含带估值数据的基金数组
  */
-async function filterFundsWithEstimate(fundDataArray: string[][]): Promise<string[][]> {
-    const all = fundDataArray; // ~2w 条
-    const total = all.length;
-    let ok = 0;
-    const result: string[][] = [];
-    // 并发 50 个，太快可再降
-    const batch = 50;
-    for (let i = 0; i < total; i += batch) {
-        const jobs = all.slice(i, i + batch).map(async (arr) => {
-            const [code] = arr;
-            if (await hasEstimate(code)) {
-                result.push(arr);
-                ok++;
-            }
-        });
-        await Promise.all(jobs);
-    }
-    return result;
-}
+// async function filterFundsWithEstimate(fundDataArray: string[][]): Promise<string[][]> {
+//     const all = fundDataArray; // ~2w 条
+//     const total = all.length;
+//     let ok = 0;
+//     const result: string[][] = [];
+//     // 并发 50 个，太快可再降
+//     const batch = 50;
+//     for (let i = 0; i < total; i += batch) {
+//         const jobs = all.slice(i, i + batch).map(async (arr) => {
+//             const [code] = arr;
+//             if (await hasEstimate(code)) {
+//                 result.push(arr);
+//                 ok++;
+//             }
+//         });
+//         await Promise.all(jobs);
+//     }
+//     return result;
+// }
 
 /**
  * 从东方财富网获取基金列表数据，并为每个基金获取详细净值信息
@@ -202,20 +203,26 @@ async function fetchFundListFromApi(request: FundListRequest): Promise<FundEntit
         if (cachedData) {
             fundDataArray = cachedData as string[][];
         } else {
-            const response = await axios.get(fundApiUrl, {
+            const response = await axios.get(fundWithEstimateApiUrl, {
                 httpsAgent: createHttpsAgent(),
-                responseType: 'text',
+                responseType: 'json',
             });
-            const data = response.data;
+            fundDataArray = response.data.data || [];
 
-            // 解析返回的JavaScript变量定义，提取基金数据
-            // 数据格式: var r = [ [code, shortName, name, type, pinyin], ... ]
-            const match = data.match(/var\s+r\s+=\s+(\[.+\])/);
-            if (!match?.[1]) {
-                throw new Error('Failed to parse fund data from API');
-            }
+            // const response = await axios.get(fundApiUrl, {
+            //             httpsAgent: createHttpsAgent(),
+            //             responseType: 'text',
+            //         });
+            //         const data = response.data;
 
-            fundDataArray = (JSON.parse(match[1]) as string[][]) || [];
+            //         // 解析返回的JavaScript变量定义，提取基金数据
+            //         // 数据格式: var r = [ [code, shortName, name, type, pinyin], ... ]
+            //         const match = data.match(/var\s+r\s+=\s+(\[.+\])/);
+            //         if (!match?.[1]) {
+            //             throw new Error('Failed to parse fund data from API');
+            //         }
+
+            //         fundDataArray = (JSON.parse(match[1]) as string[][]) || [];
 
             // try {
             //     fundDataArray = await filterFundsWithEstimate(fundDataArray);
