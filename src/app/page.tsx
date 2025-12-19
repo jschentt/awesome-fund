@@ -59,8 +59,21 @@ const mergeFundsWithDeduplication = (
 };
 
 // 定义 fetcher 函数
-const fetcher = async (url: string): Promise<ApiResponse> => {
-    const res = await fetch(url);
+const fetcher = async (params: {
+    page: number;
+    limit: number;
+    keyword?: string;
+}): Promise<ApiResponse> => {
+    const res = await fetch('/api/funds', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            ...params,
+            whiteList: ['联接C', '增强C', '指数C'],
+        }),
+    });
     if (!res.ok) {
         throw new Error('Failed to fetch data');
     }
@@ -121,19 +134,15 @@ export default function Page() {
     // 滚动检测ref
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-    // 构建 API URL 带分页和搜索参数
-    const apiUrl = `/api/funds?page=${pagination.page}&limit=${pagination.limit}${keyword ? `&keyword=${encodeURIComponent(keyword)}` : ''}`;
-
     // ✅ 防抖 500 ms，请求真正发出
     const {
         error,
         loading: isLoading,
         run: refreshFunds,
     } = useRequest(fetcher, {
-        defaultParams: [apiUrl],
+        defaultParams: [{ page: pagination.page, limit: pagination.limit, keyword }],
         debounceWait: 500, // 关键参数
-        refreshDeps: [pagination.page, pagination.limit], // 显式监听page和limit变化
-        ready: !!apiUrl, // 空 url 时不发请求
+        refreshDeps: [pagination.page, pagination.limit, keyword], // 显式监听page、limit和keyword变化
         onSuccess: (fetchedData) => {
             setData(fetchedData);
 
@@ -155,7 +164,18 @@ export default function Page() {
 
     const loadAllFunds = async () => {
         try {
-            const res = await fetch(apiUrl);
+            const res = await fetch('/api/funds', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    page: pagination.page,
+                    limit: pagination.limit,
+                    keyword,
+                    whiteList: ['联接C', '增强C', '指数C'],
+                }),
+            });
             if (!res.ok) {
                 throw new Error('获取基金请求失败');
             }
@@ -176,13 +196,11 @@ export default function Page() {
 
         // 清理定时器
         return () => clearInterval(interval);
-    }, [apiUrl]);
+    }, [pagination.page, pagination.limit, keyword]);
 
-    // 当page或limit变化时，显式重新请求数据
+    // 当page、limit或keyword变化时，显式重新请求数据
     useEffect(() => {
-        // 直接在effect内部构建最新的apiUrl，确保使用最新的page、limit和keyword值
-        const currentApiUrl = `/api/funds?page=${pagination.page}&limit=${pagination.limit}${keyword ? `&keyword=${encodeURIComponent(keyword)}` : ''}`;
-        refreshFunds(currentApiUrl);
+        refreshFunds({ page: pagination.page, limit: pagination.limit, keyword });
     }, [pagination.page, pagination.limit, keyword]);
 
     // 移动端滚动加载更多
@@ -216,9 +234,19 @@ export default function Page() {
 
         try {
             const nextPage = pagination.page + 1;
-            const currentApiUrl = `/api/funds?page=${nextPage}&limit=${pagination.limit}${keyword ? `&keyword=${encodeURIComponent(keyword)}` : ''}`;
 
-            const res = await fetch(currentApiUrl);
+            const res = await fetch('/api/funds', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    page: nextPage,
+                    limit: pagination.limit,
+                    keyword,
+                    whiteList: ['联接C', '增强C', '指数C'],
+                }),
+            });
             if (!res.ok) {
                 throw new Error('Failed to fetch data');
             }
@@ -254,8 +282,7 @@ export default function Page() {
         setHasMore(true);
 
         // 重新加载数据
-        const currentApiUrl = `/api/funds?page=1&limit=${pagination.limit}${keyword ? `&keyword=${encodeURIComponent(keyword)}` : ''}`;
-        await refreshFunds(currentApiUrl);
+        await refreshFunds({ page: 1, limit: pagination.limit, keyword });
     };
 
     // 搜索按钮点击处理函数

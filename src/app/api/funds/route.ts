@@ -32,30 +32,6 @@ interface FormattedFundItem {
 }
 
 /**
- * 调用基金列表接口的方法
- * @param accessToken OAuth2访问令牌
- * @param page 页码
- * @param limit 每页数量
- * @returns 基金列表响应
- */
-async function fetchFundList(page: number = 1, limit: number = 10, keyword?: string) {
-    try {
-        const response = await getFundList({
-            page,
-            limit,
-            blackList: ['货币', '债券', '纯债', '后端'],
-            whiteList: ['联接C', '增强C', '指数C'],
-            keyword,
-        });
-
-        return response;
-    } catch (error) {
-        console.error('调用基金列表接口时出错:', error);
-        throw error;
-    }
-}
-
-/**
  * 转换基金数据格式以兼容前端组件
  */
 function transformFundData(fundData: any): FormattedFundItem {
@@ -89,14 +65,23 @@ function transformFundData(fundData: any): FormattedFundItem {
     };
 }
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
     try {
-        // 解析查询参数，获取分页信息
-        const page = parseInt(request.nextUrl.searchParams.get('page') || '1', 10);
-        const limit = parseInt(request.nextUrl.searchParams.get('limit') || '10', 10);
-        const keyword = request.nextUrl.searchParams.get('keyword') || undefined;
+        // 解析请求体，获取参数
+        const {
+            page = 1,
+            limit = 10,
+            whiteList = ['联接C', '增强C', '指数C'],
+            keyword,
+        } = await request.json();
 
-        const fundListResponse = await fetchFundList(page, limit, keyword);
+        // 调用基金列表接口，传递所有参数
+        const fundListResponse = await getFundList({
+            page: parseInt(page.toString(), 10),
+            limit: parseInt(limit.toString(), 10),
+            whiteList,
+            keyword,
+        });
 
         // 获取基金列表数据
         const fundListData = fundListResponse.data || [];
