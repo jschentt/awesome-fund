@@ -153,8 +153,8 @@ export default function FundStatsAndSearch({
                 >
                     {/* 热门搜索提示文案 */}
                     <div className="w-full mt-2 sm:mt-0">
-                        <span className="text-xs text-gray-500 flex items-center">
-                            <span className="mr-2">热门搜索：</span>
+                        <span className="text-xs text-gray-500 flex items-center flex-wrap gap-2">
+                            <span className="whitespace-nowrap">热门搜索：</span>
                             <span
                                 onClick={() => {
                                     // 如果当前不是指数基金筛选状态，则切换到指数基金并取消股票基金
@@ -169,7 +169,11 @@ export default function FundStatsAndSearch({
                                         onToggleIndexFundFilter();
                                     }
                                 }}
-                                className={`mr-2 cursor-pointer hover:underline ${isIndexFundFiltered ? 'text-blue-700 font-medium' : 'text-blue-500'}`}
+                                className={`cursor-pointer px-3 py-1 rounded-full transition-all duration-200 hover:shadow-md ${
+                                    isIndexFundFiltered
+                                        ? 'bg-blue-600 text-white font-medium'
+                                        : 'bg-white border border-blue-300 text-blue-600 hover:bg-blue-50'
+                                }`}
                             >
                                 指数基金
                             </span>
@@ -187,7 +191,11 @@ export default function FundStatsAndSearch({
                                         onToggleStockFundFilter();
                                     }
                                 }}
-                                className={`cursor-pointer hover:underline ${isStockFundFiltered ? 'text-blue-700 font-medium' : 'text-blue-500'}`}
+                                className={`cursor-pointer px-3 py-1 rounded-full transition-all duration-200 hover:shadow-md ${
+                                    isStockFundFiltered
+                                        ? 'bg-blue-600 text-white font-medium'
+                                        : 'bg-white border border-blue-300 text-blue-600 hover:bg-blue-50'
+                                }`}
                             >
                                 股票基金
                             </span>
