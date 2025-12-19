@@ -106,7 +106,7 @@ export default function Page() {
         limit: 10,
     });
     // 指数基金筛选状态，默认选中
-    const [isIndexFundFiltered, setIsIndexFundFiltered] = useState(true);
+    const [isIndexFundFiltered, setIsIndexFundFiltered] = useState(false);
     // 股票基金筛选状态，默认未选中
     const [isStockFundFiltered, setIsStockFundFiltered] = useState(false);
 

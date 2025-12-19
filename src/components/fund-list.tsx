@@ -69,7 +69,7 @@ export default function FundList({
     favoriteCount = 0,
     monitorCount = 0,
     onSearchClick,
-    isIndexFundFiltered = true,
+    isIndexFundFiltered = false,
     onToggleIndexFundFilter,
     isStockFundFiltered = false,
     onToggleStockFundFilter,

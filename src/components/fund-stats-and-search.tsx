@@ -37,7 +37,7 @@ export default function FundStatsAndSearch({
     onSearchChange,
     onSearchClick,
     sortOrder,
-    isIndexFundFiltered = true,
+    isIndexFundFiltered = false,
     onToggleIndexFundFilter,
     isStockFundFiltered = false,
     onToggleStockFundFilter,
