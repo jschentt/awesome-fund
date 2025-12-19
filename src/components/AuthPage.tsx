@@ -331,7 +331,7 @@ const AuthPage: React.FC = () => {
                                         id="login-email"
                                         type="email"
                                         name="email"
-                                        placeholder="your@email.com"
+                                        placeholder="请输入邮箱"
                                         value={formData.email}
                                         onChange={handleInputChange}
                                         required
@@ -391,7 +391,7 @@ const AuthPage: React.FC = () => {
                                         id="register-email"
                                         type="email"
                                         name="email"
-                                        placeholder="your@email.com"
+                                        placeholder="请输入邮箱"
                                         value={formData.email}
                                         onChange={handleInputChange}
                                         required
