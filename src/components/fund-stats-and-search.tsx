@@ -18,6 +18,10 @@ interface FundStatsAndSearchProps {
     onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onSearchClick: (searchTerm: string | undefined) => void;
     sortOrder: 'desc' | 'asc' | 'none';
+    isIndexFundFiltered?: boolean;
+    onToggleIndexFundFilter?: () => void;
+    isStockFundFiltered?: boolean;
+    onToggleStockFundFilter?: () => void;
 }
 
 export default function FundStatsAndSearch({
@@ -33,6 +37,10 @@ export default function FundStatsAndSearch({
     onSearchChange,
     onSearchClick,
     sortOrder,
+    isIndexFundFiltered = true,
+    onToggleIndexFundFilter,
+    isStockFundFiltered = false,
+    onToggleStockFundFilter,
 }: FundStatsAndSearchProps) {
     return (
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center space-y-4 lg:space-y-0 mb-8">
@@ -95,6 +103,30 @@ export default function FundStatsAndSearch({
                     transition={{ duration: 0.5, delay: 0.2 }}
                     className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 lg:ml-auto w-full sm:w-auto"
                 >
+                    {/* 快捷筛选入口 - 指数基金标签和股票基金标签 */}
+                    {activeTab === 'all' && (
+                        <div className="sm:hidden w-full grid grid-cols-2 gap-3">
+                            <Button
+                                onClick={onToggleIndexFundFilter}
+                                variant={isIndexFundFiltered ? 'solid' : 'text'}
+                                className={`w-full flex items-center justify-center space-x-2 px-3 py-2 sm:px-4 text-sm ${isIndexFundFiltered ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                            >
+                                <span className="font-medium">
+                                    {isIndexFundFiltered ? '仅显示指数基金' : '显示所有基金'}
+                                </span>
+                            </Button>
+                            <Button
+                                onClick={onToggleStockFundFilter}
+                                variant={isStockFundFiltered ? 'solid' : 'text'}
+                                className={`w-full flex items-center justify-center space-x-2 px-3 py-2 sm:px-4 text-sm ${isStockFundFiltered ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                            >
+                                <span className="font-medium">
+                                    {isStockFundFiltered ? '仅显示股票基金' : '显示所有基金'}
+                                </span>
+                            </Button>
+                        </div>
+                    )}
+
                     <div className="relative w-full sm:w-80">
                         <div className="flex">
                             <Input
@@ -117,7 +149,31 @@ export default function FundStatsAndSearch({
                             </Button>
                         </div>
                     </div>
-                    <div className="flex justify-end">
+                    <div className="flex justify-end space-x-2">
+                        {/* 快捷筛选入口 - 指数基金标签和股票基金标签 */}
+                        {activeTab === 'all' && (
+                            <>
+                                <div className="hidden sm:block">
+                                    <Button
+                                        onClick={onToggleIndexFundFilter}
+                                        variant={isIndexFundFiltered ? 'solid' : 'text'}
+                                        className={`w-full sm:w-auto flex items-center justify-center space-x-2 px-3 py-2 sm:px-4 text-sm ${isIndexFundFiltered ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                                    >
+                                        <span className="font-medium">指数基金</span>
+                                    </Button>
+                                </div>
+                                <div className="hidden sm:block">
+                                    <Button
+                                        onClick={onToggleStockFundFilter}
+                                        variant={isStockFundFiltered ? 'solid' : 'text'}
+                                        className={`w-full sm:w-auto flex items-center justify-center space-x-2 px-3 py-2 sm:px-4 text-sm ${isStockFundFiltered ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                                    >
+                                        <span className="font-medium">股票基金</span>
+                                    </Button>
+                                </div>
+                            </>
+                        )}
+
                         <Button
                             onClick={() => onSortChange()}
                             variant={sortOrder === 'none' ? 'text' : 'solid'}

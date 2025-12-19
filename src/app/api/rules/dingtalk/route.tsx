@@ -85,8 +85,6 @@ export async function POST(req: Request) {
             );
         }
 
-        console.debug('基金详情:', apiResponse.data.data);
-
         // 获取基金详情数据
         const fundDetail = apiResponse.data.data;
         const { netWorth, actualDayGrowth, totalNetWorth, netWorthDate } = fundDetail;

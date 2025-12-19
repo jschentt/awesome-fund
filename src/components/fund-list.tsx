@@ -50,6 +50,10 @@ interface FundListProps {
     favoriteCount?: number;
     monitorCount?: number;
     onSearchClick?: (searchTerm: string | undefined) => void;
+    isIndexFundFiltered?: boolean;
+    onToggleIndexFundFilter?: () => void;
+    isStockFundFiltered?: boolean;
+    onToggleStockFundFilter?: () => void;
 }
 
 export default function FundList({
@@ -65,6 +69,10 @@ export default function FundList({
     favoriteCount = 0,
     monitorCount = 0,
     onSearchClick,
+    isIndexFundFiltered = true,
+    onToggleIndexFundFilter,
+    isStockFundFiltered = false,
+    onToggleStockFundFilter,
 }: FundListProps) {
     const [funds, setFunds] = useState<FundItem[]>([]);
     const [sortOrder, setSortOrder] = useState<'desc' | 'asc' | 'none'>('none');
@@ -404,10 +412,14 @@ export default function FundList({
                     searchTerm={searchTerm}
                     onSearchChange={handleSearchChange}
                     onSearchClick={(searchTerm) => {
-                        setSearchQuery(searchTerm || ''); // 点击搜索按钮时更新搜索关键词，空值时清除
+                        setSearchQuery(searchTerm || ''); // 存储用户确认要搜索的关键词
                         onSearchClick?.(searchTerm);
                     }}
                     sortOrder={sortOrder}
+                    isIndexFundFiltered={isIndexFundFiltered}
+                    onToggleIndexFundFilter={onToggleIndexFundFilter}
+                    isStockFundFiltered={isStockFundFiltered}
+                    onToggleStockFundFilter={onToggleStockFundFilter}
                 />
 
                 {render()}

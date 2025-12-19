@@ -63,7 +63,18 @@ const fetcher = async (params: {
     page: number;
     limit: number;
     keyword?: string;
+    isIndexFundFiltered: boolean;
+    isStockFundFiltered: boolean;
 }): Promise<ApiResponse> => {
+    // 根据筛选条件构建whiteList
+    let whiteList: string[] = [];
+    if (params.isIndexFundFiltered) {
+        whiteList = whiteList.concat(['联接C', '增强C', '指数C']);
+    }
+    if (params.isStockFundFiltered) {
+        whiteList.push('股票');
+    }
+
     const res = await fetch('/api/funds', {
         method: 'POST',
         headers: {
@@ -71,7 +82,7 @@ const fetcher = async (params: {
         },
         body: JSON.stringify({
             ...params,
-            whiteList: ['联接C', '增强C', '指数C'],
+            whiteList,
         }),
     });
     if (!res.ok) {
@@ -94,6 +105,10 @@ export default function Page() {
         page: 1,
         limit: 10,
     });
+    // 指数基金筛选状态，默认选中
+    const [isIndexFundFiltered, setIsIndexFundFiltered] = useState(true);
+    // 股票基金筛选状态，默认未选中
+    const [isStockFundFiltered, setIsStockFundFiltered] = useState(false);
 
     const [pagination, setPagination] = useState({
         page: 1,
@@ -140,9 +155,23 @@ export default function Page() {
         loading: isLoading,
         run: refreshFunds,
     } = useRequest(fetcher, {
-        defaultParams: [{ page: pagination.page, limit: pagination.limit, keyword }],
+        defaultParams: [
+            {
+                page: pagination.page,
+                limit: pagination.limit,
+                keyword,
+                isIndexFundFiltered,
+                isStockFundFiltered,
+            },
+        ],
         debounceWait: 500, // 关键参数
-        refreshDeps: [pagination.page, pagination.limit, keyword], // 显式监听page、limit和keyword变化
+        refreshDeps: [
+            pagination.page,
+            pagination.limit,
+            keyword,
+            isIndexFundFiltered,
+            isStockFundFiltered,
+        ], // 显式监听page、limit、keyword和筛选状态变化
         onSuccess: (fetchedData) => {
             setData(fetchedData);
 
@@ -173,7 +202,7 @@ export default function Page() {
                     page: pagination.page,
                     limit: pagination.limit,
                     keyword,
-                    whiteList: ['联接C', '增强C', '指数C'],
+                    whiteList: isIndexFundFiltered ? ['联接C', '增强C', '指数C'] : [],
                 }),
             });
             if (!res.ok) {
@@ -198,10 +227,16 @@ export default function Page() {
         return () => clearInterval(interval);
     }, [pagination.page, pagination.limit, keyword]);
 
-    // 当page、limit或keyword变化时，显式重新请求数据
+    // 当page、limit、keyword或筛选状态变化时，显式重新请求数据
     useEffect(() => {
-        refreshFunds({ page: pagination.page, limit: pagination.limit, keyword });
-    }, [pagination.page, pagination.limit, keyword]);
+        refreshFunds({
+            page: pagination.page,
+            limit: pagination.limit,
+            keyword,
+            isIndexFundFiltered,
+            isStockFundFiltered,
+        });
+    }, [pagination.page, pagination.limit, keyword, isIndexFundFiltered, isStockFundFiltered]);
 
     // 移动端滚动加载更多
     useEffect(() => {
@@ -235,6 +270,15 @@ export default function Page() {
         try {
             const nextPage = pagination.page + 1;
 
+            // 根据筛选条件构建whiteList
+            let whiteList: string[] = [];
+            if (isIndexFundFiltered) {
+                whiteList = whiteList.concat(['联接C', '增强C', '指数C']);
+            }
+            if (isStockFundFiltered) {
+                whiteList.push('股票');
+            }
+
             const res = await fetch('/api/funds', {
                 method: 'POST',
                 headers: {
@@ -244,7 +288,7 @@ export default function Page() {
                     page: nextPage,
                     limit: pagination.limit,
                     keyword,
-                    whiteList: ['联接C', '增强C', '指数C'],
+                    whiteList,
                 }),
             });
             if (!res.ok) {
@@ -282,7 +326,13 @@ export default function Page() {
         setHasMore(true);
 
         // 重新加载数据
-        await refreshFunds({ page: 1, limit: pagination.limit, keyword });
+        await refreshFunds({
+            page: 1,
+            limit: pagination.limit,
+            keyword,
+            isIndexFundFiltered,
+            isStockFundFiltered,
+        });
     };
 
     // 搜索按钮点击处理函数
@@ -444,6 +494,14 @@ export default function Page() {
                                 favoriteCount={favoriteCount}
                                 monitorCount={monitorCount}
                                 onSearchClick={handleSearchClick}
+                                isIndexFundFiltered={isIndexFundFiltered}
+                                onToggleIndexFundFilter={() =>
+                                    setIsIndexFundFiltered((prev) => !prev)
+                                }
+                                isStockFundFiltered={isStockFundFiltered}
+                                onToggleStockFundFilter={() =>
+                                    setIsStockFundFiltered((prev) => !prev)
+                                }
                             />
 
                             {/* 加载更多按钮/状态 */}
@@ -478,6 +536,10 @@ export default function Page() {
                         favoriteCount={favoriteCount}
                         monitorCount={monitorCount}
                         onSearchClick={handleSearchClick}
+                        isIndexFundFiltered={isIndexFundFiltered}
+                        onToggleIndexFundFilter={() => setIsIndexFundFiltered((prev) => !prev)}
+                        isStockFundFiltered={isStockFundFiltered}
+                        onToggleStockFundFilter={() => setIsStockFundFiltered((prev) => !prev)}
                     />
 
                     {/* 分页控件 - 当显示收藏列表时隐藏 */}

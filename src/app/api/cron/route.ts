@@ -83,7 +83,6 @@ export async function GET(request: Request) {
 
         // 第一步：获取OAuth2访问令牌
         const tokenResponse = await fetchOAuth2Token();
-        // console.log('获取到的token响应数据:', tokenResponse.data);
         const { access_token } = tokenResponse.data.data;
 
         if (!access_token) {
