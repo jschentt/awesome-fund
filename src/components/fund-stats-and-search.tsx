@@ -43,7 +43,7 @@ export default function FundStatsAndSearch({
     onToggleStockFundFilter,
 }: FundStatsAndSearchProps) {
     return (
-        <div className="space-y-4 mb-8">
+        <div className="space-y-4 mb-4 sticky top-[-1px] z-10 bg-gray-50 pt-0 pb-4 sm:static sm:z-auto sm:bg-transparent sm:pt-0 sm:pb-0">
             {/* Stats Tabs 和 Search Controls 在同一行 */}
             <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
                 {/* Stats Tabs */}
