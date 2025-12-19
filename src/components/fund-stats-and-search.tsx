@@ -45,7 +45,7 @@ export default function FundStatsAndSearch({
     return (
         <div className="space-y-4 mb-4 sticky top-[-1px] z-10 bg-gray-50 pt-0 pb-4 sm:static sm:z-auto sm:bg-transparent sm:pt-0 sm:pb-0">
             {/* Stats Tabs 和 Search Controls 在同一行 */}
-            <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap justify-between items-center space-y-4 sm:space-y-0">
                 {/* Stats Tabs */}
                 <motion.div
                     initial={{ opacity: 0, x: -20 }}
@@ -103,7 +103,7 @@ export default function FundStatsAndSearch({
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5, delay: 0.2 }}
-                        className="flex items-center space-x-4 w-full sm:w-auto"
+                        className="flex flex-nowrap items-center space-x-4 w-full sm:w-auto justify-end"
                     >
                         <div className="relative w-full sm:w-80">
                             <div className="flex">
