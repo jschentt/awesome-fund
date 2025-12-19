@@ -49,6 +49,7 @@ interface MonitorFundResponse {
             description: string;
             monitorId?: number;
             netWorthData?: [string, string, string, string][];
+            hasRules?: boolean;
         };
         monitor_at: string;
     }[];
@@ -75,7 +76,6 @@ export default function MonitorFundList({
     const mapApiDataToFundItem = useCallback(
         (apiData: MonitorFundResponse['data'][0]): FundItem => {
             const fund = apiData.data;
-            console.debug(fund, 'fund');
             return {
                 id: fund?.id,
                 code: fund.code,
@@ -98,6 +98,7 @@ export default function MonitorFundList({
                 updateTime: fund.netWorthDate || new Date().toISOString(),
                 status: '打开', // 默认状态
                 monitorId: fund.monitorId,
+                hasRules: fund.hasRules,
             };
         },
         [],
@@ -627,7 +628,7 @@ export default function MonitorFundList({
                                 <div className="flex justify-end space-x-2 mt-3">
                                     <Button
                                         size="small"
-                                        className="border border-blue-200 text-blue-600 hover:bg-blue-50"
+                                        className={`border ${fund.hasRules ? 'border-green-200 text-green-600 hover:bg-green-50' : 'border-blue-200 text-blue-600 hover:bg-blue-50'}`}
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             setSettingsModalOpen(true);
@@ -635,7 +636,7 @@ export default function MonitorFundList({
                                         }}
                                     >
                                         <Settings className="w-4 h-4 mr-1" />
-                                        设置
+                                        {fund.hasRules ? '已设置规则' : '设置'}
                                     </Button>
                                     <Button
                                         size="small"

@@ -34,6 +34,7 @@ export interface FundItem {
     updateTime: string;
     status: string;
     monitorId?: number;
+    hasRules?: boolean;
 }
 
 interface FundListProps {

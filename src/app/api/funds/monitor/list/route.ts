@@ -94,11 +94,12 @@ export async function GET(request: Request) {
         // 等待所有基金详情查询完成
         const fundDetails = await Promise.all(fundDetailsPromises);
 
-        console.debug(monitorFunds, 'monitorFunds');
         fundDetails.forEach((item) => {
             const fund = item.data || ({} as FundDetail);
             const monitorRecord = monitorFunds.find((f) => f.fund_code === fund.code);
             fund.monitorId = monitorRecord?.id;
+            fund.hasRules =
+                monitorRecord?.fund_monitor_rules && monitorRecord.fund_monitor_rules.length > 0;
         });
 
         // 返回完整的监控列表
