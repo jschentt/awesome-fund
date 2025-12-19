@@ -509,7 +509,7 @@ export default function Page() {
 
                             {/* 加载更多按钮/状态 */}
                             {!showFavoriteList && !showMonitorList && (
-                                <div className="mt-4 flex justify-center pb-8">
+                                <div className="mt-2 flex justify-center pb-8">
                                     {isLoadingMore ? (
                                         <Button loading icon={<LoadingOutlined />}>
                                             加载中...
