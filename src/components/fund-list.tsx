@@ -49,6 +49,7 @@ interface FundListProps {
     isLoading: boolean;
     favoriteCount?: number;
     monitorCount?: number;
+    onSearchClick?: (searchTerm: string | undefined) => void;
 }
 
 export default function FundList({
@@ -63,10 +64,12 @@ export default function FundList({
     isLoading,
     favoriteCount = 0,
     monitorCount = 0,
+    onSearchClick,
 }: FundListProps) {
     const [funds, setFunds] = useState<FundItem[]>([]);
     const [sortOrder, setSortOrder] = useState<'desc' | 'asc' | 'none'>('none');
     const [searchTerm, setSearchTerm] = useState('');
+    const [searchQuery, setSearchQuery] = useState(''); // 存储用户确认要搜索的关键词
     const [activeTab, setActiveTab] = useState<'all' | 'monitoring' | 'favorite'>('all');
     const [notificationModalOpen, setNotificationModalOpen] = useState(false);
     const [favoriteModalOpen, setFavoriteModalOpen] = useState(false);
@@ -185,8 +188,8 @@ export default function FundList({
 
     const filteredFunds = funds.filter((fund) => {
         const matchesSearch =
-            fund.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            fund.code.includes(searchTerm);
+            fund.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            fund.code.includes(searchQuery);
         let matchesTab = true;
 
         if (activeTab === 'monitoring') {
@@ -400,6 +403,10 @@ export default function FundList({
                     onSortChange={handleSortChange}
                     searchTerm={searchTerm}
                     onSearchChange={handleSearchChange}
+                    onSearchClick={(searchTerm) => {
+                        setSearchQuery(searchTerm || ''); // 点击搜索按钮时更新搜索关键词，空值时清除
+                        onSearchClick?.(searchTerm);
+                    }}
                     sortOrder={sortOrder}
                 />
 

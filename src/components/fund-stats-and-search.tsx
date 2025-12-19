@@ -16,6 +16,7 @@ interface FundStatsAndSearchProps {
     onSortChange: () => void;
     searchTerm: string;
     onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onSearchClick: (searchTerm: string | undefined) => void;
     sortOrder: 'desc' | 'asc' | 'none';
 }
 
@@ -30,6 +31,7 @@ export default function FundStatsAndSearch({
     onSortChange,
     searchTerm,
     onSearchChange,
+    onSearchClick,
     sortOrder,
 }: FundStatsAndSearchProps) {
     return (
@@ -94,13 +96,26 @@ export default function FundStatsAndSearch({
                     className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 lg:ml-auto w-full sm:w-auto"
                 >
                     <div className="relative w-full sm:w-80">
-                        <Input
-                            placeholder="搜索基金代码或名称..."
-                            value={searchTerm}
-                            onChange={onSearchChange}
-                            className="w-full"
-                            prefix={<Search className="w-4 h-4 text-gray-400" />}
-                        />
+                        <div className="flex">
+                            <Input
+                                placeholder="搜索基金代码或名称..."
+                                value={searchTerm}
+                                onChange={onSearchChange}
+                                className="flex-1 rounded-r-none"
+                                onKeyDown={(e) =>
+                                    e.key === 'Enter' &&
+                                    onSearchClick(searchTerm.trim() || undefined)
+                                }
+                                prefix={<Search className="w-4 h-4 text-gray-400" />}
+                            />
+                            <Button
+                                onClick={() => onSearchClick(searchTerm.trim() || undefined)}
+                                className="rounded-l-none"
+                                type="primary"
+                            >
+                                搜索
+                            </Button>
+                        </div>
                     </div>
                     <div className="flex justify-end">
                         <Button

@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
         // 解析查询参数，获取分页信息
         const page = parseInt(request.nextUrl.searchParams.get('page') || '1', 10);
         const limit = parseInt(request.nextUrl.searchParams.get('limit') || '10', 10);
-        const keyword = request.nextUrl.searchParams.get('keyword');
+        const keyword = request.nextUrl.searchParams.get('keyword') || undefined;
 
         const fundListResponse = await fetchFundList(page, limit, keyword);
 

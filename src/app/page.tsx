@@ -72,6 +72,7 @@ export default function Page() {
     const [showFavoriteList, setShowFavoriteList] = useState(false);
     const [monitorFunds, setMonitorFunds] = useState<ExtendedFundItem[]>([]);
     const [showMonitorList, setShowMonitorList] = useState(false);
+    const [keyword, setKeyword] = useState('');
     const [favoriteCount, setFavoriteCount] = useState(0);
     const [monitorCount, setMonitorCount] = useState(0);
     const [data, setData] = useState<ApiResponse>({
@@ -120,8 +121,8 @@ export default function Page() {
     // 滚动检测ref
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-    // 构建 API URL 带分页参数
-    const apiUrl = `/api/funds?page=${pagination.page}&limit=${pagination.limit}`;
+    // 构建 API URL 带分页和搜索参数
+    const apiUrl = `/api/funds?page=${pagination.page}&limit=${pagination.limit}${keyword ? `&keyword=${encodeURIComponent(keyword)}` : ''}`;
 
     // ✅ 防抖 500 ms，请求真正发出
     const {
@@ -179,10 +180,10 @@ export default function Page() {
 
     // 当page或limit变化时，显式重新请求数据
     useEffect(() => {
-        // 直接在effect内部构建最新的apiUrl，确保使用最新的page和limit值
-        const currentApiUrl = `/api/funds?page=${pagination.page}&limit=${pagination.limit}`;
+        // 直接在effect内部构建最新的apiUrl，确保使用最新的page、limit和keyword值
+        const currentApiUrl = `/api/funds?page=${pagination.page}&limit=${pagination.limit}${keyword ? `&keyword=${encodeURIComponent(keyword)}` : ''}`;
         refreshFunds(currentApiUrl);
-    }, [pagination.page, pagination.limit]);
+    }, [pagination.page, pagination.limit, keyword]);
 
     // 移动端滚动加载更多
     useEffect(() => {
@@ -215,7 +216,7 @@ export default function Page() {
 
         try {
             const nextPage = pagination.page + 1;
-            const currentApiUrl = `/api/funds?page=${nextPage}&limit=${pagination.limit}`;
+            const currentApiUrl = `/api/funds?page=${nextPage}&limit=${pagination.limit}${keyword ? `&keyword=${encodeURIComponent(keyword)}` : ''}`;
 
             const res = await fetch(currentApiUrl);
             if (!res.ok) {
@@ -253,8 +254,18 @@ export default function Page() {
         setHasMore(true);
 
         // 重新加载数据
-        const currentApiUrl = `/api/funds?page=1&limit=${pagination.limit}`;
+        const currentApiUrl = `/api/funds?page=1&limit=${pagination.limit}${keyword ? `&keyword=${encodeURIComponent(keyword)}` : ''}`;
         await refreshFunds(currentApiUrl);
+    };
+
+    // 搜索按钮点击处理函数
+    const handleSearchClick = (searchTerm: string | undefined) => {
+        setKeyword(searchTerm || '');
+        // 重置到第一页
+        setPagination((prev) => ({
+            ...prev,
+            page: 1,
+        }));
     };
 
     const loadFavoriteList = async () => {
@@ -405,6 +416,7 @@ export default function Page() {
                                 isLoading={false}
                                 favoriteCount={favoriteCount}
                                 monitorCount={monitorCount}
+                                onSearchClick={handleSearchClick}
                             />
 
                             {/* 加载更多按钮/状态 */}
@@ -438,6 +450,7 @@ export default function Page() {
                         isLoading={isLoading}
                         favoriteCount={favoriteCount}
                         monitorCount={monitorCount}
+                        onSearchClick={handleSearchClick}
                     />
 
                     {/* 分页控件 - 当显示收藏列表时隐藏 */}
