@@ -175,6 +175,13 @@ export default function Page() {
         onSuccess: (fetchedData) => {
             setData(fetchedData);
 
+            // 更新分页状态的total和totalPages
+            setPagination((prev) => ({
+                ...prev,
+                total: fetchedData.total,
+                totalPages: Math.ceil(fetchedData.total / prev.limit),
+            }));
+
             // 移动端处理：累积所有加载的数据
             if (isMobile) {
                 if (fetchedData.page === 1) {
@@ -458,17 +465,17 @@ export default function Page() {
     // 分页控制函数
     const handlePageChange = (newPage: number) => {
         if (newPage >= 1 && newPage <= pagination.totalPages) {
-            setPagination({ ...pagination, page: newPage });
+            setPagination((prev) => ({ ...prev, page: newPage }));
         }
     };
 
     // 为组件提供的简化版limit改变处理函数
     const handleLimitChangeForComponent = (newLimit: string) => {
-        setPagination({
-            ...pagination,
+        setPagination((prev) => ({
+            ...prev,
             limit: parseInt(newLimit, 10),
             page: 1, // 重置到第一页
-        });
+        }));
     };
 
     return (
@@ -553,9 +560,9 @@ export default function Page() {
                                 pageSize={pagination.limit}
                                 total={pagination.total}
                                 onChange={handlePageChange}
-                                onShowSizeChange={(current, size) =>
-                                    handleLimitChangeForComponent(size.toString())
-                                }
+                                onShowSizeChange={(current, size) => {
+                                    handleLimitChangeForComponent(size.toString());
+                                }}
                                 showSizeChanger
                                 pageSizeOptions={['10', '20', '50', '100']}
                                 showTotal={(total) => `共 ${total} 条记录`}
