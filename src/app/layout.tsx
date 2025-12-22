@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 // 导入全局样式文件
 import './globals.css';
 import ClientProviders from './providers/client-providers';
@@ -68,6 +69,20 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <html lang="zh-CN">
             <head>
                 <StructuredData type="website" />
+                {/* 百度统计代码 */}
+                <Script
+                    id="baidu-analytics"
+                    strategy="afterInteractive"
+                    dangerouslySetInnerHTML={{ __html: `
+                        var _hmt = _hmt || [];
+                        (function() {
+                            var hm = document.createElement("script");
+                            hm.src = "https://hm.baidu.com/hm.js?55f912f39e06da1b00626c4c27464b77";
+                            var s = document.getElementsByTagName("script")[0];
+                            s.parentNode.insertBefore(hm, s);
+                        })();
+                    ` }}
+                />
             </head>
             <body className="">
                 <ClientProviders>{children}</ClientProviders>
