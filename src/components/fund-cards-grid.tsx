@@ -29,7 +29,7 @@ export default function FundCardsGrid({
 }: FundCardsGridProps) {
     return (
         /* Fund Cards Grid */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" aria-label="基金列表">
             <AnimatePresence>
                 {funds.map((fund, index) => (
                     <motion.div
@@ -47,20 +47,22 @@ export default function FundCardsGrid({
                         <Link
                             href={`/fund/${fund.code}`}
                             className="block p-5"
-                            aria-label={`查看基金详情: ${fund.name}`}
+                            aria-label={`查看基金详情: ${fund.name} (${fund.code})`}
+                            title={`${fund.name} - ${fund.code} - 基金详情`}
                         >
                             {/* 基金头部信息 */}
                             <div className="flex justify-between items-start w-full mb-4">
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center space-x-2 mb-1">
-                                        <span className="text-base font-semibold text-gray-900">
+                                        <strong className="text-base font-semibold text-gray-900">
                                             {fund.code}
-                                        </span>
+                                        </strong>
                                         {fund.isMonitoring && (
                                             <span
                                                 className={
                                                     'px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700'
                                                 }
+                                                aria-label="基金监控状态"
                                             >
                                                 监控中
                                             </span>
@@ -68,16 +70,19 @@ export default function FundCardsGrid({
                                         {fund.isFavorite && (
                                             <Star
                                                 className="w-4 h-4 text-yellow-500 fill-yellow-500"
-                                                aria-label="已收藏"
+                                                aria-label="已收藏基金"
                                             />
                                         )}
                                     </div>
                                     <div className="flex items-center space-x-2">
-                                        <h3 className="text-sm font-medium text-gray-900 line-clamp-2">
+                                        <h2 className="text-sm font-medium text-gray-900 line-clamp-2">
                                             {fund.name}
-                                        </h3>
+                                        </h2>
                                         {fund.type && (
-                                            <span className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
+                                            <span
+                                                className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded"
+                                                aria-label="基金类型"
+                                            >
                                                 {fund.type}
                                             </span>
                                         )}
@@ -168,7 +173,12 @@ export default function FundCardsGrid({
                             {/* 基金净值信息 */}
                             <div className="grid grid-cols-3 gap-4 mb-4">
                                 <div>
-                                    <div className="text-xs text-gray-500 mb-1">当日净值</div>
+                                    <div
+                                        className="text-xs text-gray-500 mb-1"
+                                        aria-label="当日基金净值"
+                                    >
+                                        当日净值
+                                    </div>
                                     <div className="text-lg font-semibold text-gray-900">
                                         {fund.currentValue}
                                     </div>
@@ -181,7 +191,12 @@ export default function FundCardsGrid({
 
                                 {fund.expectWorth && (
                                     <div>
-                                        <div className="text-xs text-gray-500 mb-1">预估净值</div>
+                                        <div
+                                            className="text-xs text-gray-500 mb-1"
+                                            aria-label="预估基金净值"
+                                        >
+                                            预估净值
+                                        </div>
                                         <div className="text-lg font-semibold text-gray-900">
                                             {fund.expectWorth}
                                         </div>
@@ -197,17 +212,29 @@ export default function FundCardsGrid({
                             {/* 日涨跌信息 */}
                             <div className="grid grid-cols-2 gap-4 mb-3">
                                 <div>
-                                    <div className="text-xs text-gray-500 mb-1">日涨跌</div>
+                                    <div
+                                        className="text-xs text-gray-500 mb-1"
+                                        aria-label="基金日涨跌额"
+                                    >
+                                        日涨跌
+                                    </div>
                                     <div
                                         className={`text-base font-semibold ${fund.dailyChange && fund.dailyChange.startsWith('+') ? 'text-red-600' : 'text-green-600'}`}
+                                        aria-label={`基金日涨跌: ${fund.dailyChange}`}
                                     >
                                         {fund.dailyChange}
                                     </div>
                                 </div>
                                 <div>
-                                    <div className="text-xs text-gray-500 mb-1">涨跌幅</div>
+                                    <div
+                                        className="text-xs text-gray-500 mb-1"
+                                        aria-label="基金日涨跌幅"
+                                    >
+                                        涨跌幅
+                                    </div>
                                     <div
                                         className={`text-base font-semibold ${fund.changePercent && fund.changePercent.startsWith('+') ? 'text-red-600' : 'text-green-600'}`}
+                                        aria-label={`基金日涨跌幅: ${fund.changePercent}`}
                                     >
                                         {fund.changePercent}
                                     </div>
@@ -215,7 +242,10 @@ export default function FundCardsGrid({
                             </div>
 
                             {/* 更新时间 */}
-                            <div className="text-xs text-gray-400 pt-2 border-t border-gray-100">
+                            <div
+                                className="text-xs text-gray-400 pt-2 border-t border-gray-100"
+                                aria-label="基金数据更新时间"
+                            >
                                 更新时间: {dayjs(fund.updateTime).format('YYYY-MM-DD HH:mm:ss')}
                             </div>
                         </Link>

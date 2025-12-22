@@ -2,14 +2,20 @@
 
 import React, { useEffect, useState } from 'react';
 import { message, Modal } from 'antd';
-import FavoriteFundList from './favorite-fund-list';
-import { SubscriptionDialog } from './subscription-dialog';
 import FundStatsAndSearch from './fund-stats-and-search';
 import FundCardsGrid from './fund-cards-grid';
-import FundEmptyState from './fund-empty-state';
-import MonitoringModal from './monitoring-modal';
-import AddFavoriteModal from './add-favorite-modal';
-import MonitorFundList from './monitor-fund-list';
+// 动态导入非首屏必需的组件
+import dynamic from 'next/dynamic';
+
+const FavoriteFundList = dynamic(() => import('./favorite-fund-list'), { ssr: false });
+const MonitorFundList = dynamic(() => import('./monitor-fund-list'), { ssr: false });
+const FundEmptyState = dynamic(() => import('./fund-empty-state'), { ssr: false });
+const MonitoringModal = dynamic(() => import('./monitoring-modal'), { ssr: false });
+const AddFavoriteModal = dynamic(() => import('./add-favorite-modal'), { ssr: false });
+const SubscriptionDialog = dynamic(
+    () => import('./subscription-dialog').then((mod) => mod.SubscriptionDialog),
+    { ssr: false },
+);
 import { useAuth } from '@/app/providers/auth-provider';
 
 export interface FundItem {
@@ -400,6 +406,13 @@ export default function FundList({
     return (
         <div className="min-h-screen bg-gray-50 pb-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                {/* 页面标题 - 提升SEO和可访问性 */}
+                {/* <h1 className="text-2xl font-bold text-gray-900 mb-4" aria-label="基金监测列表">
+                    基金监测列表
+                    <span className="text-sm font-normal text-gray-500 ml-2">
+                        {total ? `共 ${total} 只基金` : ''}
+                    </span>
+                </h1> */}
                 <FundStatsAndSearch
                     activeTab={activeTab}
                     total={total}
