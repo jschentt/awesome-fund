@@ -7,10 +7,6 @@ import FundList, { FundItem } from '@/components/fund-list';
 import { Pagination, Button } from 'antd';
 import { LoadingOutlined } from '@ant-design/icons';
 import { getLocalStorageWithExpiry } from '@/lib/utils';
-import dynamic from 'next/dynamic';
-
-// 动态导入PullToRefresh组件，禁用服务器端渲染
-const PullToRefresh = dynamic(() => import('react-pull-to-refresh'), { ssr: false });
 
 // 定义 API 返回数据的接口
 interface ApiResponse {
@@ -198,41 +194,23 @@ export default function Page() {
         },
     });
 
-    const loadAllFunds = async () => {
-        try {
-            const res = await fetch('/api/funds', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    page: pagination.page,
-                    limit: pagination.limit,
-                    keyword,
-                    whiteList: isIndexFundFiltered ? ['联接C', '增强C', '指数C'] : [],
-                }),
-            });
-            if (!res.ok) {
-                throw new Error('获取基金请求失败');
-            }
-            const data = await res.json();
-            setData(data);
-        } catch (err) {
-            console.error('获取基金数据失败:', err);
-        }
-    };
-
     useEffect(() => {
         // 每30秒轮询一次接口
         const interval = setInterval(() => {
-            loadAllFunds();
+            refreshFunds({
+                page: pagination.page,
+                limit: pagination.limit,
+                keyword,
+                isIndexFundFiltered,
+                isStockFundFiltered,
+            });
             loadFavoriteList();
             loadMonitorList();
         }, 30 * 1000);
 
         // 清理定时器
         return () => clearInterval(interval);
-    }, [pagination.page, pagination.limit, keyword]);
+    }, [pagination.page, pagination.limit, keyword, isIndexFundFiltered, isStockFundFiltered]);
 
     // 当page、limit、keyword或筛选状态变化时，显式重新请求数据
     useEffect(() => {
@@ -320,26 +298,6 @@ export default function Page() {
         } finally {
             setIsLoadingMore(false);
         }
-    };
-
-    // 下拉刷新处理函数
-    const handleRefresh = async () => {
-        // 重置移动端状态
-        setPagination((prev) => ({
-            ...prev,
-            page: 1,
-        }));
-        setAllFunds([]);
-        setHasMore(true);
-
-        // 重新加载数据
-        await refreshFunds({
-            page: 1,
-            limit: pagination.limit,
-            keyword,
-            isIndexFundFiltered,
-            isStockFundFiltered,
-        });
     };
 
     // 搜索按钮点击处理函数
@@ -485,52 +443,46 @@ export default function Page() {
 
             {/* 移动端使用下拉刷新，桌面端正常显示 */}
             {isMobile ? (
-                <PullToRefresh onRefresh={handleRefresh} className="w-full">
-                    <div className="container mx-auto px-4 py-4">
-                        <div
-                            ref={scrollContainerRef}
-                            className="overflow-y-auto max-h-[calc(100vh-100px)]"
-                        >
-                            <FundList
-                                total={pagination.total}
-                                initialFunds={fundsWithFavorite as FundItem[]}
-                                showFavoriteList={showFavoriteList}
-                                setShowFavoriteList={setShowFavoriteList}
-                                refreshFavoriteList={loadFavoriteList}
-                                showMonitorList={showMonitorList}
-                                setShowMonitorList={setShowMonitorList}
-                                refreshMonitorList={loadMonitorList}
-                                isLoading={false}
-                                favoriteCount={favoriteCount}
-                                monitorCount={monitorCount}
-                                onSearchClick={handleSearchClick}
-                                isIndexFundFiltered={isIndexFundFiltered}
-                                onToggleIndexFundFilter={() =>
-                                    setIsIndexFundFiltered((prev) => !prev)
-                                }
-                                isStockFundFiltered={isStockFundFiltered}
-                                onToggleStockFundFilter={() =>
-                                    setIsStockFundFiltered((prev) => !prev)
-                                }
-                            />
+                <div className="container mx-auto px-4 py-4">
+                    <div
+                        ref={scrollContainerRef}
+                        className="overflow-y-auto max-h-[calc(100vh-100px)]"
+                    >
+                        <FundList
+                            total={pagination.total}
+                            initialFunds={fundsWithFavorite as FundItem[]}
+                            showFavoriteList={showFavoriteList}
+                            setShowFavoriteList={setShowFavoriteList}
+                            refreshFavoriteList={loadFavoriteList}
+                            showMonitorList={showMonitorList}
+                            setShowMonitorList={setShowMonitorList}
+                            refreshMonitorList={loadMonitorList}
+                            isLoading={false}
+                            favoriteCount={favoriteCount}
+                            monitorCount={monitorCount}
+                            onSearchClick={handleSearchClick}
+                            isIndexFundFiltered={isIndexFundFiltered}
+                            onToggleIndexFundFilter={() => setIsIndexFundFiltered((prev) => !prev)}
+                            isStockFundFiltered={isStockFundFiltered}
+                            onToggleStockFundFilter={() => setIsStockFundFiltered((prev) => !prev)}
+                        />
 
-                            {/* 加载更多按钮/状态 */}
-                            {!showFavoriteList && !showMonitorList && (
-                                <div className="mt-2 flex justify-center pb-8">
-                                    {isLoadingMore ? (
-                                        <Button loading icon={<LoadingOutlined />}>
-                                            加载中...
-                                        </Button>
-                                    ) : hasMore ? (
-                                        <Button onClick={loadMoreFunds}>加载更多</Button>
-                                    ) : (
-                                        <div className="text-gray-500 text-sm">已加载全部数据</div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
+                        {/* 加载更多按钮/状态 */}
+                        {!showFavoriteList && !showMonitorList && (
+                            <div className="mt-2 flex justify-center pb-8">
+                                {isLoadingMore ? (
+                                    <Button loading icon={<LoadingOutlined />}>
+                                        加载中...
+                                    </Button>
+                                ) : hasMore ? (
+                                    <Button onClick={loadMoreFunds}>加载更多</Button>
+                                ) : (
+                                    <div className="text-gray-500 text-sm">已加载全部数据</div>
+                                )}
+                            </div>
+                        )}
                     </div>
-                </PullToRefresh>
+                </div>
             ) : (
                 <div className="container mx-auto px-4 py-8">
                     <FundList
