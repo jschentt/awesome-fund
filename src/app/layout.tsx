@@ -6,7 +6,7 @@ import ClientProviders from './providers/client-providers';
 import StructuredData from '@/components/structured-data';
 
 export const metadata: Metadata = {
-    title: '守望小基 - 实时基金净值查询与监测平台',
+    title: '基金监控列表 - 实时基金净值查询与监测平台',
     description:
         '专业的基金监测平台，提供实时基金净值查询、涨跌幅度分析、个性化基金监控服务，帮助投资者及时掌握基金市场动态。',
     keywords: '基金监测,基金净值,实时基金,基金查询,基金监控,投资分析',
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     },
     // 社交媒体元标签
     openGraph: {
-        title: '守望小基 - 实时基金净值查询与监测平台',
+        title: '基金监控列表 - 实时基金净值查询与监测平台',
         description: '专业的基金监测平台，提供实时基金净值查询、涨跌幅度分析、个性化基金监控服务。',
         url: 'https://your-domain.com',
         siteName: '基金监测平台',
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: 'summary_large_image',
-        title: '守望小基 - 实时基金净值查询与监测平台',
+        title: '基金监控列表 - 实时基金净值查询与监测平台',
         description: '专业的基金监测平台，提供实时基金净值查询、涨跌幅度分析、个性化基金监控服务。',
         images: ['https://your-domain.com/og-image.jpg'],
         creator: '@your-twitter-handle',
@@ -73,7 +73,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 <Script
                     id="baidu-analytics"
                     strategy="afterInteractive"
-                    dangerouslySetInnerHTML={{ __html: `
+                    dangerouslySetInnerHTML={{
+                        __html: `
                         var _hmt = _hmt || [];
                         (function() {
                             var hm = document.createElement("script");
@@ -81,7 +82,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                             var s = document.getElementsByTagName("script")[0];
                             s.parentNode.insertBefore(hm, s);
                         })();
-                    ` }}
+                    `,
+                    }}
                 />
             </head>
             <body className="">
