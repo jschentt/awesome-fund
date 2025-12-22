@@ -60,6 +60,7 @@ interface FundListProps {
     onToggleIndexFundFilter?: () => void;
     isStockFundFiltered?: boolean;
     onToggleStockFundFilter?: () => void;
+    h5Loading?: boolean;
 }
 
 export default function FundList({
@@ -78,6 +79,7 @@ export default function FundList({
     isIndexFundFiltered = false,
     onToggleIndexFundFilter,
     isStockFundFiltered = false,
+    h5Loading = false,
     onToggleStockFundFilter,
 }: FundListProps) {
     const [funds, setFunds] = useState<FundItem[]>([]);
@@ -398,7 +400,7 @@ export default function FundList({
                     setFavoriteModalOpen={setFavoriteModalOpen}
                     setSelectedFund={setSelectedFund}
                 />
-                <FundEmptyState showFunds={currentFunds.length > 0} />
+                <FundEmptyState showFunds={currentFunds.length > 0} h5Loading={h5Loading} />
             </>
         );
     };
