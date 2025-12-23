@@ -199,31 +199,6 @@ export function hasEstimate(code: string) {
 }
 
 /**
- * 从基金列表中筛选出带有估值数据的基金
- * @param fundDataArray 原始基金数据数组
- * @returns 仅包含带估值数据的基金数组
- */
-// async function filterFundsWithEstimate(fundDataArray: string[][]): Promise<string[][]> {
-//     const all = fundDataArray; // ~2w 条
-//     const total = all.length;
-//     let ok = 0;
-//     const result: string[][] = [];
-//     // 并发 50 个，太快可再降
-//     const batch = 50;
-//     for (let i = 0; i < total; i += batch) {
-//         const jobs = all.slice(i, i + batch).map(async (arr) => {
-//             const [code] = arr;
-//             if (await hasEstimate(code)) {
-//                 result.push(arr);
-//                 ok++;
-//             }
-//         });
-//         await Promise.all(jobs);
-//     }
-//     return result;
-// }
-
-/**
  * 从东方财富网获取基金列表数据，并为每个基金获取详细净值信息
  * @param request 请求参数对象
  * @returns 解析后的基金数据数组，包含完整的净值信息
@@ -245,6 +220,7 @@ async function fetchFundListFromApi(request: FundListRequest): Promise<FundEntit
         if (cachedData) {
             fundDataArray = cachedData as string[][];
         } else {
+            const blackList = ['000006'];
             const fastCDN = await loadBestCDN();
 
             const response = await axios.get(fastCDN, {
@@ -253,6 +229,11 @@ async function fetchFundListFromApi(request: FundListRequest): Promise<FundEntit
             });
 
             fundDataArray = extractFundcodeSearchArray(response.data);
+
+            // 根据基金代码过滤黑名单
+            if (blackList && blackList.length > 0) {
+                fundDataArray = fundDataArray.filter((item) => !blackList!.includes(item[0]));
+            }
 
             // 将数据设置到缓存中，缓存时间24小时
             setCache(cacheKey, fundDataArray);

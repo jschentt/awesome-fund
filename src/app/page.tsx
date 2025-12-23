@@ -444,7 +444,7 @@ export default function Page() {
             {/* 移动端使用下拉刷新，桌面端正常显示 */}
             {isMobile ? (
                 <div
-                    className="container mx-auto px-4 py-4"
+                    className="container mx-auto px-4 py-4 flex justify-center"
                     style={{
                         backgroundColor: 'blue',
                     }}
