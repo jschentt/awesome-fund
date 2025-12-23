@@ -5,17 +5,20 @@ import './globals.css';
 import ClientProviders from './providers/client-providers';
 import StructuredData from '@/components/structured-data';
 
+// 配置viewport
+// https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+export const viewport = {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+};
+
 export const metadata: Metadata = {
     title: '基金监控列表 - 实时基金净值查询与监测平台',
     description:
         '专业的基金监测平台，提供实时基金净值查询、涨跌幅度分析、个性化基金监控服务，帮助投资者及时掌握基金市场动态。',
     keywords: '基金监测,基金净值,实时基金,基金查询,基金监控,投资分析',
     authors: [{ name: '基金监测平台' }],
-    viewport: {
-        width: 'device-width',
-        initialScale: 1,
-        maximumScale: 1,
-    },
     robots: {
         index: true,
         follow: true,
