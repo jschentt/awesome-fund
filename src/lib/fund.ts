@@ -2,6 +2,17 @@ import axios from 'axios';
 import https from 'https';
 import type { FundEntity } from '../types/common';
 
+/**
+ * 基金列表请求参数接口
+ */
+export interface FundListRequest {
+    page?: number;
+    limit?: number;
+    blackList?: string[];
+    whiteList?: string[];
+    keyword?: string;
+}
+
 // 缓存项接口定义
 interface CacheItem {
     data: any;
@@ -22,9 +33,17 @@ function createHttpsAgent() {
     });
 }
 
+// 备选CDN链接
+const cdnUrls = [
+    'https://cdn.jsdelivr.net/gh/jschentt/peace-public@v1.0.0/fundcode_search.js',
+    'https://gcore.jsdelivr.net/gh/jschentt/peace-public@v1.0.0/fundcode_search.js',
+    'https://fastly.jsdelivr.net/gh/jschentt/peace-public@v1.0.0/fundcode_search.js',
+];
+
 // 基金API URL配置
 const fundWithEstimateApiUrl = 'https://maiqishare.xyz/open-api/fund/all/with-estimate';
 // const fundApiUrl = 'https://fund.eastmoney.com/js/fundcode_search.js';
+const fundApiUrl = 'https://cdn.jsdelivr.net/gh/jschentt/peace-public@v1.0.0/fundcode_search.js';
 const fundNetValueApiUrl = 'https://fundgz.1234567.com.cn/js';
 const fundDetailApiUrl = 'https://api.autostock.cn/v1/fund/detail';
 
@@ -63,15 +82,38 @@ function getCache(key: string): any | null {
     return cachedItem.data;
 }
 
+// 自动选择最快的CDN
+async function loadBestCDN() {
+    for (let url of cdnUrls) {
+        try {
+            const start = Date.now();
+            const response = await fetch(url, { method: 'HEAD' });
+            if (response.ok) {
+                return url;
+            }
+        } catch (e) {
+            continue;
+        }
+    }
+    return cdnUrls[0];
+}
+
 /**
- * 基金列表请求参数接口
+ * 从返回的 JS 文本中提取 fundcode_search 数组
+ * @param text 完整的 JS 文本
+ * @returns 解析后的二维数组
  */
-export interface FundListRequest {
-    page?: number;
-    limit?: number;
-    blackList?: string[];
-    whiteList?: string[];
-    keyword?: string;
+function extractFundcodeSearchArray(text: string): string[][] {
+    // 匹配 var fundcode_search=...; 并提取数组部分
+    const match = text.match(/var\s+fundcode_search\s*=\s*(\[\[.*?\]\])\s*;/s);
+    if (!match?.[1]) {
+        throw new Error('未找到 fundcode_search 数组');
+    }
+    try {
+        return JSON.parse(match[1]) as string[][];
+    } catch (e) {
+        throw new Error('fundcode_search 数组解析失败: ' + (e as Error).message);
+    }
 }
 
 /**
@@ -203,32 +245,14 @@ async function fetchFundListFromApi(request: FundListRequest): Promise<FundEntit
         if (cachedData) {
             fundDataArray = cachedData as string[][];
         } else {
-            const response = await axios.get(fundWithEstimateApiUrl, {
+            const fastCDN = await loadBestCDN();
+
+            const response = await axios.get(fastCDN, {
                 httpsAgent: createHttpsAgent(),
-                responseType: 'json',
+                responseType: 'text',
             });
-            fundDataArray = response.data.data || [];
 
-            // const response = await axios.get(fundApiUrl, {
-            //             httpsAgent: createHttpsAgent(),
-            //             responseType: 'text',
-            //         });
-            //         const data = response.data;
-
-            //         // 解析返回的JavaScript变量定义，提取基金数据
-            //         // 数据格式: var r = [ [code, shortName, name, type, pinyin], ... ]
-            //         const match = data.match(/var\s+r\s+=\s+(\[.+\])/);
-            //         if (!match?.[1]) {
-            //             throw new Error('Failed to parse fund data from API');
-            //         }
-
-            //         fundDataArray = (JSON.parse(match[1]) as string[][]) || [];
-
-            // try {
-            //     fundDataArray = await filterFundsWithEstimate(fundDataArray);
-            // } catch (error) {
-            //     fundDataArray = [];
-            // }
+            fundDataArray = extractFundcodeSearchArray(response.data);
 
             // 将数据设置到缓存中，缓存时间24小时
             setCache(cacheKey, fundDataArray);
