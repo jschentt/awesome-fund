@@ -105,7 +105,7 @@ export default function Navbar() {
                     ) : (
                         <Link
                             href="/auth/login"
-                            className="bg-blue-500 hover:bg-blue-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm"
+                            className="bg-blue-500 hover:bg-blue-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded text-sm sm:text-base"
                         >
                             登录/注册
                         </Link>

@@ -407,12 +407,7 @@ export default function FundList({
 
     return (
         <div className="min-h-screen bg-gray-50 pb-8">
-            <div
-                className="max-w-7xl mx-auto sm:px-6 lg:px-8 py-4"
-                style={{
-                    backgroundColor: 'red',
-                }}
-            >
+            <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 pb-4">
                 {/* 页面标题 - 提升SEO和可访问性 */}
                 {/* <h1 className="text-2xl font-bold text-gray-900 mb-4" aria-label="基金监测列表">
                     基金监测列表
