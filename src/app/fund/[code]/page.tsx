@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
     ArrowLeft,
     Users,
@@ -83,6 +83,88 @@ export default function FundDetailPage() {
     );
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
+    // 设备检测和下拉刷新相关状态
+    const [isMobile, setIsMobile] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const tableContainerRef = useRef<HTMLDivElement>(null);
+    const startYRef = useRef(0);
+    const pullDistanceRef = useRef(0);
+    const isPullingRef = useRef(false);
+
+    // 检测设备类型
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+
+        // 初始检测
+        checkMobile();
+
+        // 监听窗口大小变化
+        window.addEventListener('resize', checkMobile);
+
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    // 下拉刷新相关函数
+    const handleTouchStart = useCallback(
+        (e: React.TouchEvent) => {
+            if (!isMobile || !tableContainerRef.current) return;
+
+            // 只有当滚动到顶部时才允许下拉刷新
+            const container = tableContainerRef.current;
+            if (container.scrollTop === 0) {
+                isPullingRef.current = true;
+                startYRef.current = e.touches[0].clientY;
+            }
+        },
+        [isMobile],
+    );
+
+    const handleTouchMove = useCallback(
+        (e: React.TouchEvent) => {
+            if (!isMobile || !isPullingRef.current) return;
+
+            const currentY = e.touches[0].clientY;
+            const diffY = currentY - startYRef.current;
+
+            if (diffY > 0) {
+                e.preventDefault();
+                pullDistanceRef.current = Math.min(diffY, 100); // 最大下拉距离100px
+            }
+        },
+        [isMobile],
+    );
+
+    // 加载更多数据的通用函数
+    const loadMoreData = useCallback(() => {
+        if (!isMobile || isRefreshing) return;
+
+        setIsRefreshing(true);
+        // 模拟刷新数据，这里可以添加实际的数据刷新逻辑
+        setTimeout(() => {
+            // 手机端：如果还有更多数据，则加载下一页
+            // 如果当前已是最后一页或没有更多数据，则重置到第一页
+            setCurrentPage((prev) => {
+                const totalPages = Math.ceil((fund?.netWorthData?.length || 0) / itemsPerPage);
+                return prev < totalPages ? prev + 1 : 1;
+            });
+            setIsRefreshing(false);
+        }, 1000);
+    }, [isMobile, isRefreshing, fund?.netWorthData?.length]);
+
+    const handleTouchEnd = useCallback(() => {
+        if (!isMobile || !isPullingRef.current) return;
+
+        isPullingRef.current = false;
+
+        if (pullDistanceRef.current > 50) {
+            // 下拉超过50px触发刷新
+            loadMoreData();
+        }
+
+        pullDistanceRef.current = 0;
+    }, [isMobile, loadMoreData]);
     // 添加会员信息和订阅对话框状态
     const { user, vipInfo } = useAuth();
     const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState(false);
@@ -613,7 +695,34 @@ export default function FundDetailPage() {
                                     历史净值
                                 </h3>
                                 {fund.netWorthData && (
-                                    <div className="bg-white rounded-lg mb-6">
+                                    <div
+                                        className="bg-white rounded-lg mb-6 relative overflow-hidden"
+                                        ref={tableContainerRef}
+                                        onTouchStart={handleTouchStart}
+                                        onTouchMove={handleTouchMove}
+                                        onTouchEnd={handleTouchEnd}
+                                    >
+                                        {/* 下拉刷新指示器 */}
+                                        {isMobile && (
+                                            <div
+                                                className="absolute top-0 left-0 right-0 h-12 flex items-center justify-center bg-gray-50 transition-all duration-300 cursor-pointer"
+                                                style={{
+                                                    transform: `translateY(${-12 + pullDistanceRef.current * 0.1}px)`,
+                                                }}
+                                                onClick={loadMoreData}
+                                            >
+                                                <span
+                                                    className={`text-sm text-gray-500 ${isRefreshing ? 'animate-pulse' : ''}`}
+                                                >
+                                                    {isRefreshing
+                                                        ? '加载中...'
+                                                        : pullDistanceRef.current > 50
+                                                          ? '释放加载更多'
+                                                          : '下拉刷新加载更多'}
+                                                </span>
+                                            </div>
+                                        )}
+
                                         <Table
                                             columns={[
                                                 {
@@ -636,7 +745,7 @@ export default function FundDetailPage() {
                                                     },
                                                 },
                                                 {
-                                                    title: '当日涨跌幅%',
+                                                    title: '涨跌幅%',
                                                     dataIndex: 'changeRate',
                                                     key: 'changeRate',
                                                     width: 120,
@@ -669,6 +778,12 @@ export default function FundDetailPage() {
                                                         new Date(a[0]).getTime()
                                                     );
                                                 })
+                                                .slice(
+                                                    isMobile ? 0 : (currentPage - 1) * itemsPerPage,
+                                                    isMobile
+                                                        ? currentPage * itemsPerPage
+                                                        : currentPage * itemsPerPage,
+                                                )
                                                 .map((item, index) => ({
                                                     key: index,
                                                     date: item[0], // 索引0：交易日期
@@ -676,15 +791,46 @@ export default function FundDetailPage() {
                                                     changeRate: item[2], // 索引2：当日涨跌幅%
                                                     index,
                                                 }))}
-                                            pagination={{
-                                                current: currentPage,
-                                                pageSize: itemsPerPage,
-                                                total: fund.netWorthData.length,
-                                                onChange: (page) => setCurrentPage(page),
-                                                showSizeChanger: false,
-                                                showTotal: (total) => `共 ${total} 条记录`,
-                                            }}
+                                            // 只有PC端显示分页
+                                            pagination={
+                                                !isMobile
+                                                    ? {
+                                                          current: currentPage,
+                                                          pageSize: itemsPerPage,
+                                                          total: fund.netWorthData.length,
+                                                          onChange: (page) => setCurrentPage(page),
+                                                          showSizeChanger: false,
+                                                          showTotal: (total) =>
+                                                              `共 ${total} 条记录`,
+                                                      }
+                                                    : false
+                                            }
+                                            // 手机端启用虚拟滚动优化性能
+                                            scroll={isMobile ? { y: 400 } : {}}
                                         />
+
+                                        {/* 手机端加载状态提示 - 点击也可以触发加载更多 */}
+                                        {isMobile && (
+                                            <div
+                                                className="py-3 text-center text-sm cursor-pointer hover:bg-gray-50 transition-colors"
+                                                onClick={loadMoreData}
+                                            >
+                                                {isRefreshing ? (
+                                                    <span className="text-blue-500 animate-pulse">
+                                                        正在加载更多数据...
+                                                    </span>
+                                                ) : currentPage * itemsPerPage >=
+                                                  fund.netWorthData.length ? (
+                                                    <span className="text-gray-500">
+                                                        已加载全部数据
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-blue-500 hover:underline">
+                                                        点击或下拉刷新加载更多数据
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
