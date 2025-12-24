@@ -449,23 +449,26 @@ export default function FundDetailPage() {
                 >
                     <button
                         onClick={handleBack}
-                        className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                        className="p-2 rounded-full hover:bg-gray-100 transition-colors shrink-0"
                         data-oid="88957w5"
                     >
                         <ArrowLeft className="h-5 w-5 text-gray-700" data-oid="elyvmyh" />
                     </button>
-                    <div className="ml-4 flex-1" data-oid="jy0y1sd">
+                    <div className="ml-4 flex-1 max-w-[calc(100%-200px)]" data-oid="jy0y1sd">
                         <h1
                             className="text-lg font-medium text-gray-900 truncate"
                             data-oid="a:zg4sn"
                         >
                             {fund.name}
                         </h1>
-                        <p className="text-sm text-gray-500" data-oid="50ld4.f">
+                        <p className="text-sm text-gray-500 truncate" data-oid="50ld4.f">
                             {fund.code}
                         </p>
                     </div>
-                    <div className="flex space-x-2" data-oid="hnj79_3">
+                    <div
+                        className="flex space-x-2 ml-2 min-w-[80px] justify-end"
+                        data-oid="hnj79_3"
+                    >
                         <button
                             onClick={toggleFavorite}
                             className="p-2 rounded-full hover:bg-gray-100 transition-colors"
