@@ -253,7 +253,14 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                         </div>
                         <Spin spinning={loading && hasRules}>
                             <div className="py-4 max-h-[calc(100vh-200px)] overflow-y-auto overflow-x-hidden px-6 scrollbar-thin scrollbar-thumb-[#f0f0f0] scrollbar-track-transparent">
-                                <p className="text-gray-600 mb-4">{fundName} 监控设置</p>
+                                <p className="text-gray-600 mb-1">{fundName} 监控设置</p>
+                                {/* 更新日期展示 */}
+                                {fundInfo.expectWorthDate && (
+                                    <p className="text-xs text-gray-500 mb-4 text-left">
+                                        更新日期：
+                                        {dayjs(fundInfo.expectWorthDate).format('YYYY-MM-DD HH:mm')}
+                                    </p>
+                                )}
                                 <div className="grid grid-cols-3 gap-2 mb-4">
                                     <div className="bg-blue-50 p-2 rounded-md border border-blue-100">
                                         <p className="text-xs text-gray-500 mb-0.5">预估涨幅</p>
