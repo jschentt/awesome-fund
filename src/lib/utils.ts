@@ -166,3 +166,8 @@ export const generate_xh_hash = (datas: Record<string, any>, hashkey: string): s
             .join('&') + hashkey;
     return md5(signStr);
 };
+
+// 判断值不能为“”和null和undefined
+export const isNotEmpty = (value: any): boolean => {
+    return value !== '' && value !== null && value !== undefined;
+};

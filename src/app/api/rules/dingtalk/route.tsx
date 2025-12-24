@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { fetchOAuth2Token, pushDingTalkMessage } from '@/lib/api';
 import axios from 'axios';
 import https from 'https';
+import { isNotEmpty } from '@/lib/utils';
 import { ApiResponse } from '@/app/api/funds/[code]/route';
 
 export async function POST(req: Request) {
@@ -94,15 +95,14 @@ export async function POST(req: Request) {
             netWorth: {
                 current: netWorth,
                 threshold: netWorthThreshold,
-                triggered: netWorthThreshold !== undefined ? netWorth >= netWorthThreshold : false,
+                triggered: isNotEmpty(netWorthThreshold) ? netWorth >= netWorthThreshold : false,
             },
             rise: {
                 current: actualDayGrowth,
                 threshold: riseThreshold,
-                triggered:
-                    riseThreshold !== undefined
-                        ? Math.abs(actualDayGrowth) >= riseThreshold
-                        : false,
+                triggered: isNotEmpty(riseThreshold)
+                    ? Math.abs(actualDayGrowth) >= riseThreshold
+                    : false,
             },
         };
 
@@ -150,9 +150,9 @@ export async function POST(req: Request) {
         text += `### 基金规则设置信息
 
 `;
-        text += `- 涨跌幅提醒阈值: ${riseThreshold !== undefined ? `${riseThreshold}%` : '未设置'}
+        text += `- 涨跌幅提醒阈值: ${isNotEmpty(riseThreshold) ? `${riseThreshold}%` : '未设置'}
 `;
-        text += `- 净值提醒阈值: ${netWorthThreshold !== undefined ? netWorthThreshold.toFixed(4) : '未设置'}
+        text += `- 净值提醒阈值: ${isNotEmpty(netWorthThreshold) ? netWorthThreshold.toFixed(4) : '未设置'}
 `;
         text += `- 定时推送时间: ${formatPushTime(pushTime)}
 
