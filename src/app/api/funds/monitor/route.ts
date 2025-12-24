@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { deleteCronTask } from '@/lib/cron';
 import type { ApiResponse, UserFund, CommonRequest } from '@/types/common';
 
 /**
@@ -131,11 +132,14 @@ export async function DELETE(request: Request) {
 
         // 如果有规则，再执行删除
         if (rules && rules.length > 0) {
-            const { error: ruleDeleteError } = await supabase
+            const { data: ruleDeleteData, error: ruleDeleteError } = await supabase
                 .from('fund_monitor_rules')
                 .delete()
                 .eq('user_id', userId)
                 .eq('fund_code', fundCode);
+
+            const jobName = `${rules[0].id}_${userId}_${fundCode}`;
+            await deleteCronTask(jobName);
 
             if (ruleDeleteError) {
                 console.error('删除监控规则失败:', ruleDeleteError);

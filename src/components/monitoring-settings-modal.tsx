@@ -349,10 +349,14 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                                             format="HH:mm"
                                             placeholder="选择时间"
                                             className="w-full"
+                                            size="large"
+                                            // 移动端优化配置
+                                            inputReadOnly
+                                            showNow={false}
                                         />
                                     </Form.Item>
                                     <p className="text-xs text-gray-500 relative top-[-8px] mb-3">
-                                        每日该时间推送基金监控报告
+                                        每日该时间推送基金监控报告（建议选择7:00-22:00）
                                     </p>
                                     {/* 立即推送按钮 */}
                                     <div className="pt-2">
