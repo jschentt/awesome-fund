@@ -222,11 +222,34 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                         className="bg-white rounded-lg shadow-xl py-6 sm:max-w-md w-full"
                         onClick={handleModalContentClick}
                     >
-                        <div className="px-6">
+                        <div className="px-6 flex items-center justify-between">
                             <h3 className="flex items-center space-x-2 text-xl font-semibold text-gray-900 mb-4">
                                 <Settings className="w-5 h-5 text-blue-500" />
                                 <span>监控设置</span>
                             </h3>
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="text-gray-400 hover:text-gray-600 transition-colors"
+                                style={{
+                                    position: 'relative',
+                                    top: -10,
+                                }}
+                            >
+                                <svg
+                                    className="w-6 h-6"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M6 18L18 6M6 6l12 12"
+                                    />
+                                </svg>
+                            </button>
                         </div>
                         <Spin spinning={loading && hasRules}>
                             <div className="py-4 max-h-[calc(100vh-200px)] overflow-y-auto overflow-x-hidden px-6 scrollbar-thin scrollbar-thumb-[#f0f0f0] scrollbar-track-transparent">
