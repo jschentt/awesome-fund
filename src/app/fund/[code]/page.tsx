@@ -510,6 +510,72 @@ export default function FundDetailPage() {
                     </div>
                 </section>
 
+                {/* 基金预期表现 */}
+                <section className="bg-white rounded-xl shadow-sm p-6 mb-6" data-oid="kxf1a14">
+                    <div className="flex items-start" data-oid="2s82syr">
+                        <AlertCircle
+                            className="h-5 w-5 text-blue-500 mr-2 mt-0.5"
+                            data-oid="0eo59qf"
+                        />
+                        <div data-oid="avxxp45">
+                            <h3 className="text-base font-medium text-gray-900" data-oid="7i2fn0j">
+                                预期表现
+                            </h3>
+                            <div className="mt-2 space-y-2">
+                                <div>
+                                    <span className="text-sm text-gray-500">预期净值：</span>
+                                    <span className="font-medium">{fund.expectWorth}</span>
+                                </div>
+                                <div>
+                                    <span className="text-sm text-gray-500">预期涨幅：</span>
+                                    <span
+                                        className={`font-medium ${fund.expectGrowth > 0 ? 'text-red-600' : 'text-green-600'}`}
+                                    >
+                                        {formatPercent(fund.expectGrowth)}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="text-sm text-gray-500">预期日期：</span>
+                                    <span className="text-gray-700">{fund.expectWorthDate}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* 业绩数据 */}
+                <div className="bg-white rounded-xl shadow-sm mb-6 p-6" data-oid="performance-data">
+                    <h3 className="text-lg font-medium text-gray-900 mb-4" data-oid="__vo155">
+                        业绩数据
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4" data-oid="zygvpjc">
+                        {[
+                            { label: '日涨幅', value: fund.actualDayGrowth },
+                            { label: '周涨幅', value: fund.weeklyGrowth },
+                            { label: '月涨幅', value: fund.monthlyGrowth },
+                            { label: '季涨幅', value: fund.threeMonthsGrowth },
+                            { label: '半年涨幅', value: fund.sixMonthsGrowth },
+                            { label: '年涨幅', value: fund.annualGrowth },
+                        ].map((item, index) => (
+                            <div
+                                key={index}
+                                className="bg-gray-50 p-4 rounded-lg"
+                                data-oid="f9k1cs3"
+                            >
+                                <p className="text-sm text-gray-500" data-oid="1obmlxd">
+                                    {item.label}
+                                </p>
+                                <p
+                                    className={`text-xl font-semibold mt-1 ${item.value > 0 ? 'text-red-600' : item.value < 0 ? 'text-green-600' : 'text-gray-600'}`}
+                                    data-oid="7cb.f0d"
+                                >
+                                    {formatPercent(item.value)}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
                 {/* Tab Navigation */}
                 <div className="bg-white rounded-xl shadow-sm mb-6" data-oid="u9jzcz2">
                     <div className="flex border-b border-gray-200" data-oid="if:u93x">
@@ -621,42 +687,6 @@ export default function FundDetailPage() {
                                         />
                                     </div>
                                 )}
-
-                                <h3
-                                    className="text-lg font-medium text-gray-900 mb-4"
-                                    data-oid="__vo155"
-                                >
-                                    业绩数据
-                                </h3>
-                                <div
-                                    className="grid grid-cols-2 md:grid-cols-4 gap-4"
-                                    data-oid="zygvpjc"
-                                >
-                                    {[
-                                        { label: '日涨幅', value: fund.actualDayGrowth },
-                                        { label: '周涨幅', value: fund.weeklyGrowth },
-                                        { label: '月涨幅', value: fund.monthlyGrowth },
-                                        { label: '季涨幅', value: fund.threeMonthsGrowth },
-                                        { label: '半年涨幅', value: fund.sixMonthsGrowth },
-                                        { label: '年涨幅', value: fund.annualGrowth },
-                                    ].map((item, index) => (
-                                        <div
-                                            key={index}
-                                            className="bg-gray-50 p-4 rounded-lg"
-                                            data-oid="f9k1cs3"
-                                        >
-                                            <p className="text-sm text-gray-500" data-oid="1obmlxd">
-                                                {item.label}
-                                            </p>
-                                            <p
-                                                className={`text-xl font-semibold mt-1 ${item.value > 0 ? 'text-red-600' : item.value < 0 ? 'text-green-600' : 'text-gray-600'}`}
-                                                data-oid="7cb.f0d"
-                                            >
-                                                {formatPercent(item.value)}
-                                            </p>
-                                        </div>
-                                    ))}
-                                </div>
                             </div>
                         )}
 
@@ -778,39 +808,6 @@ export default function FundDetailPage() {
                         )}
                     </div>
                 </div>
-
-                {/* 基金预期表现 */}
-                <section className="bg-white rounded-xl shadow-sm p-6 mb-6" data-oid="kxf1a14">
-                    <div className="flex items-start" data-oid="2s82syr">
-                        <AlertCircle
-                            className="h-5 w-5 text-blue-500 mr-2 mt-0.5"
-                            data-oid="0eo59qf"
-                        />
-                        <div data-oid="avxxp45">
-                            <h3 className="text-base font-medium text-gray-900" data-oid="7i2fn0j">
-                                预期表现
-                            </h3>
-                            <div className="mt-2 space-y-2">
-                                <div>
-                                    <span className="text-sm text-gray-500">预期净值：</span>
-                                    <span className="font-medium">{fund.expectWorth}</span>
-                                </div>
-                                <div>
-                                    <span className="text-sm text-gray-500">预期涨幅：</span>
-                                    <span
-                                        className={`font-medium ${fund.expectGrowth > 0 ? 'text-red-600' : 'text-green-600'}`}
-                                    >
-                                        {formatPercent(fund.expectGrowth)}
-                                    </span>
-                                </div>
-                                <div>
-                                    <span className="text-sm text-gray-500">预期日期：</span>
-                                    <span className="text-gray-700">{fund.expectWorthDate}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
 
                 {/* 订阅对话框 */}
                 <SubscriptionDialog
