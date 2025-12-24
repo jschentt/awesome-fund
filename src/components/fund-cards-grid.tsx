@@ -38,8 +38,8 @@ export default function FundCardsGrid({
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
                         transition={{
-                            duration: 0.5,
-                            delay: index * 0.1,
+                            duration: 0.2,
+                            delay: index * 0.03,
                         }}
                         whileHover={{ y: -5 }}
                         className="overflow-hidden border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow duration-300 relative group"
