@@ -487,7 +487,8 @@ export async function getFundV2Detail(fundCode: string): Promise<FundEntity | nu
         const responseText = response.data;
 
         // 提取JSON部分（去掉jsonpgz(...)包装）
-        const jsonMatch = responseText.match(/jsonpgz\(([^)]+)\)/);
+        // 兼容带换行或不带换行的 JSONP 格式
+        const jsonMatch = responseText.match(/jsonpgz\(\s*(\{[\s\S]*?\})\s*\)/);
         if (!jsonMatch || !jsonMatch[1]) {
             console.error(`基金净值API返回格式无效，基金代码: ${fundCode}`, responseText);
             return null;
