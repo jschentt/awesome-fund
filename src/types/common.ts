@@ -23,7 +23,8 @@ export interface FundMonitorRule {
     id: string | number;
     user_id: string;
     fund_code: string;
-    rise_threshold?: number;
+    rise_threshold_notify?: number;
+    fall_threshold_notify?: number;
     net_worth_threshold?: number;
     push_time?: string;
     created_at: string;
@@ -37,9 +38,10 @@ export interface MonitorRuleRequest {
     fundCode: string;
     userId: string;
     ruleName: string;
-    riseThreshold?: number;
+    riseThresholdNotify?: number;
+    fallThresholdNotify?: number;
     netWorthThreshold?: number;
-    pushTime?: string;
+    pushTime?: string | null;
     ruleId?: number;
     email?: string;
     fundName?: string;

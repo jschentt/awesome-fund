@@ -19,9 +19,10 @@ export async function createCronTask(
         fundCode: string;
         fundName?: string;
         webhookId?: number;
-        riseThreshold?: number;
+        riseThresholdNotify?: number;
+        fallThresholdNotify?: number;
         netWorthThreshold?: number;
-        pushTime?: string;
+        pushTime?: string | null;
     },
 ) {
     try {

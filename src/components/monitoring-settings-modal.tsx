@@ -59,7 +59,8 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                 const data = await res.json();
                 if (data && data.data) {
                     form.setFieldsValue({
-                        riseThreshold: data.data.rise_threshold,
+                        riseThresholdNotify: data.data.rise_threshold_notify,
+                        fallThresholdNotify: data.data.fall_threshold_notify,
                         netWorthThreshold: data.data.net_worth_threshold,
                         pushTime: data.data.push_time ? dayjs(data.data.push_time, 'HH:mm') : null,
                     });
@@ -134,9 +135,10 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                 fundName,
                 email: user?.email,
                 ruleName: `【${fundName}】监控规则`,
-                riseThreshold: values.riseThreshold,
+                riseThresholdNotify: values.riseThresholdNotify,
+                fallThresholdNotify: values.fallThresholdNotify,
                 netWorthThreshold: values.netWorthThreshold,
-                pushTime: dayjs(values.pushTime).format('HH:mm'),
+                pushTime: values.pushTime ? dayjs(values.pushTime).format('HH:mm') : null,
             };
 
             // 如果 pushTime 为空，给出提示
@@ -167,14 +169,16 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
     const handleWebhookPush = async () => {
         setPushLoading(true);
         message.info('正在推送监控报告...');
-        const { riseThreshold, netWorthThreshold, pushTime } = form.getFieldsValue();
+        const { riseThresholdNotify, fallThresholdNotify, netWorthThreshold, pushTime } =
+            form.getFieldsValue();
         const params = {
             webhookId: vipInfo?.webhook_id,
             userId: user?.id,
             email: user?.email,
             fundCode,
             fundName,
-            riseThreshold,
+            riseThresholdNotify,
+            fallThresholdNotify,
             netWorthThreshold,
             pushTime,
         };
@@ -293,20 +297,42 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                                 </div>
                                 <Form layout="vertical" className="space-y-4" form={form}>
                                     <Form.Item
-                                        name="riseThreshold"
-                                        label="涨跌幅提醒阈值"
+                                        name="riseThresholdNotify"
+                                        label="涨幅提醒阈值"
                                         rules={[
                                             {
                                                 required: false,
-                                                message: '请输入涨跌幅提醒阈值',
+                                                message: '请输入涨幅提醒阈值',
                                             },
                                         ]}
                                     >
                                         <InputNumber
-                                            placeholder="上涨阈值"
+                                            placeholder="涨幅阈值"
                                             className="flex-1"
-                                            min={-Infinity}
-                                            max={Infinity}
+                                            min={0}
+                                            max={100}
+                                            step={0.01}
+                                            precision={2}
+                                            suffix="%"
+                                            style={{ width: '100%' }}
+                                        />
+                                    </Form.Item>
+
+                                    <Form.Item
+                                        name="fallThresholdNotify"
+                                        label="跌幅提醒阈值"
+                                        rules={[
+                                            {
+                                                required: false,
+                                                message: '请输入跌幅提醒阈值',
+                                            },
+                                        ]}
+                                    >
+                                        <InputNumber
+                                            placeholder="跌幅阈值"
+                                            className="flex-1"
+                                            min={0}
+                                            max={100}
                                             step={0.01}
                                             precision={2}
                                             suffix="%"
