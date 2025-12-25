@@ -27,6 +27,7 @@ export interface FundMonitorRule {
     fall_threshold_notify?: number;
     net_worth_threshold?: number;
     push_time?: string;
+    threshold_hit?: boolean;
     created_at: string;
     updated_at: string;
 }
@@ -42,6 +43,7 @@ export interface MonitorRuleRequest {
     fallThresholdNotify?: number;
     netWorthThreshold?: number;
     pushTime?: string | null;
+    thresholdHit?: boolean;
     ruleId?: number;
     email?: string;
     fundName?: string;

@@ -23,6 +23,7 @@ export async function createCronTask(
         fallThresholdNotify?: number;
         netWorthThreshold?: number;
         pushTime?: string | null;
+        thresholdHit?: boolean;
     },
 ) {
     try {

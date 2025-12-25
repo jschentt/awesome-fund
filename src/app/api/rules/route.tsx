@@ -17,6 +17,7 @@ export async function POST(request: Request) {
             fallThresholdNotify,
             netWorthThreshold,
             pushTime,
+            thresholdHit,
         }: MonitorRuleRequest = await request.json();
 
         // 参数验证
@@ -51,6 +52,7 @@ export async function POST(request: Request) {
                 fall_threshold_notify: fallThresholdNotify,
                 net_worth_threshold: netWorthThreshold,
                 push_time: pushTime,
+                threshold_hit: thresholdHit || false,
             })
             .select('id')
             .single();
@@ -86,6 +88,7 @@ export async function POST(request: Request) {
             fallThresholdNotify,
             netWorthThreshold,
             pushTime,
+            thresholdHit: thresholdHit || false,
         });
 
         return NextResponse.json({ message: '监控规则保存成功' }, { status: 200 });
@@ -171,6 +174,7 @@ export async function PUT(request: Request) {
             fallThresholdNotify,
             netWorthThreshold,
             pushTime,
+            thresholdHit,
             ruleId,
             webhookId,
         }: Partial<MonitorRuleRequest> = await request.json();
@@ -212,6 +216,7 @@ export async function PUT(request: Request) {
             fall_threshold_notify: fallThresholdNotify,
             net_worth_threshold: netWorthThreshold,
             push_time: pushTime,
+            threshold_hit: thresholdHit || false,
         };
 
         // 更新监控规则
@@ -265,6 +270,7 @@ export async function PUT(request: Request) {
                 fallThresholdNotify,
                 netWorthThreshold,
                 pushTime,
+                thresholdHit: thresholdHit || false,
             });
         }
 

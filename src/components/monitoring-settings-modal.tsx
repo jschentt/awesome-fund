@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button, message, DatePicker, InputNumber, Form, Modal, Spin } from 'antd';
+import { Button, Checkbox, message, DatePicker, InputNumber, Form, Modal, Spin, Input } from 'antd';
 import Image from 'next/image';
 import dayjs from 'dayjs';
 import { useAuth } from '@/app/providers/auth-provider';
@@ -63,10 +63,12 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                         fallThresholdNotify: data.data.fall_threshold_notify,
                         netWorthThreshold: data.data.net_worth_threshold,
                         pushTime: data.data.push_time ? dayjs(data.data.push_time, 'HH:mm') : null,
+                        thresholdHit: data.data.threshold_hit || false,
                     });
                     setDetailInfo({
                         ...data.data,
                         ruleId: data.data?.id,
+                        thresholdHit: data.data.threshold_hit || false,
                     });
                 }
             } catch (err) {
@@ -139,6 +141,7 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                 fallThresholdNotify: values.fallThresholdNotify,
                 netWorthThreshold: values.netWorthThreshold,
                 pushTime: values.pushTime ? dayjs(values.pushTime).format('HH:mm') : null,
+                thresholdHit: values.thresholdHit || false,
             };
 
             // 如果 pushTime 为空，给出提示
@@ -295,7 +298,12 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                                         </p>
                                     </div>
                                 </div>
-                                <Form layout="vertical" className="space-y-4" form={form}>
+                                <Form
+                                    layout="inline"
+                                    className="space-y-4"
+                                    form={form}
+                                    colon={false}
+                                >
                                     <Form.Item
                                         name="riseThresholdNotify"
                                         label="涨幅提醒阈值"
@@ -352,10 +360,11 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                                     >
                                         <InputNumber
                                             placeholder="目标净值"
-                                            className="w-full"
+                                            className="flex-1"
                                             min={0}
                                             step={0.0001}
                                             precision={4}
+                                            style={{ width: '100%' }}
                                         />
                                     </Form.Item>
 
@@ -374,100 +383,112 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
                                             picker="time"
                                             format="HH:mm"
                                             placeholder="选择时间"
-                                            className="w-full"
-                                            size="large"
+                                            className="flex-1"
+                                            // size="large"
                                             // 移动端优化配置
                                             inputReadOnly
                                             showNow={false}
+                                            style={{ width: '100%' }}
                                         />
                                     </Form.Item>
-                                    <p className="text-xs text-gray-500 relative top-[-8px] mb-3">
+                                    <p className="text-xs text-gray-500 relative top-[-8px]">
                                         每日该时间推送基金监控报告（建议选择7:00-22:00）
                                     </p>
-                                    {/* 立即推送按钮 */}
-                                    <div className="pt-2">
-                                        <Button
-                                            type="primary"
-                                            className="w-full"
-                                            onClick={() => handleWebhookPush()}
-                                            loading={pushLoading}
-                                        >
-                                            立即推送监控报告
-                                        </Button>
-                                    </div>
-
-                                    {/* 推送二维码区域 */}
-                                    {vipInfo?.qr_code_url && (
-                                        <div className="pt-6 flex flex-col items-center">
-                                            <p className="text-gray-700 mb-4 text-sm leading-relaxed text-center">
-                                                {vipInfo?.plan_code === 'year' ? (
-                                                    <span>
-                                                        当前您为
-                                                        <span className="font-bold text-yellow-600">
-                                                            年度
-                                                        </span>
-                                                        会员， 扫码加入专属一对一
-                                                        <span className="font-bold text-blue-600">
-                                                            VIP
-                                                        </span>
-                                                        钉钉群组，获取实时监控提醒、专业基金分析与独家策略
-                                                    </span>
-                                                ) : vipInfo?.plan_code === 'month' ? (
-                                                    <span>
-                                                        当前您为
-                                                        <span className="font-bold text-blue-600">
-                                                            月度
-                                                        </span>
-                                                        会员， 扫码加入专属一对一
-                                                        <span className="font-bold text-blue-600">
-                                                            VIP
-                                                        </span>
-                                                        钉钉群组，获取实时监控提醒、专业基金分析与独家策略
-                                                    </span>
-                                                ) : (
-                                                    <span>
-                                                        当前您为
-                                                        <span className="font-bold text-green-600">
-                                                            免费
-                                                        </span>
-                                                        会员， 扫码加入
-                                                        <span className="font-bold text-green-600">
-                                                            免费
-                                                        </span>
-                                                        钉钉群组，获取基础监控提醒
-                                                    </span>
-                                                )}
-                                            </p>
-                                            <div className="w-48 h-48 bg-gray-50 rounded-md flex items-center justify-center mb-4 overflow-hidden border border-gray-100">
-                                                {/* 使用 Next.js Image 组件加载二维码图片 */}
-                                                {vipInfo?.qr_code_url && (
-                                                    <Image
-                                                        src={vipInfo?.qr_code_url}
-                                                        alt="钉钉群组二维码"
-                                                        width={192}
-                                                        height={192}
-                                                        className="object-contain p-2"
-                                                        // 如果图片不存在，会显示默认的占位符
-                                                        onError={(e) => {
-                                                            const target =
-                                                                e.target as HTMLImageElement;
-                                                            target.style.display = 'none';
-                                                            const placeholderDiv =
-                                                                document.createElement('div');
-                                                            placeholderDiv.className =
-                                                                'text-gray-500 text-sm';
-                                                            placeholderDiv.textContent =
-                                                                '请上传钉钉群组二维码图片';
-                                                            target.parentElement?.appendChild(
-                                                                placeholderDiv,
-                                                            );
-                                                        }}
-                                                    />
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
+                                    <Form.Item
+                                        name="thresholdHit"
+                                        label="仅在规则条件命中时通知"
+                                        valuePropName="checked"
+                                        initialValue={false}
+                                    >
+                                        <Checkbox />
+                                    </Form.Item>
+                                    <p className="text-xs text-gray-500 relative top-[-8px] mb-3">
+                                        勾选后，仅当监控条件命中时才会发送钉钉消息通知
+                                    </p>
                                 </Form>
+                                {/* 立即推送按钮 */}
+                                <div className="pt-2">
+                                    <Button
+                                        type="primary"
+                                        className="w-full"
+                                        block
+                                        onClick={() => handleWebhookPush()}
+                                        loading={pushLoading}
+                                    >
+                                        立即推送监控报告
+                                    </Button>
+                                </div>
+
+                                {/* 推送二维码区域 */}
+                                {vipInfo?.qr_code_url && (
+                                    <div className="pt-6 flex flex-col items-center">
+                                        <p className="text-gray-700 mb-4 text-sm leading-relaxed text-center">
+                                            {vipInfo?.plan_code === 'year' ? (
+                                                <span>
+                                                    当前您为
+                                                    <span className="font-bold text-yellow-600">
+                                                        年度
+                                                    </span>
+                                                    会员， 扫码加入专属一对一
+                                                    <span className="font-bold text-blue-600">
+                                                        VIP
+                                                    </span>
+                                                    钉钉群组，获取实时监控提醒、专业基金分析与独家策略
+                                                </span>
+                                            ) : vipInfo?.plan_code === 'month' ? (
+                                                <span>
+                                                    当前您为
+                                                    <span className="font-bold text-blue-600">
+                                                        月度
+                                                    </span>
+                                                    会员， 扫码加入专属一对一
+                                                    <span className="font-bold text-blue-600">
+                                                        VIP
+                                                    </span>
+                                                    钉钉群组，获取实时监控提醒、专业基金分析与独家策略
+                                                </span>
+                                            ) : (
+                                                <span>
+                                                    当前您为
+                                                    <span className="font-bold text-green-600">
+                                                        免费
+                                                    </span>
+                                                    会员， 扫码加入
+                                                    <span className="font-bold text-green-600">
+                                                        免费
+                                                    </span>
+                                                    钉钉群组，获取基础监控提醒
+                                                </span>
+                                            )}
+                                        </p>
+                                        <div className="w-48 h-48 bg-gray-50 rounded-md flex items-center justify-center mb-4 overflow-hidden border border-gray-100">
+                                            {/* 使用 Next.js Image 组件加载二维码图片 */}
+                                            {vipInfo?.qr_code_url && (
+                                                <Image
+                                                    src={vipInfo?.qr_code_url}
+                                                    alt="钉钉群组二维码"
+                                                    width={192}
+                                                    height={192}
+                                                    className="object-contain p-2"
+                                                    // 如果图片不存在，会显示默认的占位符
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.style.display = 'none';
+                                                        const placeholderDiv =
+                                                            document.createElement('div');
+                                                        placeholderDiv.className =
+                                                            'text-gray-500 text-sm';
+                                                        placeholderDiv.textContent =
+                                                            '请上传钉钉群组二维码图片';
+                                                        target.parentElement?.appendChild(
+                                                            placeholderDiv,
+                                                        );
+                                                    }}
+                                                />
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </Spin>
 

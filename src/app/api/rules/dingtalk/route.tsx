@@ -19,6 +19,7 @@ export async function POST(req: Request) {
             fallThresholdNotify,
             netWorthThreshold,
             pushTime,
+            thresholdHit,
         } = await req.json();
 
         // 验证必要参数
@@ -193,8 +194,11 @@ export async function POST(req: Request) {
 `;
         }
 
-        // 发送钉钉消息
-        await pushDingTalkMessage(access_token, title, text, webhookData.webhook_url);
+        // 根据thresholdHit控制消息发送
+        // 如果thresholdHit为true且没有触发任何阈值条件，则不发送消息
+        if (!(thresholdHit && !isThresholdTriggered)) {
+            await pushDingTalkMessage(access_token, title, text, webhookData.webhook_url);
+        }
 
         // 返回成功响应
         return NextResponse.json(
