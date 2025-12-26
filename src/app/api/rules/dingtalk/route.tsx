@@ -177,15 +177,15 @@ export async function POST(req: Request) {
             text += `> **⚠️ 阈值触发提醒**
 
 `;
-            if (comparisonResults.riseNotify.triggered) {
+            if (comparisonResults.riseNotify.triggered && isNotEmpty(riseThresholdNotify)) {
                 text += `> - 涨幅已达到或超过设置阈值: ${actualDayGrowth.toFixed(2)}% ≥ ${riseThresholdNotify}%
 `;
             }
-            if (comparisonResults.fallNotify.triggered) {
+            if (comparisonResults.fallNotify.triggered && isNotEmpty(fallThresholdNotify)) {
                 text += `> - 跌幅已达到或超过设置阈值: ${actualDayGrowth.toFixed(2)}% ≤ -${fallThresholdNotify}%
 `;
             }
-            if (comparisonResults.netWorth.triggered) {
+            if (comparisonResults.netWorth.triggered && isNotEmpty(netWorthThreshold)) {
                 text += `> - 净值已达到或超过设置阈值: ${netWorth.toFixed(4)} ≥ ${netWorthThreshold!.toFixed(4)}
 `;
             }
