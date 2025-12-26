@@ -159,11 +159,11 @@ export async function POST(req: Request) {
         text += `### 基金规则设置信息
 
 `;
-        text += `- 净值提醒阈值: ${isNotEmpty(netWorthThreshold) ? netWorthThreshold.toFixed(4) : '未设置'}
-`;
         text += `- 涨幅提醒阈值: ${isNotEmpty(riseThresholdNotify) ? `${riseThresholdNotify}%` : '未设置'}
 `;
         text += `- 跌幅提醒阈值: ${isNotEmpty(fallThresholdNotify) ? `${fallThresholdNotify}%` : '未设置'}
+`;
+        text += `- 净值提醒阈值: ${isNotEmpty(netWorthThreshold) ? netWorthThreshold.toFixed(4) : '未设置'}
 `;
         text += `- 定时推送时间: ${formatPushTime(pushTime)}
 
@@ -177,16 +177,16 @@ export async function POST(req: Request) {
             text += `> **⚠️ 阈值触发提醒**
 
 `;
-            if (comparisonResults.netWorth.triggered) {
-                text += `> - 净值已达到或超过设置阈值: ${netWorth.toFixed(4)} ≥ ${netWorthThreshold!.toFixed(4)}
-`;
-            }
             if (comparisonResults.riseNotify.triggered) {
                 text += `> - 涨幅已达到或超过设置阈值: ${actualDayGrowth.toFixed(2)}% ≥ ${riseThresholdNotify}%
 `;
             }
             if (comparisonResults.fallNotify.triggered) {
                 text += `> - 跌幅已达到或超过设置阈值: ${actualDayGrowth.toFixed(2)}% ≤ -${fallThresholdNotify}%
+`;
+            }
+            if (comparisonResults.netWorth.triggered) {
+                text += `> - 净值已达到或超过设置阈值: ${netWorth.toFixed(4)} ≥ ${netWorthThreshold!.toFixed(4)}
 `;
             }
         } else {
