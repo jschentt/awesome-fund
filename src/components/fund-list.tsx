@@ -309,10 +309,8 @@ export default function FundList({
         setSelectedFund(fund);
         setSelectedMethods({ dingtalk: true, wechat: false });
 
-        const monitoringCount = funds.filter((f) => f.isMonitoring).length;
-
         if (
-            monitoringCount >= 3 &&
+            monitorCount >= 3 &&
             !fund.isMonitoring &&
             !['year', 'month'].includes(vipInfo?.plan_code)
         ) {
