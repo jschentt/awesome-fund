@@ -49,8 +49,31 @@ export async function GET(request: Request) {
             .sort((a, b) => new Date(b.end_time).getTime() - new Date(a.end_time).getTime())[0];
 
         if (!validOrder) {
+            // 免费会员：从 dingtalk_webhook 表查出 id = 1 的数据
+            const { data: freeWebhook, error: freeWebhookError } = await supabase
+                .from('dingtalk_webhook')
+                .select('qr_code_url, webhook_url, id')
+                .eq('id', 1)
+                .single();
+
+            if (freeWebhookError) {
+                console.error('查询免费会员 webhook 失败:', freeWebhookError);
+                return NextResponse.json<ApiResponse>(
+                    { message: '查询免费会员 webhook 失败', data: null },
+                    { status: 200 },
+                );
+            }
+
             return NextResponse.json<ApiResponse>(
-                { message: '用户当前没有有效会员订单', data: null },
+                {
+                    message: '查询用户会员订单成功',
+                    data: {
+                        plan_code: 'free',
+                        plan_name: '免费版',
+                        qr_code_url: freeWebhook?.qr_code_url,
+                        webhook_id: freeWebhook?.id,
+                    },
+                },
                 { status: 200 },
             );
         }
