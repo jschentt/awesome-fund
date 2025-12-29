@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { fetchOAuth2Token, pushDingTalkMessage } from '@/lib/api';
+import { getFundList } from '@/lib/fund';
 import axios from 'axios';
 import https from 'https';
 
@@ -78,23 +79,18 @@ export async function GET(request: Request) {
 
         // 从URL获取查询参数
         const url = new URL(request.url);
-        const page = parseInt(url.searchParams.get('page') || '1', 10);
-        const limit = parseInt(url.searchParams.get('limit') || '2000', 10);
 
-        // 第一步：获取OAuth2访问令牌
-        const tokenResponse = await fetchOAuth2Token();
-        const { access_token } = tokenResponse.data.data;
+        // 调用基金列表接口，传递所有参数
+        const fundListResponse = await getFundList({
+            page: parseInt(url.searchParams.get('page') || '1', 10),
+            limit: parseInt(url.searchParams.get('limit') || '2000', 10),
+            blackList: ['货币', '债券', '纯债', '后端'],
+            whiteList: ['联接C', '增强C', '指数C'],
+        });
 
-        if (!access_token) {
-            console.error('响应中没有access_token字段:', tokenResponse.data);
-            throw new Error('无法获取有效的访问令牌');
-        }
+        // 获取基金列表数据
+        const fundListData = fundListResponse.data || [];
 
-        // 第二步：使用获取到的access_token调用基金列表接口
-        const fundListResponse = await fetchFundList(access_token, page, limit);
-
-        // 第三步：筛选出expectGrowth小于-4的数据
-        const fundListData = fundListResponse.data.data.data || [];
         console.log('原始基金列表数量:', fundListData.length);
 
         const filteredFunds = fundListData.filter(
