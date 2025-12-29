@@ -133,6 +133,10 @@ export async function GET(request: Request) {
                 }
             });
 
+            // 第一步：获取OAuth2访问令牌
+            const tokenResponse = await fetchOAuth2Token();
+            const { access_token } = tokenResponse.data.data;
+
             // 推送钉钉消息
             const dingTalkResponse = await pushDingTalkMessage(access_token, title, text);
             console.log('钉钉消息推送完成，响应:', dingTalkResponse.data);
