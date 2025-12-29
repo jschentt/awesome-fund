@@ -115,9 +115,12 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
         try {
             const values = await form.validateFields();
             // 校验至少要设置一条规则
-            const hasValue = Object.values(values).some(
-                (v) => v !== undefined && v !== null && v !== '',
-            );
+            const hasValue = [
+                values.riseThresholdNotify,
+                values.fallThresholdNotify,
+                values.netWorthThreshold,
+                values.pushTime,
+            ].some((v) => v !== undefined && v !== null && v !== '');
             if (!hasValue) {
                 message.warning('请至少设置一条监控规则');
                 return;
