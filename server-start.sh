@@ -85,7 +85,13 @@ EOF
 install_dependencies() {
     print_message "$YELLOW" "安装依赖..."
     cd "$APP_DIR"
-        pnpm install --prod
+    
+    # 使用pnpm安装依赖
+    print_message "$YELLOW" "使用pnpm安装依赖..."
+    # --prod: 只安装生产依赖
+    # --ignore-scripts: 跳过prepare等脚本（避免husky错误）
+    pnpm install --prod --ignore-scripts
+    
     print_message "$GREEN" "✓ 依赖安装完成"
 }
 
