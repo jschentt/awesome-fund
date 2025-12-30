@@ -169,6 +169,10 @@ jobs:
                   du -sh ./.next/standalone || echo "无法获取 .next/standalone 目录大小"
                   find ./.next/standalone -type f | wc -l || echo "无法统计文件数量"
 
+                  # 先在服务器上创建目标目录
+                  echo "在服务器上创建 .next 目录..."
+                  ssh $SSH_OPTS ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "mkdir -p ${{ env.DEPLOY_DIR }}/.next"
+
                   # 使用 rsync 上传，增加超时时间到 600 秒（10分钟）
                   echo "尝试使用 rsync 上传 .next/standalone 目录..."
                   which rsync || (echo "安装 rsync..." && sudo apt-get update && sudo apt-get install -y rsync)
