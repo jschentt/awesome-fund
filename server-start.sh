@@ -42,6 +42,25 @@ check_dependencies() {
     print_message "$GREEN" "✓ 依赖检查通过"
 }
 
+# 检查系统内存
+check_memory() {
+    print_message "$YELLOW" "检查系统内存..."
+    
+    # 获取可用内存（MB）
+    local available_mem=$(free -m | awk 'NR==2{print $7}')
+    local total_mem=$(free -m | awk 'NR==2{print $2}')
+    
+    print_message "$GREEN" "总内存: ${total_mem}MB, 可用内存: ${available_mem}MB"
+    
+    if [ "$available_mem" -lt 512 ]; then
+        print_message "$RED" "⚠ 警告: 可用内存不足512MB，可能会影响依赖安装"
+        print_message "$YELLOW" "建议: 1) 增加swap空间 2) 跳过依赖安装 3) 使用预构建的node_modules"
+        return 1
+    fi
+    
+    return 0
+}
+
 # 检查.env文件
 check_env_file() {
     print_message "$YELLOW" "检查环境变量文件..."
@@ -66,7 +85,7 @@ EOF
 install_dependencies() {
     print_message "$YELLOW" "安装依赖..."
     cd "$APP_DIR"
-    pnpm install --prod
+        pnpm install --prod
     print_message "$GREEN" "✓ 依赖安装完成"
 }
 
@@ -187,6 +206,9 @@ main() {
     
     # 检查依赖
     check_dependencies
+    
+    # 检查系统内存
+    check_memory
     
     # 检查环境变量文件
     check_env_file
