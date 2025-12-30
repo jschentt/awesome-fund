@@ -91,7 +91,7 @@ upload_build() {
 # 在服务器上安装依赖
 install_dependencies() {
     print_message "$YELLOW" "在服务器上安装依赖..."
-    ssh -p $PORT $SERVER_USER@$SERVER_HOST "cd $SERVER_DIR && pnpm install --prod"
+    ssh -p $PORT $SERVER_USER@$SERVER_HOST "cd $SERVER_DIR && pnpm install --prod --ignore-scripts"
     print_message "$GREEN" "✓ 依赖安装完成"
 }
 
