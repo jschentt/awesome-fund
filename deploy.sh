@@ -194,11 +194,7 @@ restart_application() {
                 --log "/var/log/awesome-fund.log" \
                 --error "/var/log/awesome-fund-error.log" \
                 --time \
-                --merge-logs \
-                --autorestart \
-                --max-restarts 10 \
-                --min-uptime 10s \
-                --max-memory-restart 1G
+                --merge-logs
             
             # 保存PM2进程列表
             pm2 save
