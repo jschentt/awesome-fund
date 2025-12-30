@@ -87,7 +87,6 @@ const fetcher = async (params: {
     return res.json();
 };
 
-// 主页组件
 export default function Page() {
     const [favoriteFunds, setFavoriteFunds] = useState<ExtendedFundItem[]>([]);
     const [showFavoriteList, setShowFavoriteList] = useState(false);
