@@ -304,68 +304,29 @@ jobs:
                     
                     # 等待应用启动
                     echo '等待应用启动...'
-                    max_attempts=60
-                    attempt=0
-                    
-                    # 先等待几秒让 PM2 启动进程
                     sleep 5
                     
-                    while [ \$attempt -lt \$max_attempts ]; do
-                      # 检查 PM2 进程状态
-                      if command -v pm2 &> /dev/null; then
-                        pm2_status=\$(pm2 jlist 2>/dev/null | grep -o '\"status\":\"[^\"]*\"' | head -1 | cut -d'\"' -f4)
-                        echo \"PM2 状态: \$pm2_status\"
-                        
-                        if [ \"\$pm2_status\" = \"online\" ]; then
-                          # 检查端口是否监听
-                          if netstat -tlnp 2>/dev/null | grep -q \":3000 \" || \
-                             ss -tlnp 2>/dev/null | grep -q \":3000 \"; then
-                            echo '✓ 应用启动成功！端口 3000 已监听'
-                            exit 0
-                          fi
-                        elif [ \"\$pm2_status\" = \"errored\" ]; then
-                          echo '✗ 应用启动失败！PM2 状态为 errored'
-                          pm2 logs --lines 30 --nostream || echo '无法获取 PM2 日志'
-                          exit 1
-                        fi
-                      else
-                        # 如果没有 PM2，检查进程和端口
-                        if pgrep -f 'node .next/standalone/server.js' > /dev/null && \
-                           (netstat -tlnp 2>/dev/null | grep -q \":3000 \" || \
-                            ss -tlnp 2>/dev/null | grep -q \":3000 \"); then
-                          echo '✓ 应用启动成功！'
-                          exit 0
-                        fi
-                      fi
-                      
-                      attempt=\$((attempt + 1))
-                      sleep 2
-                      echo -n '.'
-                    done
-                    
-                    echo ''
-                    echo '⚠ 应用启动超时，请检查日志:'
-                    echo ''
-                    
+                    # 检查 PM2 进程状态
                     if command -v pm2 &> /dev/null; then
                       echo '=== PM2 进程状态 ==='
                       pm2 list || echo '无法获取 PM2 列表'
                       echo ''
-                      echo '=== PM2 最近日志 ==='
-                      pm2 logs --lines 50 --nostream || echo '无法获取 PM2 日志'
+                      echo '=== PM2 awesome-fund 日志 ==='
+                      pm2 logs awesome-fund --lines 50 --nostream || echo '无法获取 PM2 日志'
+                      
+                      # 检查应用状态
+                      pm2_status=\$(pm2 jlist 2>/dev/null | grep -o '\"status\":\"[^\"]*\"' | head -1 | cut -d'\"' -f4)
+                      if [ \"\$pm2_status\" = \"online\" ]; then
+                        echo '✓ 应用启动成功！'
+                        exit 0
+                      else
+                        echo '✗ 应用启动失败！PM2 状态: \$pm2_status'
+                        exit 1
+                      fi
                     else
-                      echo '=== 应用日志 ==='
-                      tail -50 /var/log/awesome-fund.log 2>/dev/null || echo '无法读取应用日志'
-                      echo ''
-                      echo '=== 错误日志 ==='
-                      tail -50 /var/log/awesome-fund-error.log 2>/dev/null || echo '无法读取错误日志'
+                      echo 'PM2 未安装'
+                      exit 1
                     fi
-                    
-                    echo ''
-                    echo '=== 端口监听状态 ==='
-                    netstat -tlnp 2>/dev/null | grep \":3000\" || ss -tlnp 2>/dev/null | grep \":3000\" || echo '端口 3000 未监听'
-                    
-                    exit 1
                   "
 
                   if [ $? -ne 0 ]; then
