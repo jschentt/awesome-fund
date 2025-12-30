@@ -122,7 +122,8 @@ start_with_pm2() {
             pm2 restart "$APP_NAME"
         else
             print_message "$YELLOW" "启动新的PM2进程..."
-            pm2 start npm --name "$APP_NAME" -- start
+            # 使用--cwd参数指定工作目录（必须在--之前）
+            pm2 start npm --name "$APP_NAME" --cwd "$APP_DIR" -- start
         fi
         
         # 保存PM2进程列表
