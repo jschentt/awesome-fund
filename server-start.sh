@@ -166,10 +166,33 @@ wait_for_app() {
     local max_attempts=30
     local attempt=0
     
+    # 获取本机IP地址
+    local local_ip=$(hostname -I | awk '{print $1}')
+    
     while [ $attempt -lt $max_attempts ]; do
-        if curl -s http://localhost:$APP_PORT > /dev/null 2>&1; then
-            print_message "$GREEN" "✓ 应用启动成功！"
-            return 0
+        # 检查端口是否被监听
+        if lsof -Pi :$APP_PORT -sTCP:LISTEN -t >/dev/null 2>&1; then
+            # 端口已监听，尝试HTTP请求（尝试多个地址）
+            if curl -s http://localhost:$APP_PORT > /dev/null 2>&1; then
+                print_message "$GREEN" "✓ 应用启动成功！"
+                return 0
+            elif curl -s http://127.0.0.1:$APP_PORT > /dev/null 2>&1; then
+                print_message "$GREEN" "✓ 应用启动成功！"
+                return 0
+            elif curl -s http://$local_ip:$APP_PORT > /dev/null 2>&1; then
+                print_message "$GREEN" "✓ 应用启动成功！"
+                return 0
+            else
+                # 端口已监听但HTTP请求失败
+                if [ $attempt -eq 0 ]; then
+                    print_message "$YELLOW" "⚠ 端口$APP_PORT已监听，但应用尚未完全启动"
+                fi
+            fi
+        else
+            # 端口未被监听
+            if [ $attempt -eq 0 ]; then
+                print_message "$YELLOW" "⚠ 端口$APP_PORT尚未被监听"
+            fi
         fi
         
         attempt=$((attempt + 1))
@@ -178,6 +201,12 @@ wait_for_app() {
     done
     
     print_message "$RED" "✗ 应用启动超时"
+    print_message "$YELLOW" "请检查以下信息："
+    print_message "$YELLOW" "  1. 查看PM2日志: pm2 logs $APP_NAME --lines 50"
+    print_message "$YELLOW" "  2. 查看应用日志: tail -f $LOG_FILE"
+    print_message "$YELLOW" "  3. 查看PM2状态: pm2 status"
+    print_message "$YELLOW" "  4. 检查端口占用: lsof -i :$APP_PORT"
+    print_message "$YELLOW" "  5. 尝试直接访问: curl http://localhost:$APP_PORT"
     return 1
 }
 

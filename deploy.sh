@@ -110,9 +110,25 @@ restart_application() {
                 pm2 restart awesome-fund
             else
                 # 否则启动新进程
-                pm2 start npm --name "awesome-fund" -- start
+                pm2 start npm --name "awesome-fund" --cwd $SERVER_DIR -- start
             fi
             pm2 save
+            
+            # 等待应用启动
+            echo "等待应用启动..."
+            local max_attempts=30
+            local attempt=0
+            while [ $attempt -lt $max_attempts ]; do
+                if curl -s http://localhost:3000 > /dev/null 2>&1 || \
+                   curl -s http://127.0.0.1:3000 > /dev/null 2>&1; then
+                    echo "✓ 应用启动成功！"
+                    break
+                fi
+                attempt=$((attempt + 1))
+                sleep 2
+                echo -n "."
+            done
+            echo ""
         else
             # 如果没有PM2，使用nohup启动
             pkill -f "next start" || true
