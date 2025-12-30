@@ -100,18 +100,18 @@ restart_application() {
     print_message "$YELLOW" "在服务器上重启应用..."
     
     # 使用PM2管理进程（如果已安装）
-    ssh -p $PORT $SERVER_USER@$SERVER_HOST << 'ENDSSH'
+    ssh -p $PORT $SERVER_USER@$SERVER_HOST << ENDSSH
         cd $SERVER_DIR
         
         # 检查PM2是否安装
         if command -v pm2 &> /dev/null; then
-            # 如果PM2进程存在，重启它
-            if pm2 list | grep -q "awesome-fund"; then
-                pm2 restart awesome-fund
-            else
-                # 否则启动新进程
-                pm2 start npm --name "awesome-fund" -- start
-            fi
+            # 停止旧进程
+            pm2 delete awesome-fund 2>/dev/null || true
+            
+            # 启动新进程
+            pm2 start ecosystem.config.js
+            
+            # 保存PM2进程列表
             pm2 save
         else
             # 如果没有PM2，使用nohup启动
