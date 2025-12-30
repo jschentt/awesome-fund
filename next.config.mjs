@@ -1,8 +1,13 @@
 import path from 'path';
+
+// 让 Vercel 走 /，自己服务器走 /fund
+const isVercel = process.env.VERCEL === '1'; // Vercel 会自动注入 VERCEL=1
+const basePath = isVercel ? '' : '/fund';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    output: 'standalone',
-    basePath: '/fund',
+    output: isVercel ? undefined : 'standalone', // Vercel 不需要 standalone
+    basePath,
     images: {
         remotePatterns: [
             {
@@ -13,4 +18,5 @@ const nextConfig = {
         ],
     },
 };
+
 export default nextConfig;
