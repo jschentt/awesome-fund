@@ -1,0 +1,406 @@
+# GitHub Actions 工作流配置文件
+# 名称: deploy-to-server
+# 描述: 用于构建并自动部署 awesome-fund 项目到生产服务器
+# 注意事项: 使用前请在GitHub仓库设置中配置以下密钥:
+# - SERVER_HOST: 服务器地址
+# - SERVER_USERNAME: 服务器用户名
+# - SERVER_SSH_KEY: 服务器SSH私钥
+
+name: deploy-to-server
+on:
+    push:
+        branches:
+            - master
+            - main
+            - 'release/*'
+        paths:
+            - 'src/**'
+            - 'public/**'
+            - 'package.json'
+            - 'pnpm-lock.yaml'
+            - 'next.config.mjs'
+            - 'tailwind.config.ts'
+            - 'tsconfig.json'
+    workflow_dispatch: # 允许通过GitHub界面手动触发
+
+# 钉钉机器人配置
+env:
+    DINGTALK_WEBHOOK: 'https://oapi.dingtalk.com/robot/send?access_token=3687bbc5b17ee8d28465879b972b594e4a806db28aa8a673159fcd373aa3fed5'
+
+jobs:
+    build:
+        name: 构建项目
+        runs-on: ubuntu-latest
+        env:
+            NODE_VERSION: '20.x'
+            DEPLOY_DIR: '/www/awesome-fund'
+        steps:
+            - name: 检出代码
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0 # 获取完整历史以便于调试
+
+            - name: 安装pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 9
+
+            - name: 设置Node.js环境
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: 'pnpm'
+
+            - name: 安装依赖
+              run: pnpm install --frozen-lockfile
+              continue-on-error: false
+              env:
+                  NODE_OPTIONS: --max-old-space-size=4096
+
+            - name: 构建项目
+              run: pnpm build
+              continue-on-error: false
+
+            - name: 上传构建产物前检查
+              run: |
+                  echo "上传前 - 所有要上传的文件/目录状态:"
+                  ls -la ./.next/standalone 2>/dev/null || echo ".next/standalone 目录不存在"
+                  ls -la ./public 2>/dev/null || echo "public 目录不存在"
+                  ls -la ./package.json 2>/dev/null || echo "package.json 文件不存在"
+                  ls -la ./ecosystem.config.js 2>/dev/null || echo "ecosystem.config.js 文件不存在"
+                  ls -la ./pnpm-lock.yaml 2>/dev/null || echo "pnpm-lock.yaml 文件不存在"
+
+            - name: 上传构建产物
+              uses: actions/upload-artifact@v4
+              with:
+                  name: build-artifact
+                  path: |
+                      ./.next/standalone
+                      ./public
+                      ./package.json
+                      ./ecosystem.config.js
+                      ./pnpm-lock.yaml
+                  retention-days: 1
+
+    deploy:
+        name: 部署到服务器
+        needs: build
+        runs-on: ubuntu-latest
+        env:
+            DEPLOY_DIR: '/www/awesome-fund'
+        steps:
+            - name: 发送部署开始通知
+              env:
+                  GITHUB_REPO: ${{ github.repository }}
+                  GITHUB_ACTOR: ${{ github.actor }}
+                  GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              run: |
+                  # 构建部署开始消息，确保包含安全关键词"基金平台"
+                  json_payload='{
+                    "msgtype": "markdown",
+                    "markdown": {
+                      "title": "[基金平台] 部署开始",
+                      "text": "## 基金平台部署通知\n\n### 部署开始\n\n**状态**: \u003cfont color=\"#FFA500\"\u003e进行中\u003c/font\u003e\n**仓库**: '"$GITHUB_REPO"'\n**触发人**: '"$GITHUB_ACTOR"'\n**详情**: ['"$GITHUB_RUN_URL"']('"$GITHUB_RUN_URL"')\n\n**消息内容**: awesome-fund 项目开始部署到生产服务器\n\n**时间**: '"$(date '+%Y-%m-%d %H:%M:%S')"'\n"
+                    }
+                  }'
+
+                  echo "发送部署开始通知"
+                  curl -s -X POST \
+                    -H "Content-Type: application/json" \
+                    -d "$json_payload" \
+                    $DINGTALK_WEBHOOK
+                  echo "部署开始通知发送完成"
+
+            - name: 下载构建产物
+              uses: actions/download-artifact@v4
+              with:
+                  name: build-artifact
+                  path: ./
+
+            - name: 下载后检查文件
+              run: |
+                  echo "部署阶段 - 下载后当前目录: $(pwd)"
+                  echo "部署阶段 - 下载后所有文件列表:"
+                  find . -type f | sort
+
+            - name: 设置SSH私钥
+              uses: shimataro/ssh-key-action@v2
+              with:
+                  key: ${{ secrets.SERVER_SSH_KEY }}
+                  known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
+
+            - name: 添加服务器到known_hosts
+              run: |
+                  mkdir -p ~/.ssh
+                  ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+            - name: 部署文件到服务器
+              run: |
+                  # 设置SSH超时参数，避免长时间卡住
+                  export SSH_OPTS="-o ConnectTimeout=30 -o ServerAliveInterval=10 -o ServerAliveCountMax=3 -o StrictHostKeyChecking=no"
+
+                  echo "开始部署..."
+
+                  # 创建目标目录
+                  echo "创建目标目录..."
+                  ssh $SSH_OPTS ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "mkdir -p ${{ env.DEPLOY_DIR }}"
+                  if [ $? -ne 0 ]; then
+                    echo "创建目标目录失败"
+                    exit 1
+                  fi
+                  echo "目标目录创建成功"
+
+                  # 列出当前目录文件，确认下载的构建产物
+                  echo "列出当前目录文件..."
+                  ls -la
+
+                  # 检查本地文件是否存在
+                  echo "检查本地文件是否存在："
+                  ls -la ./.next/standalone 2>/dev/null || echo ".next/standalone 目录不存在"
+                  ls -la ./public 2>/dev/null || echo "public 目录不存在"
+                  ls -la ./package.json 2>/dev/null || echo "package.json 文件不存在"
+                  ls -la ./ecosystem.config.js 2>/dev/null || echo "ecosystem.config.js 文件不存在"
+                  ls -la ./pnpm-lock.yaml 2>/dev/null || echo "pnpm-lock.yaml 文件不存在"
+
+                  # 上传 .next/standalone 目录
+                  echo "上传 .next/standalone 目录..."
+                  echo ".next/standalone 目录内容统计:"
+                  du -sh ./.next/standalone || echo "无法获取 .next/standalone 目录大小"
+                  find ./.next/standalone -type f | wc -l || echo "无法统计文件数量"
+
+                  # 使用 rsync 上传，增加超时时间到 600 秒（10分钟）
+                  echo "尝试使用 rsync 上传 .next/standalone 目录..."
+                  which rsync || (echo "安装 rsync..." && sudo apt-get update && sudo apt-get install -y rsync)
+                  timeout 600 rsync -avzh --progress ./.next/standalone/ ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:${{ env.DEPLOY_DIR }}/.next/standalone/
+
+                  if [ $? -ne 0 ]; then
+                    echo "rsync 上传失败，回退到 scp 方式..."
+                    echo "创建 .next/standalone 目录压缩包..."
+                    tar -czf standalone.tar.gz ./.next/standalone
+                    echo "压缩包大小: $(du -sh standalone.tar.gz)"
+                    echo "上传压缩包..."
+                    timeout 600 scp $SSH_OPTS ./standalone.tar.gz ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:${{ env.DEPLOY_DIR }}/
+                    if [ $? -eq 0 ]; then
+                      echo "压缩包上传成功，在服务器上解压..."
+                      ssh $SSH_OPTS ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "cd ${{ env.DEPLOY_DIR }} && tar -xzf standalone.tar.gz && rm standalone.tar.gz"
+                    else
+                      echo "压缩后上传也失败"
+                      exit 1
+                    fi
+                  else
+                    echo "rsync 上传成功"
+                  fi
+
+                  # 上传 public 目录
+                  echo "上传 public 目录..."
+                  timeout 300 rsync -avzh --progress ./public/ ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:${{ env.DEPLOY_DIR }}/public/
+                  if [ $? -ne 0 ]; then
+                    echo "public 目录上传失败"
+                    exit 1
+                  fi
+
+                  # 上传其他必要文件
+                  echo "上传 package.json 文件..."
+                  timeout 60 scp $SSH_OPTS ./package.json ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:${{ env.DEPLOY_DIR }}/
+                  if [ $? -ne 0 ]; then
+                    echo "package.json 文件上传失败"
+                    exit 1
+                  fi
+
+                  echo "上传 ecosystem.config.js 文件..."
+                  timeout 60 scp $SSH_OPTS ./ecosystem.config.js ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:${{ env.DEPLOY_DIR }}/
+                  if [ $? -ne 0 ]; then
+                    echo "ecosystem.config.js 文件上传失败"
+                    exit 1
+                  fi
+
+                  echo "上传 pnpm-lock.yaml 文件..."
+                  timeout 60 scp $SSH_OPTS ./pnpm-lock.yaml ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:${{ env.DEPLOY_DIR }}/
+                  if [ $? -ne 0 ]; then
+                    echo "pnpm-lock.yaml 文件上传失败"
+                    exit 1
+                  fi
+
+                  echo "所有文件上传成功"
+
+                  # 配置并启动服务
+                  echo "配置并启动服务..."
+                  ssh $SSH_OPTS ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "
+                    # 切换到部署目录
+                    cd ${{ env.DEPLOY_DIR }}
+                    
+                    # 创建日志目录
+                    echo '创建日志目录...'
+                    sudo mkdir -p /var/log
+                    sudo chmod 755 /var/log
+                    
+                    # 安装生产依赖
+                    echo '安装生产依赖...'
+                    pnpm install --prod --ignore-scripts
+                    
+                    # 停止旧进程
+                    echo '停止旧进程...'
+                    pkill -f 'node .next/standalone/server.js' || true
+                    
+                    # 检查 PM2 是否安装
+                    if command -v pm2 &> /dev/null; then
+                      echo '使用 PM2 启动应用...'
+                      
+                      # 删除所有 awesome-fund 相关的进程
+                      pm2 delete all 2>/dev/null || true
+                      
+                      # 等待进程完全停止
+                      sleep 2
+                      
+                      # 使用 ecosystem.config.js 启动应用
+                      pm2 start ecosystem.config.js --env production
+                      
+                      # 保存 PM2 进程列表
+                      pm2 save
+                      
+                      # 设置开机自启
+                      pm2 startup systemd -u \$USER --hp /home/\$USER 2>/dev/null || true
+                      
+                      # 显示 PM2 进程列表
+                      echo 'PM2 进程列表:'
+                      pm2 list
+                    else
+                      echo 'PM2 未安装，使用 nohup 启动...'
+                      
+                      # 使用 nohup 启动
+                      HOST=0.0.0.0 PORT=3000 nohup node .next/standalone/server.js > /var/log/awesome-fund.log 2> /var/log/awesome-fund-error.log &
+                      
+                      # 保存 PID
+                      echo \$! > ${{ env.DEPLOY_DIR }}/app.pid
+                    fi
+                    
+                    # 等待应用启动
+                    echo '等待应用启动...'
+                    max_attempts=60
+                    attempt=0
+                    
+                    # 先等待几秒让 PM2 启动进程
+                    sleep 5
+                    
+                    while [ \$attempt -lt \$max_attempts ]; do
+                      # 检查 PM2 进程状态
+                      if command -v pm2 &> /dev/null; then
+                        pm2_status=\$(pm2 jlist | grep -o '\"status\":\"[^\"]*\"' | head -1 | cut -d'\"' -f4)
+                        echo \"PM2 状态: \$pm2_status\"
+                        
+                        if [ \"\$pm2_status\" = \"online\" ]; then
+                          # 检查端口是否监听
+                          if netstat -tlnp 2>/dev/null | grep -q \":3000 \" || \
+                             ss -tlnp 2>/dev/null | grep -q \":3000 \"; then
+                            echo '✓ 应用启动成功！端口 3000 已监听'
+                            exit 0
+                          fi
+                        elif [ \"\$pm2_status\" = \"errored\" ]; then
+                          echo '✗ 应用启动失败！PM2 状态为 errored'
+                          pm2 logs --lines 30 --nostream
+                          exit 1
+                        fi
+                      else
+                        # 如果没有 PM2，检查进程和端口
+                        if pgrep -f 'node .next/standalone/server.js' > /dev/null && \
+                           (netstat -tlnp 2>/dev/null | grep -q \":3000 \" || \
+                            ss -tlnp 2>/dev/null | grep -q \":3000 \"); then
+                          echo '✓ 应用启动成功！'
+                          exit 0
+                        fi
+                      fi
+                      
+                      attempt=\$((attempt + 1))
+                      sleep 2
+                      echo -n '.'
+                    done
+                    
+                    echo ''
+                    echo '⚠ 应用启动超时，请检查日志:'
+                    echo ''
+                    
+                    if command -v pm2 &> /dev/null; then
+                      echo '=== PM2 进程状态 ==='
+                      pm2 list
+                      echo ''
+                      echo '=== PM2 最近日志 ==='
+                      pm2 logs --lines 50 --nostream
+                    else
+                      echo '=== 应用日志 ==='
+                      tail -50 /var/log/awesome-fund.log
+                      echo ''
+                      echo '=== 错误日志 ==='
+                      tail -50 /var/log/awesome-fund-error.log
+                    fi
+                    
+                    echo ''
+                    echo '=== 端口监听状态 ==='
+                    netstat -tlnp 2>/dev/null | grep \":3000\" || ss -tlnp 2>/dev/null | grep \":3000\" || echo '端口 3000 未监听'
+                    
+                    exit 1
+                  "
+
+                  if [ $? -ne 0 ]; then
+                    echo "服务启动失败"
+                    exit 1
+                  fi
+
+                  echo "🎉 部署流程已全部完成，应用已成功部署到服务器！"
+
+    # 通用钉钉消息推送函数
+    send_dingtalk_notification:
+        name: 发送钉钉通知
+        runs-on: ubuntu-latest
+        needs: [deploy]
+        if: always()
+        steps:
+            - name: 发送部署状态通知
+              env:
+                  DEPLOY_STATUS: ${{ needs.deploy.result }}
+                  GITHUB_REPO: ${{ github.repository }}
+                  GITHUB_ACTOR: ${{ github.actor }}
+                  GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              run: |
+                  # 定义钉钉消息函数
+                  send_dingtalk_message() {
+                    local title=$1
+                    local message=$2
+                    local status=$3
+                    
+                    # 根据状态设置颜色
+                    if [ "$status" = "success" ]; then
+                      color="#00FF00"
+                      status_text="成功"
+                    elif [ "$status" = "failure" ]; then
+                      color="#FF0000"
+                      status_text="失败"
+                    else
+                      color="#FFA500"
+                      status_text="进行中"
+                    fi
+                    
+                    # 构建消息内容，确保包含安全关键词"基金平台"
+                    local json_payload='{
+                      "msgtype": "markdown",
+                      "markdown": {
+                        "title": "[基金平台] '"$title"'",
+                        "text": "## 基金平台部署通知\n\n### '"$title"'\n\n**状态**: \u003cfont color=\"'"$color"'\"\u003e'"$status_text"'\u003c/font\u003e\n**仓库**: '"$GITHUB_REPO"'\n**触发人**: '"$GITHUB_ACTOR"'\n**详情**: ['"$GITHUB_RUN_URL"']('"$GITHUB_RUN_URL"')\n\n**消息内容**: '"$message"'\n\n**时间**: '"$(date -u '+%Y-%m-%d %H:%M:%S' | awk -F ' ' '{printf "%s %02d:%02d:%02d", $1, ($2+8)%24, substr($2,4,2), substr($2,7,2)}')"'\n"
+                      }
+                    }'
+                    
+                    echo "发送钉钉消息: $title"
+                    curl -s -X POST \
+                      -H "Content-Type: application/json" \
+                      -d "$json_payload" \
+                      $DINGTALK_WEBHOOK
+                    echo "消息发送完成"
+                  }
+
+                  # 根据部署结果发送不同的消息
+                  if [ "$DEPLOY_STATUS" = "success" ]; then
+                    send_dingtalk_message "部署成功" "awesome-fund 项目已成功部署到生产服务器" "success"
+                  elif [ "$DEPLOY_STATUS" = "failure" ]; then
+                    send_dingtalk_message "部署失败" "awesome-fund 项目部署失败，请检查错误日志" "failure"
+                  else
+                    send_dingtalk_message "部署状态未知" "awesome-fund 项目部署状态未知，请手动检查" "unknown"
+                  fi

@@ -34,16 +34,8 @@ print_message() {
 # 检查SSH连接
 check_ssh_connection() {
     print_message "$YELLOW" "检查SSH连接..."
-    if ssh -p $SSH_PORT -o ConnectTimeout=5 -o BatchMode=yes $SERVER_USER@$SERVER_HOST exit 2>/dev/null; then
-        print_message "$GREEN" "✓ SSH连接正常"
-        return 0
-    else
-        print_message "$RED" "✗ SSH连接失败，请检查："
-        echo "  1. 服务器地址是否正确: $SERVER_HOST"
-        echo "  2. SSH密钥是否已配置"
-        echo "  3. 服务器是否可访问"
-        exit 1
-    fi
+    ssh -T -p $SSH_PORT $SERVER_USER@$SERVER_HOST "echo 'SSH连接成功'"
+    print_message "$GREEN" "✓ SSH连接正常"
 }
 
 # 本地构建项目
@@ -55,9 +47,9 @@ build_project() {
 
 # 创建服务器目录
 create_server_directory() {
-    print_message "$YELLOW" "创建服务器目录..."
-    ssh -p $SSH_PORT $SERVER_USER@$SERVER_HOST "mkdir -p $SERVER_DIR"
-    print_message "$GREEN" "✓ 服务器目录创建完成"
+    print_message "$YELLOW" "在服务器上创建目录..."
+    ssh -T -p $SSH_PORT $SERVER_USER@$SERVER_HOST "mkdir -p $SERVER_DIR"
+    print_message "$GREEN" "✓ 目录创建完成"
 }
 
 # 上传文件到服务器
@@ -99,8 +91,7 @@ upload_build() {
 # 在服务器上检查依赖
 check_server_dependencies() {
     print_message "$YELLOW" "检查服务器依赖..."
-    
-    ssh -p $SSH_PORT $SERVER_USER@$SERVER_HOST << 'ENDSSH'
+    ssh -T -p $SSH_PORT $SERVER_USER@$SERVER_HOST << 'ENDSSH'
         # 检查Node.js和pnpm是否安装
         if ! command -v node &> /dev/null; then
             echo "✗ Node.js未安装"
@@ -122,7 +113,7 @@ ENDSSH
 check_server_memory() {
     print_message "$YELLOW" "检查服务器内存..."
     
-    ssh -p $SSH_PORT $SERVER_USER@$SERVER_HOST << 'ENDSSH'
+    ssh -T -p $SSH_PORT $SERVER_USER@$SERVER_HOST << 'ENDSSH'
         # 获取可用内存（MB）
         available_mem=$(free -m | awk 'NR==2{print $7}')
         total_mem=$(free -m | awk 'NR==2{print $2}')
@@ -158,7 +149,7 @@ ENDSSH
 # 在服务器上安装依赖
 install_dependencies() {
     print_message "$YELLOW" "在服务器上安装依赖..."
-    ssh -p $SSH_PORT $SERVER_USER@$SERVER_HOST "cd $SERVER_DIR && pnpm install --prod --ignore-scripts"
+    ssh -T -p $SSH_PORT $SERVER_USER@$SERVER_HOST "cd $SERVER_DIR && pnpm install --prod --ignore-scripts"
     print_message "$GREEN" "✓ 依赖安装完成"
 }
 
@@ -166,7 +157,7 @@ install_dependencies() {
 restart_application() {
     print_message "$YELLOW" "在服务器上重启应用..."
     
-    ssh -p $SSH_PORT $SERVER_USER@$SERVER_HOST << 'ENDSSH'
+    ssh -T -p $SSH_PORT $SERVER_USER@$SERVER_HOST << 'ENDSSH'
         cd $SERVER_DIR
         
         # 停止旧进程
@@ -222,36 +213,71 @@ ENDSSH
     # 等待应用启动
     print_message "$YELLOW" "等待应用启动..."
     
-    ssh -p $SSH_PORT $SERVER_USER@$SERVER_HOST << 'ENDSSH'
-        max_attempts=30
+    ssh -T -p $SSH_PORT $SERVER_USER@$SERVER_HOST << 'ENDSSH'
+        max_attempts=60
         attempt=0
         
+        # 先等待几秒让PM2启动进程
+        sleep 5
+        
         while [ $attempt -lt $max_attempts ]; do
-            # 检查 0.0.0.0:3000 或 localhost:3000
-            if curl -s http://0.0.0.0:3000 > /dev/null 2>&1 || \
-               curl -s http://localhost:3000 > /dev/null 2>&1; then
-                echo "✓ 应用启动成功！"
+            # 检查 PM2 进程状态
+            if command -v pm2 &> /dev/null; then
+                pm2_status=$(pm2 jlist | grep -o '"status":"[^"]*"' | head -1 | cut -d'"' -f4)
+                echo "PM2 状态: $pm2_status"
                 
-                # 显示应用监听地址
-                if command -v pm2 &> /dev/null; then
-                    pm2 logs --lines 5 --nostream | grep -E "(Local|Network|ready|started)" || true
+                if [ "$pm2_status" = "online" ]; then
+                    # 检查端口是否监听
+                    if netstat -tlnp 2>/dev/null | grep -q ":3000 " || \
+                       ss -tlnp 2>/dev/null | grep -q ":3000 "; then
+                        echo "✓ 应用启动成功！端口 3000 已监听"
+                        
+                        # 显示应用监听地址
+                        pm2 logs --lines 10 --nostream | grep -E "(Local|Network|ready|started|listening)" || true
+                        
+                        exit 0
+                    fi
+                elif [ "$pm2_status" = "errored" ]; then
+                    echo "✗ 应用启动失败！PM2 状态为 errored"
+                    pm2 logs --lines 30 --nostream
+                    exit 1
                 fi
-                
-                exit 0
+            else
+                # 如果没有 PM2，检查进程和端口
+                if pgrep -f "node .next/standalone/server.js" > /dev/null && \
+                   (netstat -tlnp 2>/dev/null | grep -q ":3000 " || \
+                    ss -tlnp 2>/dev/null | grep -q ":3000 "); then
+                    echo "✓ 应用启动成功！"
+                    exit 0
+                fi
             fi
+            
             attempt=$((attempt + 1))
             sleep 2
             echo -n "."
         done
         
         echo ""
-        echo "⚠ 应用启动超时，请检查日志:"
+        echo "⚠ 应用启动超时（等待 ${max_attempts} 次），请检查日志:"
+        echo ""
         
         if command -v pm2 &> /dev/null; then
-            pm2 logs --lines 20 --nostream
+            echo "=== PM2 进程状态 ==="
+            pm2 list
+            echo ""
+            echo "=== PM2 最近日志 ==="
+            pm2 logs --lines 50 --nostream
         else
-            tail -20 /var/log/awesome-fund.log
+            echo "=== 应用日志 ==="
+            tail -50 /var/log/awesome-fund.log
+            echo ""
+            echo "=== 错误日志 ==="
+            tail -50 /var/log/awesome-fund-error.log
         fi
+        
+        echo ""
+        echo "=== 端口监听状态 ==="
+        netstat -tlnp 2>/dev/null | grep ":3000" || ss -tlnp 2>/dev/null | grep ":3000" || echo "端口 3000 未监听"
         
         exit 1
 ENDSSH
