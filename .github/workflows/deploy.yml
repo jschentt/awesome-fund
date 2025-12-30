@@ -123,10 +123,11 @@ jobs:
                   echo "部署阶段 - 下载后所有文件列表:"
                   find . -type f | sort
 
-            - name: 设置SSH私钥
+            - name: 设置SSH私钥（支持多个密钥源）
               uses: shimataro/ssh-key-action@v2
               with:
-                  key: ${{ secrets.SERVER_SSH_KEY }}
+                  # 优先使用SERVER_SSH_KEY_PC1，如果不存在则使用SERVER_SSH_KEY_PC2
+                  key: ${{ secrets.SERVER_SSH_KEY_PC1 || secrets.SERVER_SSH_KEY_PC2 }}
                   known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
 
             - name: 添加服务器到known_hosts
