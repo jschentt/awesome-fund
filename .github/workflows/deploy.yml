@@ -227,44 +227,74 @@ jobs:
                   # 配置并启动服务
                   echo "配置并启动服务..."
                   ssh $SSH_OPTS ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "
+                    # 开启调试模式，显示所有执行的命令
+                    set -x
+                    
                     # 切换到部署目录
-                    cd ${{ env.DEPLOY_DIR }}
+                    cd ${{ env.DEPLOY_DIR }} || exit 1
+                    
+                    # 显示当前目录和用户信息
+                    echo '当前目录: \$(pwd)'
+                    echo '当前用户: \$(whoami)'
+                    echo 'Node.js 版本: \$(node -v 2>/dev/null || echo \"未安装\")'
+                    echo 'pnpm 版本: \$(pnpm -v 2>/dev/null || echo \"未安装\")'
                     
                     # 创建日志目录
                     echo '创建日志目录...'
-                    sudo mkdir -p /var/log
-                    sudo chmod 755 /var/log
+                    sudo mkdir -p /var/log || mkdir -p /var/log
+                    sudo chmod 755 /var/log || chmod 755 /var/log
                     
                     # 安装生产依赖
                     echo '安装生产依赖...'
-                    pnpm install --prod --ignore-scripts
+                    pnpm install --prod --ignore-scripts || {
+                      echo 'pnpm install 失败，尝试使用 npm...'
+                      npm install --production --ignore-scripts || {
+                        echo '依赖安装失败'
+                        exit 1
+                      }
+                    }
                     
-                    # 停止旧进程
+                    # 停止旧进程 - 使用多种方式确保停止
                     echo '停止旧进程...'
-                    pkill -f 'node .next/standalone/server.js' || true
+                    
+                    # 方式1: 使用 pkill
+                    pkill -f 'node .next/standalone/server.js' 2>/dev/null || echo 'pkill 未找到进程'
+                    
+                    # 方式2: 使用 PM2（如果安装）
+                    if command -v pm2 &> /dev/null; then
+                      echo 'PM2 已安装，停止 PM2 进程...'
+                      pm2 stop all 2>/dev/null || echo 'PM2 stop 失败（可能没有运行中的进程）'
+                      pm2 delete all 2>/dev/null || echo 'PM2 delete 失败（可能没有进程）'
+                    else
+                      echo 'PM2 未安装'
+                    fi
+                    
+                    # 等待进程完全停止
+                    sleep 3
                     
                     # 检查 PM2 是否安装
                     if command -v pm2 &> /dev/null; then
                       echo '使用 PM2 启动应用...'
                       
-                      # 删除所有 awesome-fund 相关的进程
-                      pm2 delete all 2>/dev/null || true
-                      
-                      # 等待进程完全停止
-                      sleep 2
-                      
                       # 使用 ecosystem.config.js 启动应用
-                      pm2 start ecosystem.config.js --env production
+                      pm2 start ecosystem.config.js --env production || {
+                        echo 'PM2 启动失败，尝试直接启动...'
+                        HOST=0.0.0.0 PORT=3000 pm2 start .next/standalone/server.js --name awesome-fund || {
+                          echo 'PM2 启动失败，使用 nohup...'
+                          nohup node .next/standalone/server.js > /var/log/awesome-fund.log 2> /var/log/awesome-fund-error.log &
+                          echo \$! > ${{ env.DEPLOY_DIR }}/app.pid
+                        }
+                      }
                       
                       # 保存 PM2 进程列表
-                      pm2 save
+                      pm2 save || echo 'PM2 save 失败'
                       
-                      # 设置开机自启
-                      pm2 startup systemd -u \$USER --hp /home/\$USER 2>/dev/null || true
+                      # 设置开机自启（可选）
+                      pm2 startup systemd -u \$USER --hp /home/\$USER 2>/dev/null || pm2 startup systemd -u \$USER --hp /root 2>/dev/null || echo 'PM2 startup 失败（可能需要手动配置）'
                       
                       # 显示 PM2 进程列表
                       echo 'PM2 进程列表:'
-                      pm2 list
+                      pm2 list || echo '无法获取 PM2 列表'
                     else
                       echo 'PM2 未安装，使用 nohup 启动...'
                       
@@ -286,7 +316,7 @@ jobs:
                     while [ \$attempt -lt \$max_attempts ]; do
                       # 检查 PM2 进程状态
                       if command -v pm2 &> /dev/null; then
-                        pm2_status=\$(pm2 jlist | grep -o '\"status\":\"[^\"]*\"' | head -1 | cut -d'\"' -f4)
+                        pm2_status=\$(pm2 jlist 2>/dev/null | grep -o '\"status\":\"[^\"]*\"' | head -1 | cut -d'\"' -f4)
                         echo \"PM2 状态: \$pm2_status\"
                         
                         if [ \"\$pm2_status\" = \"online\" ]; then
@@ -298,7 +328,7 @@ jobs:
                           fi
                         elif [ \"\$pm2_status\" = \"errored\" ]; then
                           echo '✗ 应用启动失败！PM2 状态为 errored'
-                          pm2 logs --lines 30 --nostream
+                          pm2 logs --lines 30 --nostream || echo '无法获取 PM2 日志'
                           exit 1
                         fi
                       else
@@ -322,16 +352,16 @@ jobs:
                     
                     if command -v pm2 &> /dev/null; then
                       echo '=== PM2 进程状态 ==='
-                      pm2 list
+                      pm2 list || echo '无法获取 PM2 列表'
                       echo ''
                       echo '=== PM2 最近日志 ==='
-                      pm2 logs --lines 50 --nostream
+                      pm2 logs --lines 50 --nostream || echo '无法获取 PM2 日志'
                     else
                       echo '=== 应用日志 ==='
-                      tail -50 /var/log/awesome-fund.log
+                      tail -50 /var/log/awesome-fund.log 2>/dev/null || echo '无法读取应用日志'
                       echo ''
                       echo '=== 错误日志 ==='
-                      tail -50 /var/log/awesome-fund-error.log
+                      tail -50 /var/log/awesome-fund-error.log 2>/dev/null || echo '无法读取错误日志'
                     fi
                     
                     echo ''
