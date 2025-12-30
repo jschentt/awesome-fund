@@ -259,35 +259,11 @@ jobs:
                     
                     # 方式1: 使用 PM2（如果安装）
                     if command -v pm2 &> /dev/null; then
-                      echo 'PM2 已安装，停止 PM2 进程...'
-                      pm2 stop all 2>/dev/null || echo 'PM2 stop 失败（可能没有运行中的进程）'
-                      pm2 delete all 2>/dev/null || echo 'PM2 delete 失败（可能没有进程）'
+                      echo 'PM2 已安装，停止 awesome-fund 进程...'
+                      pm2 stop awesome-fund 2>/dev/null || echo 'PM2 stop awesome-fund 失败（可能没有运行中的进程）'
+                      pm2 delete awesome-fund 2>/dev/null || echo 'PM2 delete awesome-fund 失败（可能没有进程）'
                     else
                       echo 'PM2 未安装'
-                    fi
-                    
-                    # 方式2: 使用 killall（如果可用）
-                    if command -v killall &> /dev/null; then
-                      echo '使用 killall 停止 node 进程...'
-                      killall -9 node 2>/dev/null || echo 'killall 未找到进程或失败'
-                    fi
-                    
-                    # 方式3: 使用 pkill（如果可用）
-                    if command -v pkill &> /dev/null; then
-                      echo '使用 pkill 停止 node 进程...'
-                      pkill -9 -f 'node .next/standalone/server.js' 2>/dev/null || echo 'pkill 未找到进程或失败'
-                    else
-                      echo 'pkill 命令不可用'
-                    fi
-                    
-                    # 方式4: 手动查找并杀死进程
-                    echo '手动查找并杀死 node 进程...'
-                    pid=\$(ps aux | grep 'node .next/standalone/server.js' | grep -v grep | awk '{print \$2}' | head -1)
-                    if [ -n \"\$pid\" ]; then
-                      echo \"找到进程 PID: \$pid，正在杀死...\"
-                      kill -9 \$pid 2>/dev/null || echo \"杀死进程 \$pid 失败\"
-                    else
-                      echo '未找到运行中的 node 进程'
                     fi
                     
                     # 等待进程完全停止
