@@ -261,6 +261,17 @@ jobs:
                     echo '给 boot.sh 添加执行权限...'
                     chmod +x boot.sh || echo 'boot.sh 权限设置失败'
                     
+                    # 创建 .env 文件（从 GitHub Secrets 读取）
+                    echo '创建 .env 文件...'
+                    cat > .env << 'EOF'
+                    NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+                    NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+                    SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+                    EOF
+                    
+                    # 设置 .env 文件权限
+                    chmod 600 .env
+                    
                     # 显示当前目录和用户信息
                     echo '当前目录: \$(pwd)'
                     echo '当前用户: \$(whoami)'
@@ -301,10 +312,10 @@ jobs:
                     if command -v pm2 &> /dev/null; then
                       echo '使用 PM2 启动应用...'
                       
-                      # 使用 ecosystem.config.js 启动应用
-                      pm2 start ecosystem.config.js --env production || {
+                      # 使用 ecosystem.config.js 启动应用，并加载 .env 文件
+                      pm2 start ecosystem.config.js --env production --env-file .env || {
                         echo 'PM2 启动失败，尝试直接启动...'
-                        HOST=0.0.0.0 PORT=3000 pm2 start .next/standalone/server.js --name awesome-fund || {
+                        HOST=0.0.0.0 PORT=3000 pm2 start .next/standalone/server.js --name awesome-fund --env-file .env || {
                           echo 'PM2 启动失败，使用 nohup...'
                           nohup node .next/standalone/server.js > /var/log/awesome-fund.log 2> /var/log/awesome-fund-error.log &
                           echo \$! > ${{ env.DEPLOY_DIR }}/app.pid
