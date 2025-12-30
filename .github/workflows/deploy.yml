@@ -69,6 +69,9 @@ jobs:
                   ls -la ./package.json 2>/dev/null || echo "package.json 文件不存在"
                   ls -la ./ecosystem.config.js 2>/dev/null || echo "ecosystem.config.js 文件不存在"
                   ls -la ./pnpm-lock.yaml 2>/dev/null || echo "pnpm-lock.yaml 文件不存在"
+                  ls -la ./next.config.mjs 2>/dev/null || echo "next.config.mjs 文件不存在"
+                  ls -la ./.env 2>/dev/null || echo ".env 文件不存在"
+                  ls -la ./boot.sh 2>/dev/null || echo "boot.sh 文件不存在"
 
             - name: 上传构建产物
               uses: actions/upload-artifact@v4
@@ -80,6 +83,9 @@ jobs:
                       ./package.json
                       ./ecosystem.config.js
                       ./pnpm-lock.yaml
+                      ./next.config.mjs
+                      ./.env
+                      ./boot.sh
                   retention-days: 1
 
     deploy:
@@ -162,6 +168,9 @@ jobs:
                   ls -la ./package.json 2>/dev/null || echo "package.json 文件不存在"
                   ls -la ./ecosystem.config.js 2>/dev/null || echo "ecosystem.config.js 文件不存在"
                   ls -la ./pnpm-lock.yaml 2>/dev/null || echo "pnpm-lock.yaml 文件不存在"
+                  ls -la ./next.config.mjs 2>/dev/null || echo "next.config.mjs 文件不存在"
+                  ls -la ./.env 2>/dev/null || echo ".env 文件不存在"
+                  ls -la ./boot.sh 2>/dev/null || echo "boot.sh 文件不存在"
 
                   # 上传 .next/standalone 目录
                   echo "上传 .next/standalone 目录..."
@@ -226,6 +235,27 @@ jobs:
                     exit 1
                   fi
 
+                  echo "上传 next.config.mjs 文件..."
+                  timeout 60 scp $SSH_OPTS ./next.config.mjs ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:${{ env.DEPLOY_DIR }}/
+                  if [ $? -ne 0 ]; then
+                    echo "next.config.mjs 文件上传失败"
+                    exit 1
+                  fi
+
+                  echo "上传 .env 文件..."
+                  timeout 60 scp $SSH_OPTS ./.env ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:${{ env.DEPLOY_DIR }}/
+                  if [ $? -ne 0 ]; then
+                    echo ".env 文件上传失败"
+                    exit 1
+                  fi
+
+                  echo "上传 boot.sh 文件..."
+                  timeout 60 scp $SSH_OPTS ./boot.sh ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:${{ env.DEPLOY_DIR }}/
+                  if [ $? -ne 0 ]; then
+                    echo "boot.sh 文件上传失败"
+                    exit 1
+                  fi
+
                   echo "所有文件上传成功"
 
                   # 配置并启动服务
@@ -236,6 +266,10 @@ jobs:
                     
                     # 切换到部署目录
                     cd ${{ env.DEPLOY_DIR }} || exit 1
+                    
+                    # 给 boot.sh 添加执行权限
+                    echo '给 boot.sh 添加执行权限...'
+                    chmod +x boot.sh || echo 'boot.sh 权限设置失败'
                     
                     # 显示当前目录和用户信息
                     echo '当前目录: \$(pwd)'
