@@ -116,8 +116,8 @@ restart_application() {
             
             # 等待应用启动
             echo "等待应用启动..."
-            local max_attempts=30
-            local attempt=0
+            max_attempts=30
+            attempt=0
             while [ $attempt -lt $max_attempts ]; do
                 if curl -s http://localhost:3000 > /dev/null 2>&1 || \
                    curl -s http://127.0.0.1:3000 > /dev/null 2>&1; then
