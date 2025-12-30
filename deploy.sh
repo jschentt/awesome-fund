@@ -110,7 +110,7 @@ restart_application() {
                 pm2 restart awesome-fund
             else
                 # 否则启动新进程
-                pm2 start npm --name "awesome-fund" --cwd $SERVER_DIR -- start
+                pm2 start npm --name "awesome-fund" --cwd $SERVER_DIR -- run server
             fi
             pm2 save
             
@@ -131,8 +131,8 @@ restart_application() {
             echo ""
         else
             # 如果没有PM2，使用nohup启动
-            pkill -f "next start" || true
-            nohup npm start > /var/log/awesome-fund.log 2>&1 &
+            pkill -f "node .next/standalone/server.js" || true
+            nohup npm run server > /var/log/awesome-fund.log 2>&1 &
         fi
 ENDSSH
     

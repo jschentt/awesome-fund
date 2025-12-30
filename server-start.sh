@@ -123,7 +123,7 @@ start_with_pm2() {
         else
             print_message "$YELLOW" "启动新的PM2进程..."
             # 使用--cwd参数指定工作目录（必须在--之前）
-            pm2 start npm --name "$APP_NAME" --cwd "$APP_DIR" -- start
+            pm2 start npm --name "$APP_NAME" --cwd "$APP_DIR" -- run server
         fi
         
         # 保存PM2进程列表
@@ -150,7 +150,7 @@ start_with_nohup() {
     mkdir -p /var/log
     
     # 使用nohup启动
-    nohup npm start > "$LOG_FILE" 2> "$ERROR_LOG_FILE" &
+    nohup npm run server > "$LOG_FILE" 2> "$ERROR_LOG_FILE" &
     
     # 保存PID
     echo $! > "$APP_DIR/app.pid"
