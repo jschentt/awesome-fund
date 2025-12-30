@@ -1,0 +1,1 @@
+scp -r nginx.conf  root@47.120.30.113:/usr/local/nginx/conf
