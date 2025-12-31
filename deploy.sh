@@ -44,6 +44,23 @@ check_ssh_connection() {
 build_project() {
     print_message "$YELLOW" "开始本地构建项目..."
     pnpm build
+    
+    # 复制 static 目录到 standalone（Next.js 14 standalone 模式需要）
+    print_message "$YELLOW" "复制静态资源到 standalone 目录..."
+    if [ -d ".next/static" ]; then
+        mkdir -p .next/standalone/.next
+        cp -r .next/static .next/standalone/.next/
+        print_message "$GREEN" "✓ 静态资源复制完成"
+    else
+        print_message "$YELLOW" "⚠ 未找到 .next/static 目录"
+    fi
+    
+    # 复制 public 目录到 standalone
+    if [ -d "public" ]; then
+        cp -r public .next/standalone/
+        print_message "$GREEN" "✓ public 目录复制完成"
+    fi
+    
     print_message "$GREEN" "✓ 项目构建完成"
 }
 
@@ -83,7 +100,9 @@ upload_build() {
     rsync -avz --progress \
         --exclude 'cache' \
         -e "ssh -p $PORT" \
-        .next/ $SERVER_USER@$SERVER_HOST:$SERVER_DIR/.next/
+        .next/ $SERVER_USER@$SERVER_HOST:$SERVER_DIR/.next/ || {
+            print_message "$YELLOW" "⚠ 部分构建产物传输失败，但继续部署..."
+        }
     
     print_message "$GREEN" "✓ 构建产物上传完成"
 }

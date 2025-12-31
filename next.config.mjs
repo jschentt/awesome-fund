@@ -1,6 +1,6 @@
 import path from 'path';
 
-const isVercel = process.env.VERCEL === '1'; // Vercel 会自动注
+const isVercel = process.env.VERCEL === '1'; // Vercel 会自动注入 VERCEL=1
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
