@@ -110,7 +110,7 @@ export default function MonitorFundList({
 
         setLoading(true);
         try {
-            const res = await fetch(`/api/funds/monitor/list`, {
+            const res = await fetch(`/fund-api/funds/monitor/list`, {
                 headers: {
                     'X-User-Id': userId,
                 },
@@ -179,7 +179,7 @@ export default function MonitorFundList({
 
     // 处理监控操作（从监控列表移除）
     const handleToggleMonitor = async (fund: FundItem) => {
-        const endpoint = `/api/funds/monitor`;
+        const endpoint = `/fund-api/funds/monitor`;
 
         // 调用API
         const response = await fetch(endpoint, {

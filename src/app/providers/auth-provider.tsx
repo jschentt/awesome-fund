@@ -84,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         (getVipInfo as any).__loading = true;
 
         try {
-            const res = await fetch('/api/vip', {
+            const res = await fetch('/fund-api/vip', {
                 method: 'GET',
                 headers: {
                     'X-User-Id': userInfo?.id,
@@ -120,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             console.log('localStorage缓存已清除');
 
             // 然后调用API执行服务器端登出
-            const response = await fetch('/api/auth/logout', {
+            const response = await fetch('/fund-api/auth/logout', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

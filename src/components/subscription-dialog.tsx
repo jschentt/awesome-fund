@@ -87,7 +87,7 @@ export function SubscriptionDialog({
                 returnUrl: window.location.href,
             };
 
-            const res = await fetch('/api/payment', {
+            const res = await fetch('/fund-api/payment', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

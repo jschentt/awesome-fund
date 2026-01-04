@@ -50,7 +50,7 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
         const fetchMonitorRule = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`/api/rules?fundCode=${fundCode}`, {
+                const res = await fetch(`/fund-api/rules?fundCode=${fundCode}`, {
                     headers: {
                         'X-User-Id': user?.id || '',
                     },
@@ -83,7 +83,7 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
     const onSave = async (data: MonitorRuleRequest) => {
         setSaveLoading(true);
         try {
-            const response = await fetch('/api/rules', {
+            const response = await fetch('/fund-api/rules', {
                 method: detailInfo?.ruleId ? 'PUT' : 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -189,7 +189,7 @@ const MonitoringSettingsModal: React.FC<MonitoringSettingsModalProps> = ({
             pushTime,
         };
         try {
-            const res = await fetch('/api/rules/dingtalk', {
+            const res = await fetch('/fund-api/rules/dingtalk', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

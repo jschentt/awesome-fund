@@ -71,7 +71,7 @@ const fetcher = async (params: {
         whiteList.push('股票');
     }
 
-    const res = await fetch('/api/funds', {
+    const res = await fetch('/fund-api/funds', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -264,7 +264,7 @@ export default function Page() {
                 whiteList.push('股票');
             }
 
-            const res = await fetch('/api/funds', {
+            const res = await fetch('/fund-api/funds', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -321,7 +321,7 @@ export default function Page() {
             }
 
             // 调用API获取收藏基金列表
-            const response = await fetch(`/api/funds/favorite/list`, {
+            const response = await fetch(`/fund-api/funds/favorite/list`, {
                 headers: {
                     'X-User-Id': userInfo?.id,
                 },
@@ -352,7 +352,7 @@ export default function Page() {
             }
 
             // 调用API获取监控基金列表
-            const response = await fetch(`/api/funds/monitor/list`, {
+            const response = await fetch(`/fund-api/funds/monitor/list`, {
                 headers: {
                     'X-User-Id': userInfo?.id,
                 },

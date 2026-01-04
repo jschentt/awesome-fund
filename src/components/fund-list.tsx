@@ -146,7 +146,7 @@ export default function FundList({
             }
 
             const isAddMonitoring = !fund.isMonitoring;
-            const endpoint = `/api/funds/monitor`;
+            const endpoint = `/fund-api/funds/monitor`;
 
             const response = await fetch(endpoint, {
                 method: isAddMonitoring ? 'POST' : 'DELETE',
@@ -179,7 +179,7 @@ export default function FundList({
             }
 
             const isAddFavorite = !fund.isFavorite;
-            const endpoint = `/api/funds/favorite`;
+            const endpoint = `/fund-api/funds/favorite`;
 
             const response = await fetch(endpoint, {
                 method: isAddFavorite ? 'POST' : 'DELETE',

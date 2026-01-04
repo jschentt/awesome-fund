@@ -130,7 +130,7 @@ const AuthPage: React.FC = () => {
 
         try {
             setIsLoading(true);
-            const response = await fetch('/api/send-code', {
+            const response = await fetch('/fund-api/send-code', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -183,7 +183,7 @@ const AuthPage: React.FC = () => {
 
         try {
             setIsLoading(true);
-            const response = await fetch('/api/register', {
+            const response = await fetch('/fund-api/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -230,7 +230,7 @@ const AuthPage: React.FC = () => {
 
         try {
             setIsLoading(true);
-            const response = await fetch('/api/login', {
+            const response = await fetch('/fund-api/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

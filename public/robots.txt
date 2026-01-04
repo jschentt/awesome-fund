@@ -6,7 +6,7 @@ User-agent: *
 Allow: /
 
 # 禁止访问的目录和文件
-Disallow: /api/
+Disallow: /fund-api/
 Disallow: /auth/
 Disallow: /_next/
 Disallow: /favicon.ico

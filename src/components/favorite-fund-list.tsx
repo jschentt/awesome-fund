@@ -101,7 +101,7 @@ export default function FavoriteFundList({
 
         setLoading(true);
         try {
-            const res = await fetch(`/api/funds/favorite/list`, {
+            const res = await fetch(`/fund-api/funds/favorite/list`, {
                 headers: {
                     'X-User-ID': userId,
                 },
@@ -170,7 +170,7 @@ export default function FavoriteFundList({
 
     // 处理收藏操作（从收藏列表移除）
     const handleToggleFavorite = async (fund: FundItem) => {
-        const endpoint = `/api/funds/favorite`;
+        const endpoint = `/fund-api/funds/favorite`;
 
         // 调用API
         const response = await fetch(endpoint, {

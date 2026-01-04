@@ -175,7 +175,7 @@ export default function FundDetailPage() {
         try {
             if (!user?.id) return;
 
-            const response = await fetch(`/api/funds/monitor/list`, {
+            const response = await fetch(`/fund-api/funds/monitor/list`, {
                 method: 'GET',
                 headers: {
                     'X-User-Id': user?.id,
@@ -197,7 +197,7 @@ export default function FundDetailPage() {
             if (!user?.id) {
                 return;
             }
-            const response = await fetch(`/api/funds/detail?code=${fundCode}`, {
+            const response = await fetch(`/fund-api/funds/detail?code=${fundCode}`, {
                 method: 'GET',
                 headers: {
                     'X-User-Id': user?.id,
@@ -220,7 +220,7 @@ export default function FundDetailPage() {
 
     async function fetchFundDetail() {
         try {
-            const response = await fetch(`/api/funds/${fundCode}`);
+            const response = await fetch(`/fund-api/funds/${fundCode}`);
 
             if (!response.ok) {
                 if (response.status === 404) {
@@ -282,7 +282,7 @@ export default function FundDetailPage() {
             return;
         }
 
-        const endpoint = `/api/funds/favorite`;
+        const endpoint = `/fund-api/funds/favorite`;
         const method = fund.isFavorite ? 'DELETE' : 'POST';
 
         try {
@@ -332,7 +332,7 @@ export default function FundDetailPage() {
         // 检查是否是取消监控操作
         if (fund.isMonitoring) {
             try {
-                const response = await fetch(`/api/funds/monitor`, {
+                const response = await fetch(`/fund-api/funds/monitor`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
@@ -372,7 +372,7 @@ export default function FundDetailPage() {
 
         try {
             // 调用API添加监控
-            const response = await fetch(`/api/funds/monitor`, {
+            const response = await fetch(`/fund-api/funds/monitor`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

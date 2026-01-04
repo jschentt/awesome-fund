@@ -4,7 +4,7 @@ import { fetchOAuth2Token, pushDingTalkMessage } from '@/lib/api';
 import axios from 'axios';
 import https from 'https';
 import { isNotEmpty } from '@/lib/utils';
-import { ApiResponse } from '@/app/api/funds/[code]/route';
+import { ApiResponse } from '@/app/fund-api/funds/[code]/route';
 
 export async function POST(req: Request) {
     try {

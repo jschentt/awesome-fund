@@ -6,12 +6,8 @@
             "handle": "filesystem"
         },
         {
-            "src": "/api/(.*)",
-            "dest": "/api/$1"
-        },
-        {
-            "src": "/fund/(.*)",
-            "dest": "/fund/$1"
+            "src": "/fund-api/(.*)",
+            "dest": "/fund-api/$1"
         },
         {
             "src": "/.*",
@@ -22,7 +18,7 @@
     "buildCommand": "pnpm build",
     "crons": [
         {
-            "path": "/api/cron",
+            "path": "/fund-api/cron",
             "schedule": "30 6 * * *"
         }
     ]
