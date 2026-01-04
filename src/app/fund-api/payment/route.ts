@@ -3,6 +3,8 @@ import { supabase } from '@/lib/supabase';
 import { createOrderNum, generate_xh_hash } from '@/lib/utils';
 import qs from 'qs';
 
+const isVercel = !!process.env.VERCEL;
+
 /**
  * @description: 创建7支付订单
  */
@@ -19,8 +21,12 @@ const createSevenPayOrder = async (params: CreateSevenPayOrderParams) => {
     const sevenPayParams = {
         pid: process.env.SEVEN_PAY_APPID, // 商户ID
         out_trade_no: params.orderNo, // 商户订单号
-        notify_url: process.env.SEVEN_PAY_NOTIFY_URL, // 异步通知地址
-        return_url: params.returnUrl || process.env.WEB_SITE, // 可选。用户支付成功后，我们会让用户浏览器自动跳转到这个网址
+        notify_url: isVercel
+            ? process.env.VERCEL_SEVEN_PAY_NOTIFY_URL
+            : process.env.SEVEN_PAY_NOTIFY_URL, // 异步通知地址
+        return_url: isVercel
+            ? params.returnUrl || process.env.VERCEL_WEB_SITE
+            : params.returnUrl || process.env.WEB_SITE, // 可选。用户支付成功后，我们会让用户浏览器自动跳转到这个网址
         name: params.name, // 商品名称	（商品名称不超过100字）
         type: params.paymentMethod,
         // 兼容管理员
