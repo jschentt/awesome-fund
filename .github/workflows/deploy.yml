@@ -290,8 +290,12 @@ jobs:
 
                   echo "所有文件上传成功"
 
-                  # 配置并启动服务
-                  echo "配置并启动服务..."
+            - name: 配置服务器环境
+              run: |
+                  # 设置SSH超时参数，避免长时间卡住
+                  export SSH_OPTS="-o ConnectTimeout=30 -o ServerAliveInterval=10 -o ServerAliveCountMax=3 -o StrictHostKeyChecking=no"
+
+                  echo "配置服务器环境..."
                   ssh $SSH_OPTS ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "
                     # 开启调试模式，显示所有执行的命令
                     set -x
@@ -334,16 +338,34 @@ jobs:
                         exit 1
                       }
                     }
+                  "
+
+                  if [ $? -ne 0 ]; then
+                    echo "服务器环境配置失败"
+                    exit 1
+                  fi
+                  echo "✓ 服务器环境配置完成"
+
+            - name: 使用PM2启动应用（与deploy.sh一致）
+              run: |
+                  # 设置SSH超时参数，避免长时间卡住
+                  export SSH_OPTS="-o ConnectTimeout=30 -o ServerAliveInterval=10 -o ServerAliveCountMax=3 -o StrictHostKeyChecking=no"
+
+                  echo "=========================================="
+                  echo "使用PM2启动应用"
+                  echo "=========================================="
+                  echo ""
+
+                  ssh $SSH_OPTS ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "
+                    # 开启调试模式，显示所有执行的命令
+                    set -x
                     
-                    # 停止旧进程 - 清理步骤已执行，这里跳过
-                    echo 'PM2 进程已在清理步骤中停止，跳过此步骤'
+                    # 切换到部署目录
+                    cd ${{ env.DEPLOY_DIR }} || exit 1
                     
-                    # 等待进程完全停止
-                    sleep 3
-                    
-                    # 检查 PM2 是否安装
+                    # 检查PM2是否安装
                     if command -v pm2 &> /dev/null; then
-                      echo '使用 PM2 启动应用...'
+                      echo 'PM2 已安装，启动应用...'
                       
                       # 使用 ecosystem.config.js 启动应用（与deploy.sh一致）
                       pm2 start ecosystem.config.js || {
@@ -362,7 +384,7 @@ jobs:
                       pm2 startup systemd -u \$USER --hp /home/\$USER 2>/dev/null || pm2 startup systemd -u \$USER --hp /root 2>/dev/null || echo 'PM2 startup 失败（可能需要手动配置）'
                       
                       # 显示 PM2 进程列表
-                      echo 'PM2 进程列表:'
+                      echo '=== PM2 进程列表 ==='
                       pm2 list || echo '无法获取 PM2 列表'
                     else
                       echo 'PM2 未安装，使用 nohup 启动...'
@@ -373,11 +395,24 @@ jobs:
                       # 保存 PID
                       echo \$! > ${{ env.DEPLOY_DIR }}/app.pid
                     fi
-                    
-                    # 等待应用启动
-                    echo '等待应用启动...'
-                    sleep 5
-                    
+                  "
+
+                  if [ $? -ne 0 ]; then
+                    echo "应用启动失败"
+                    exit 1
+                  fi
+                  echo "✓ 应用启动完成"
+
+            - name: 检查应用状态
+              run: |
+                  # 设置SSH超时参数，避免长时间卡住
+                  export SSH_OPTS="-o ConnectTimeout=30 -o ServerAliveInterval=10 -o ServerAliveCountMax=3 -o StrictHostKeyChecking=no"
+
+                  echo "等待应用启动..."
+                  sleep 5
+
+                  echo "检查应用状态..."
+                  ssh $SSH_OPTS ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "
                     # 检查 PM2 进程状态
                     if command -v pm2 &> /dev/null; then
                       echo '=== PM2 进程状态 ==='
@@ -402,11 +437,14 @@ jobs:
                   "
 
                   if [ $? -ne 0 ]; then
-                    echo "服务启动失败"
+                    echo "应用状态检查失败"
                     exit 1
                   fi
 
+                  echo ""
+                  echo "=========================================="
                   echo "🎉 部署流程已全部完成，应用已成功部署到服务器！"
+                  echo "=========================================="
 
     # 通用钉钉消息推送函数
     send_dingtalk_notification:

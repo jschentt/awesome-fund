@@ -87,6 +87,7 @@ const fetcher = async (params: {
     return res.json();
 };
 
+// 基金监控列表页面
 export default function Page() {
     const [favoriteFunds, setFavoriteFunds] = useState<ExtendedFundItem[]>([]);
     const [showFavoriteList, setShowFavoriteList] = useState(false);
