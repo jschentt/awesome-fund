@@ -61,6 +61,24 @@ jobs:
               run: pnpm build
               continue-on-error: false
 
+            - name: 复制静态资源到 standalone 目录
+              run: |
+                  # 复制 static 目录到 standalone（Next.js 14 standalone 模式需要）
+                  echo "复制 .next/static 到 .next/standalone/.next/..."
+                  if [ -d ".next/static" ]; then
+                    mkdir -p .next/standalone/.next
+                    cp -r .next/static .next/standalone/.next/
+                    echo "✓ 静态资源复制完成"
+                  else
+                    echo "⚠ 未找到 .next/static 目录"
+                  fi
+
+                  # 复制 public 目录到 standalone
+                  if [ -d "public" ]; then
+                    cp -r public .next/standalone/
+                    echo "✓ public 目录复制完成"
+                  fi
+
             - name: 上传构建产物前检查
               run: |
                   echo "上传前 - 所有要上传的文件/目录状态:"
@@ -93,6 +111,11 @@ jobs:
         env:
             DEPLOY_DIR: '/www/awesome-fund'
         steps:
+            - name: 检出代码
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
             - name: 发送部署开始通知
               env:
                   GITHUB_REPO: ${{ github.repository }}
@@ -169,6 +192,28 @@ jobs:
                   ls -la ./next.config.mjs 2>/dev/null || echo "next.config.mjs 文件不存在"
                   ls -la ./boot.sh 2>/dev/null || echo "boot.sh 文件不存在"
 
+                  # 上传完整项目文件（与deploy.sh一致）
+                  echo "上传完整项目文件..."
+                  rsync -avz --progress \
+                      --exclude 'node_modules' \
+                      --exclude '.next' \
+                      --exclude '.git' \
+                      --exclude '.env.local' \
+                      --exclude '.env.production.local' \
+                      --exclude 'dist' \
+                      --exclude '.DS_Store' \
+                      --exclude 'coverage' \
+                      --exclude '.trae' \
+                      --exclude '.husky' \
+                      -e "ssh $SSH_OPTS" \
+                      ./ ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:${{ env.DEPLOY_DIR }}/
+
+                  if [ $? -ne 0 ]; then
+                    echo "完整项目文件上传失败"
+                    exit 1
+                  fi
+                  echo "完整项目文件上传成功"
+
                   # 上传 .next/standalone 目录
                   echo "上传 .next/standalone 目录..."
                   echo ".next/standalone 目录内容统计:"
@@ -207,42 +252,6 @@ jobs:
                   timeout 300 rsync -avzh --progress ./public/ ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:${{ env.DEPLOY_DIR }}/public/
                   if [ $? -ne 0 ]; then
                     echo "public 目录上传失败"
-                    exit 1
-                  fi
-
-                  # 上传其他必要文件
-                  echo "上传 package.json 文件..."
-                  timeout 60 scp $SSH_OPTS ./package.json ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:${{ env.DEPLOY_DIR }}/
-                  if [ $? -ne 0 ]; then
-                    echo "package.json 文件上传失败"
-                    exit 1
-                  fi
-
-                  echo "上传 ecosystem.config.js 文件..."
-                  timeout 60 scp $SSH_OPTS ./ecosystem.config.js ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:${{ env.DEPLOY_DIR }}/
-                  if [ $? -ne 0 ]; then
-                    echo "ecosystem.config.js 文件上传失败"
-                    exit 1
-                  fi
-
-                  echo "上传 pnpm-lock.yaml 文件..."
-                  timeout 60 scp $SSH_OPTS ./pnpm-lock.yaml ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:${{ env.DEPLOY_DIR }}/
-                  if [ $? -ne 0 ]; then
-                    echo "pnpm-lock.yaml 文件上传失败"
-                    exit 1
-                  fi
-
-                  echo "上传 next.config.mjs 文件..."
-                  timeout 60 scp $SSH_OPTS ./next.config.mjs ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:${{ env.DEPLOY_DIR }}/
-                  if [ $? -ne 0 ]; then
-                    echo "next.config.mjs 文件上传失败"
-                    exit 1
-                  fi
-
-                  echo "上传 boot.sh 文件..."
-                  timeout 60 scp $SSH_OPTS ./boot.sh ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:${{ env.DEPLOY_DIR }}/
-                  if [ $? -ne 0 ]; then
-                    echo "boot.sh 文件上传失败"
                     exit 1
                   fi
 
@@ -299,7 +308,6 @@ jobs:
                     # 方式1: 使用 PM2（如果安装）
                     if command -v pm2 &> /dev/null; then
                       echo 'PM2 已安装，停止 awesome-fund 进程...'
-                      pm2 stop awesome-fund 2>/dev/null || echo 'PM2 stop awesome-fund 失败（可能没有运行中的进程）'
                       pm2 delete awesome-fund 2>/dev/null || echo 'PM2 delete awesome-fund 失败（可能没有进程）'
                     else
                       echo 'PM2 未安装'
@@ -312,10 +320,10 @@ jobs:
                     if command -v pm2 &> /dev/null; then
                       echo '使用 PM2 启动应用...'
                       
-                      # 使用 ecosystem.config.js 启动应用，并加载 .env 文件
-                      pm2 start ecosystem.config.js --env production --env-file .env || {
+                      # 使用 ecosystem.config.js 启动应用（与deploy.sh一致）
+                      pm2 start ecosystem.config.js || {
                         echo 'PM2 启动失败，尝试直接启动...'
-                        HOST=0.0.0.0 PORT=3000 pm2 start .next/standalone/server.js --name awesome-fund --env-file .env || {
+                        HOST=0.0.0.0 PORT=3000 pm2 start .next/standalone/server.js --name awesome-fund || {
                           echo 'PM2 启动失败，使用 nohup...'
                           nohup node .next/standalone/server.js > /var/log/awesome-fund.log 2> /var/log/awesome-fund-error.log &
                           echo \$! > ${{ env.DEPLOY_DIR }}/app.pid
