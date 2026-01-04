@@ -169,6 +169,25 @@ jobs:
 
                   echo "开始部署..."
 
+                  # 清理服务器上的旧文件和进程（与deploy.sh一致）
+                  echo "清理服务器上的旧文件和进程..."
+                  ssh $SSH_OPTS ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "
+                    # 停止并删除 PM2 进程
+                    if command -v pm2 &> /dev/null; then
+                      echo '停止 PM2 进程: awesome-fund'
+                      pm2 delete awesome-fund 2>/dev/null || echo 'PM2 进程不存在或已停止'
+                    else
+                      echo 'PM2 未安装，跳过 PM2 清理'
+                    fi
+                    
+                    # 删除旧部署目录
+                    echo '删除旧部署目录: ${{ env.DEPLOY_DIR }}'
+                    rm -rf ${{ env.DEPLOY_DIR }} || echo '目录不存在或删除失败'
+                    
+                    echo '✓ 服务器清理完成'
+                  "
+                  echo "服务器清理完成"
+
                   # 创建目标目录
                   echo "创建目标目录..."
                   ssh $SSH_OPTS ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "mkdir -p ${{ env.DEPLOY_DIR }}"
@@ -302,16 +321,8 @@ jobs:
                       }
                     }
                     
-                    # 停止旧进程 - 使用多种方式确保停止
-                    echo '停止旧进程...'
-                    
-                    # 方式1: 使用 PM2（如果安装）
-                    if command -v pm2 &> /dev/null; then
-                      echo 'PM2 已安装，停止 awesome-fund 进程...'
-                      pm2 delete awesome-fund 2>/dev/null || echo 'PM2 delete awesome-fund 失败（可能没有进程）'
-                    else
-                      echo 'PM2 未安装'
-                    fi
+                    # 停止旧进程 - 清理步骤已执行，这里跳过
+                    echo 'PM2 进程已在清理步骤中停止，跳过此步骤'
                     
                     # 等待进程完全停止
                     sleep 3

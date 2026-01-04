@@ -40,6 +40,29 @@ check_ssh_connection() {
     fi
 }
 
+# 清理服务器上的旧文件和进程
+clean_server() {
+    print_message "$YELLOW" "清理服务器上的旧文件和进程..."
+    
+    ssh -p $PORT $SERVER_USER@$SERVER_HOST << ENDSSH
+        # 停止并删除 PM2 进程
+        if command -v pm2 &> /dev/null; then
+            echo "停止 PM2 进程: awesome-fund"
+            pm2 delete awesome-fund 2>/dev/null || echo "PM2 进程不存在或已停止"
+        else
+            echo "PM2 未安装，跳过 PM2 清理"
+        fi
+        
+        # 删除旧部署目录
+        echo "删除旧部署目录: $SERVER_DIR"
+        rm -rf $SERVER_DIR || echo "目录不存在或删除失败"
+        
+        echo "✓ 服务器清理完成"
+ENDSSH
+    
+    print_message "$GREEN" "✓ 服务器清理完成"
+}
+
 # 本地构建项目
 build_project() {
     print_message "$YELLOW" "开始本地构建项目..."
@@ -168,6 +191,9 @@ main() {
     
     # 检查SSH连接
     check_ssh_connection
+    
+    # 清理服务器上的旧文件和进程
+    clean_server
     
     # 本地构建
     build_project
