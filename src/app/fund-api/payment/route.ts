@@ -30,7 +30,8 @@ const createSevenPayOrder = async (params: CreateSevenPayOrderParams) => {
         name: params.name, // 商品名称	（商品名称不超过100字）
         type: params.paymentMethod,
         // 兼容管理员
-        money: params.userId === '4794d05d-7195-47a3-974b-53ad730260c3' ? '0.01' : params.payAmount, // 商品金额（单位：元，最大2位小数）
+        // money: params.userId === '4794d05d-7195-47a3-974b-53ad730260c3' ? '0.01' : params.payAmount, // 商品金额（单位：元，最大2位小数）
+        money: '0.01',
         sign_type: 'MD5',
     } as Record<string, any>;
 
