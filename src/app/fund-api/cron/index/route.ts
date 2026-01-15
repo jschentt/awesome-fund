@@ -85,7 +85,7 @@ async function fetchStockMarketData() {
     const responseData = {
         indices: [shIndexData, cybIndexData],
         updateTime: `${date} ${time}`,
-    };
+    } as any;
 
     // 推送钉钉消息
     const title = `大盘行情通知 (${date} ${time})`;
