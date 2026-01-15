@@ -20,10 +20,6 @@
         {
             "path": "/fund-api/cron",
             "schedule": "30 6 * * *"
-        },
-        {
-            "path": "/fund-api/cron/index",
-            "schedule": "40 6 * * *"
         }
     ]
 }
