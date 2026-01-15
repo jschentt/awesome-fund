@@ -151,7 +151,7 @@ async function fetchStockMarketData() {
     const dingTalkResponse = await pushDingTalkMessage(access_token, title, text);
     console.log('钉钉消息推送完成，响应:', dingTalkResponse.data);
     // } catch (dingTalkError) {
-    console.error('钉钉消息推送失败:', dingTalkError);
+    // console.error('钉钉消息推送失败:', dingTalkError);
     // 继续执行，不影响接口响应
     // }
 
