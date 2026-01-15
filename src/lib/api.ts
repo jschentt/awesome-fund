@@ -49,7 +49,7 @@ export async function fetchOAuth2Token(
 
         // 使用axios发送请求，支持忽略SSL证书验证
         const response = await axios.post(
-            'https://maiqishare.xyz/open-api/oauth2/token',
+            'http://maiqishare.xyz/open-api/oauth2/token',
             requestBody,
             {
                 headers: {
@@ -95,7 +95,7 @@ export async function pushDingTalkMessage(
         console.log('推送钉钉消息:', title);
 
         const response = await axios.post(
-            'https://maiqishare.xyz/open-api/dingtalk/markdown',
+            'http://maiqishare.xyz/open-api/dingtalk/markdown',
             {
                 title,
                 text,
