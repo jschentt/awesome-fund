@@ -41,6 +41,9 @@ importers:
       framer-motion:
         specifier: ^12.23.24
         version: 12.23.24(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      iconv-lite:
+        specifier: ^0.7.2
+        version: 0.7.2
       lucide-react:
         specifier: ^0.438.0
         version: 0.438.0(react@18.3.1)
@@ -1761,6 +1764,10 @@ packages:
 
   iconv-lite@0.4.24:
     resolution: {integrity: sha512-v3MXnZAcvnywkTUEZomIActle7RXXeedOR31wwl7VlyoXO4Qi9arvSenNQWne1TcRwhCL1HwLI21bEqdpj8/rA==}
+    engines: {node: '>=0.10.0'}
+
+  iconv-lite@0.7.2:
+    resolution: {integrity: sha512-im9DjEDQ55s9fL4EYzOAv0yMqmMBSZp6G0VvFyTMPKWxiSBHUj9NW/qqLmXUwXrrM7AvqSlTCfvqRb0cM8yYqw==}
     engines: {node: '>=0.10.0'}
 
   ieee754@1.2.1:
@@ -5071,6 +5078,10 @@ snapshots:
   hyphenate-style-name@1.1.0: {}
 
   iconv-lite@0.4.24:
+    dependencies:
+      safer-buffer: 2.1.2
+
+  iconv-lite@0.7.2:
     dependencies:
       safer-buffer: 2.1.2
 
