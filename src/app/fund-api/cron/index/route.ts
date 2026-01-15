@@ -183,7 +183,8 @@ export async function GET(request: Request) {
             {
                 status: 'error',
                 message: 'Failed to fetch stock data',
-                error: error instanceof Error ? error.message : '未知错误',
+                error: JSON.stringify(error),
+                // error: error instanceof Error ? error.message : '未知错误',
             },
             {
                 status: 500,
