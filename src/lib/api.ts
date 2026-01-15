@@ -30,11 +30,11 @@ export async function fetchOAuth2Token(
 ) {
     const now = Date.now();
 
-    // // 检查缓存是否有效
-    // if (tokenCache && now < tokenCache.expiryTime) {
-    //     console.log('使用缓存的OAuth2令牌');
-    //     return tokenCache.token;
-    // }
+    // 检查缓存是否有效
+    if (tokenCache && now < tokenCache.expiryTime) {
+        console.log('使用缓存的OAuth2令牌');
+        return tokenCache.token;
+    }
 
     try {
         console.log('OAuth2 token接口被调用，获取新令牌:', new Date().toISOString());

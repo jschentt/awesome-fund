@@ -143,20 +143,17 @@ async function fetchStockMarketData() {
     // `;
 
     // 尝试推送钉钉消息，但不影响接口响应
-    // try {
-    const tokenResponse = await fetchOAuth2Token();
-    const { access_token } = tokenResponse.data.data;
+    try {
+        const tokenResponse = await fetchOAuth2Token();
+        const { access_token } = tokenResponse.data.data;
 
-    // 推送钉钉消息
-    const dingTalkResponse = await pushDingTalkMessage(access_token, title, text);
-    console.log('钉钉消息推送完成，响应:', dingTalkResponse.data);
-    // } catch (dingTalkError) {
-    // console.error('钉钉消息推送失败:', dingTalkError);
-    // 继续执行，不影响接口响应
-    // }
+        // 推送钉钉消息
+        const dingTalkResponse = await pushDingTalkMessage(access_token, title, text);
+        console.log('钉钉消息推送完成，响应:', dingTalkResponse.data);
+    } catch (dingTalkError) {
+        console.error('钉钉消息推送失败:', dingTalkError);
+    }
 
-    responseData.tokenResponse = tokenResponse.data.data;
-    responseData.dingTalkResponse = dingTalkResponse.data;
     return responseData;
 }
 
@@ -183,8 +180,7 @@ export async function GET(request: Request) {
             {
                 status: 'error',
                 message: 'Failed to fetch stock data',
-                error: JSON.stringify(error),
-                // error: error instanceof Error ? error.message : '未知错误',
+                error: error instanceof Error ? error.message : '未知错误',
             },
             {
                 status: 500,
