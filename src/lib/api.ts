@@ -30,11 +30,11 @@ export async function fetchOAuth2Token(
 ) {
     const now = Date.now();
 
-    // 检查缓存是否有效
-    if (tokenCache && now < tokenCache.expiryTime) {
-        console.log('使用缓存的OAuth2令牌');
-        return tokenCache.token;
-    }
+    // // 检查缓存是否有效
+    // if (tokenCache && now < tokenCache.expiryTime) {
+    //     console.log('使用缓存的OAuth2令牌');
+    //     return tokenCache.token;
+    // }
 
     try {
         console.log('OAuth2 token接口被调用，获取新令牌:', new Date().toISOString());
@@ -49,7 +49,7 @@ export async function fetchOAuth2Token(
 
         // 使用axios发送请求，支持忽略SSL证书验证
         const response = await axios.post(
-            'http://maiqishare.xyz/open-api/oauth2/token',
+            'https://maiqishare.xyz/open-api/oauth2/token',
             requestBody,
             {
                 headers: {
@@ -95,7 +95,7 @@ export async function pushDingTalkMessage(
         console.log('推送钉钉消息:', title);
 
         const response = await axios.post(
-            'http://maiqishare.xyz/open-api/dingtalk/markdown',
+            'https://maiqishare.xyz/open-api/dingtalk/markdown',
             {
                 title,
                 text,
