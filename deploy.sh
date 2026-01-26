@@ -178,7 +178,7 @@ show_deployment_info() {
     echo "  ssh -p $PORT $SERVER_USER@$SERVER_HOST 'tail -f /var/log/awesome-fund.log'"
     echo ""
     echo "访问应用:"
-    echo "  https://maiqishare.xyz"
+    echo "  https://sleeve.maiqishare.xyz"
     echo ""
 }
 
