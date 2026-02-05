@@ -90,7 +90,7 @@ export async function POST(req: Request) {
 
         // 获取基金详情数据
         const fundDetail = apiResponse.data.data;
-        const { netWorth, actualDayGrowth, totalNetWorth, netWorthDate } = fundDetail;
+        const { netWorth, expectWorth, expectGrowth, expectWorthDate } = fundDetail;
 
         // 数据对比逻辑
         const comparisonResults = {
@@ -100,17 +100,17 @@ export async function POST(req: Request) {
                 triggered: isNotEmpty(netWorthThreshold) ? netWorth >= netWorthThreshold : false,
             },
             riseNotify: {
-                current: actualDayGrowth,
+                current: expectWorth,
                 threshold: riseThresholdNotify,
                 triggered: isNotEmpty(riseThresholdNotify)
-                    ? actualDayGrowth >= riseThresholdNotify
+                    ? expectWorth >= riseThresholdNotify
                     : false,
             },
             fallNotify: {
-                current: actualDayGrowth,
+                current: expectWorth,
                 threshold: fallThresholdNotify,
                 triggered: isNotEmpty(fallThresholdNotify)
-                    ? actualDayGrowth <= -fallThresholdNotify
+                    ? expectWorth <= -fallThresholdNotify
                     : false,
             },
         };
@@ -147,13 +147,11 @@ export async function POST(req: Request) {
         text += `### 基金实时信息
 
 `;
-        text += `- 当前净值: ${netWorth.toFixed(4)}
+        text += `- 预期净值: ${expectWorth.toFixed(4)}
 `;
-        text += `- 累计净值: ${totalNetWorth.toFixed(4)}
+        text += `- 预期涨幅: ${expectGrowth >= 0 ? '+' : ''}${expectGrowth.toFixed(2)}%
 `;
-        text += `- 日涨跌幅: ${actualDayGrowth >= 0 ? '+' : ''}${actualDayGrowth.toFixed(2)}%
-`;
-        text += `- 净值更新时间: ${netWorthDate}
+        text += `- 预期日期: ${expectWorthDate}
 
 `;
         text += `### 基金规则设置信息
@@ -178,11 +176,11 @@ export async function POST(req: Request) {
 
 `;
             if (comparisonResults.riseNotify.triggered && isNotEmpty(riseThresholdNotify)) {
-                text += `> - 涨幅已达到或超过设置阈值: ${actualDayGrowth.toFixed(2)}% ≥ ${riseThresholdNotify}%
+                text += `> - 涨幅已达到或超过设置阈值: ${expectWorth.toFixed(2)}% ≥ ${riseThresholdNotify}%
 `;
             }
             if (comparisonResults.fallNotify.triggered && isNotEmpty(fallThresholdNotify)) {
-                text += `> - 跌幅已达到或超过设置阈值: ${actualDayGrowth.toFixed(2)}% ≤ -${fallThresholdNotify}%
+                text += `> - 跌幅已达到或超过设置阈值: ${expectWorth.toFixed(2)}% ≤ -${fallThresholdNotify}%
 `;
             }
             if (comparisonResults.netWorth.triggered && isNotEmpty(netWorthThreshold)) {
