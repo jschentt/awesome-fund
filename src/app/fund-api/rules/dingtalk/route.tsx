@@ -90,27 +90,27 @@ export async function POST(req: Request) {
 
         // 获取基金详情数据
         const fundDetail = apiResponse.data.data;
-        const { netWorth, expectWorth, expectGrowth, expectWorthDate } = fundDetail;
+        const { expectWorth, expectGrowth, expectWorthDate } = fundDetail;
 
         // 数据对比逻辑
         const comparisonResults = {
             netWorth: {
-                current: netWorth,
+                current: expectWorth,
                 threshold: netWorthThreshold,
-                triggered: isNotEmpty(netWorthThreshold) ? netWorth >= netWorthThreshold : false,
+                triggered: isNotEmpty(netWorthThreshold) ? expectWorth >= netWorthThreshold : false,
             },
             riseNotify: {
-                current: expectWorth,
+                current: expectGrowth,
                 threshold: riseThresholdNotify,
                 triggered: isNotEmpty(riseThresholdNotify)
-                    ? expectWorth >= riseThresholdNotify
+                    ? expectGrowth >= riseThresholdNotify
                     : false,
             },
             fallNotify: {
-                current: expectWorth,
+                current: expectGrowth,
                 threshold: fallThresholdNotify,
                 triggered: isNotEmpty(fallThresholdNotify)
-                    ? expectWorth <= -fallThresholdNotify
+                    ? expectGrowth <= -fallThresholdNotify
                     : false,
             },
         };
@@ -176,15 +176,15 @@ export async function POST(req: Request) {
 
 `;
             if (comparisonResults.riseNotify.triggered && isNotEmpty(riseThresholdNotify)) {
-                text += `> - 涨幅已达到或超过设置阈值: ${expectWorth.toFixed(2)}% ≥ ${riseThresholdNotify}%
+                text += `> - 涨幅已达到或超过设置阈值: ${expectGrowth.toFixed(2)}% ≥ ${riseThresholdNotify}%
 `;
             }
             if (comparisonResults.fallNotify.triggered && isNotEmpty(fallThresholdNotify)) {
-                text += `> - 跌幅已达到或超过设置阈值: ${expectWorth.toFixed(2)}% ≤ -${fallThresholdNotify}%
+                text += `> - 跌幅已达到或超过设置阈值: ${expectGrowth.toFixed(2)}% ≤ -${fallThresholdNotify}%
 `;
             }
             if (comparisonResults.netWorth.triggered && isNotEmpty(netWorthThreshold)) {
-                text += `> - 净值已达到或超过设置阈值: ${netWorth.toFixed(4)} ≥ ${netWorthThreshold!.toFixed(4)}
+                text += `> - 净值已达到或超过设置阈值: ${expectWorth.toFixed(4)} ≥ ${netWorthThreshold!.toFixed(4)}
 `;
             }
         } else {
