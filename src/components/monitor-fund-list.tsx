@@ -95,7 +95,7 @@ export default function MonitorFundList({
                 changePercent: fund.actualDayGrowth?.toFixed(2) + '%' || 'N/A',
                 isMonitoring: false, // 默认值，后续可以从其他API获取
                 isFavorite: true, // 收藏列表中的基金一定是已收藏的
-                updateTime: fund.netWorthDate || new Date().toISOString(),
+                updateTime: fund.expectWorthDate || new Date().toISOString(),
                 status: '打开', // 默认状态
                 monitorId: fund.monitorId,
                 hasRules: fund.hasRules,
@@ -231,7 +231,7 @@ export default function MonitorFundList({
 
     // 格式化日期
     const formatDate = (dateString: string) => {
-        return dayjs(dateString).format('YYYY-MM-DD');
+        return dayjs(dateString).format('YYYY-MM-DD HH:mm');
     };
 
     // 鼠标悬停显示二维码状态

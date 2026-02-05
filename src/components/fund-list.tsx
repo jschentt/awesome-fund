@@ -131,7 +131,7 @@ export default function FundList({
                 isFavorite: fund.isFavorite ?? false,
                 isMonitoring: fund.isMonitoring ?? false,
                 status: fund.status || '打开',
-                updateTime: fund.updateTime || new Date().toISOString(),
+                updateTime: fund.expectWorthDate || new Date().toISOString(),
             })),
         );
     }, [initialFunds]);

@@ -246,7 +246,7 @@ export default function FundCardsGrid({
                                 className="text-xs text-gray-400 pt-2 border-t border-gray-100"
                                 aria-label="基金数据更新时间"
                             >
-                                更新时间: {dayjs(fund.updateTime).format('YYYY-MM-DD HH:mm:ss')}
+                                更新时间: {dayjs(fund.updateTime).format('YYYY-MM-DD HH:mm')}
                             </div>
                         </Link>
 
