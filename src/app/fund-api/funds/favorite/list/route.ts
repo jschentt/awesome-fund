@@ -90,7 +90,16 @@ export async function GET(request: Request) {
 
         // 返回完整的收藏列表
         return NextResponse.json<ApiResponse<FavoriteFund[]>>(
-            { message: '获取收藏列表成功', data: fundDetails },
+            {
+                message: '获取收藏列表成功',
+                data: fundDetails?.length
+                    ? fundDetails?.sort(
+                          (a, b) =>
+                              new Date(b.favorite_time).getTime() -
+                              new Date(a.favorite_time).getTime(),
+                      )
+                    : [],
+            },
             { status: 200 },
         );
     } catch (error) {

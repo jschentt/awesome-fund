@@ -104,7 +104,16 @@ export async function GET(request: Request) {
 
         // 返回完整的监控列表
         return NextResponse.json<ApiResponse<MonitorFund[]>>(
-            { message: '获取监控列表成功', data: fundDetails },
+            {
+                message: '获取监控列表成功',
+                data: fundDetails?.length
+                    ? fundDetails?.sort(
+                          (a, b) =>
+                              new Date(b.monitor_time).getTime() -
+                              new Date(a.monitor_time).getTime(),
+                      )
+                    : [],
+            },
             { status: 200 },
         );
     } catch (error) {
